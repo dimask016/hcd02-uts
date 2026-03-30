@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital | Login Google</title>
+    <title>Brankas LM - P2P Emas Digital | Fitur Tawar</title>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -23,151 +20,6 @@
             background: #f0f4f9;
             color: #1a2c3e;
             overflow-x: hidden;
-        }
-
-        /* Login Overlay */
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0a2a3b, #071e2c);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 48px;
-            padding: 48px 40px;
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-            animation: fadeInUp 0.5s ease;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .login-card h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 28px;
-            background: linear-gradient(135deg, #FFD966, #FFA41C);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 8px;
-        }
-
-        .login-card .subtitle {
-            color: #5c7f94;
-            margin-bottom: 32px;
-            font-size: 14px;
-        }
-
-        .google-btn {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 50px;
-            padding: 14px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            width: 100%;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.2s;
-            margin-bottom: 20px;
-        }
-
-        .google-btn:hover {
-            background: #f8f9fa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .google-btn img {
-            width: 24px;
-            height: 24px;
-        }
-
-        .role-selector {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eef2f8;
-        }
-
-        .role-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .role-btn {
-            flex: 1;
-            padding: 10px;
-            border-radius: 40px;
-            border: 1.5px solid #FFA41C;
-            background: white;
-            color: #d97c15;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .role-btn.active {
-            background: linear-gradient(95deg, #FFA41C, #FF8C00);
-            color: white;
-            border: none;
-        }
-
-        .user-info-bar {
-            background: white;
-            border-radius: 60px;
-            padding: 8px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #FFA41C;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .logout-btn {
-            background: #fee2e2;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 40px;
-            color: #b91c1c;
-            cursor: pointer;
-            font-weight: 500;
         }
 
         .app {
@@ -360,6 +212,20 @@
             color: #FFD966;
         }
 
+        .gold-limits {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            font-size: 0.75rem;
+        }
+
+        .gold-limits div {
+            background: rgba(0,0,0,0.2);
+            padding: 8px 12px;
+            border-radius: 16px;
+            flex: 1;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -432,6 +298,11 @@
             flex-wrap: wrap;
             gap: 12px;
         }
+        .listing-info { flex: 2; }
+        .listing-price { font-weight: 700; font-size: 1.2rem; color: #1e577a; }
+        .badge-sell { background: #e6f7e6; color: #2b7e3a; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; }
+
+        /* Tawaran Menunggu */
         .offers-card {
             background: #fff8e7;
             border-left: 4px solid #FFA41C;
@@ -445,6 +316,8 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+        .badge-pending { background: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; }
+
         .form-group { margin-bottom: 20px; }
         .form-group label { font-weight: 600; display: block; margin-bottom: 8px; color: #235b7c; }
         .form-group input, .form-group textarea {
@@ -455,7 +328,10 @@
             font-family: 'Inter', sans-serif;
         }
         .row-2cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .price-range-info { background: #fef7e0; padding: 12px 16px; border-radius: 16px; margin-top: 8px; font-size: 0.8rem; }
+        .fee-breakdown { background: #e8f5e9; padding: 12px 16px; border-radius: 16px; margin-top: 16px; }
         .info-message { background: #eef3fc; padding: 12px 16px; border-radius: 16px; font-size: 0.85rem; margin-top: 12px; }
+
         .modal {
             display: none;
             position: fixed;
@@ -476,6 +352,7 @@
             overflow-y: auto;
         }
         .close-modal { float: right; font-size: 26px; cursor: pointer; }
+
         .history-table { width: 100%; border-collapse: collapse; }
         .history-table th, .history-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #ecf3f8; }
 
@@ -488,27 +365,7 @@
     </style>
 </head>
 <body>
-<div id="loginOverlay" class="login-overlay">
-    <div class="login-card">
-        <h2><i class="fas fa-coins"></i> Brankas LM</h2>
-        <div class="subtitle">P2P Emas Digital</div>
-        <button id="googleLoginBtn" class="google-btn">
-            <img src="https://www.google.com/favicon.ico" alt="Google"> Login dengan Gmail
-        </button>
-        <div class="role-selector">
-            <div style="font-size: 14px; color: #5c7f94;">Pilih角色 untuk testing:</div>
-            <div class="role-buttons">
-                <button class="role-btn" data-role="penjual">👨‍💼 Sebagai PENJUAL</button>
-                <button class="role-btn" data-role="pembeli">👨‍💻 Sebagai PEMBELI</button>
-            </div>
-            <div class="info-message" style="margin-top: 16px; font-size: 12px;">
-                💡 Login dengan Gmail, lalu pilih role. Data akan tersimpan per akun.
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="app" id="appContainer" style="display: none;">
+<div class="app">
     <div class="sidebar">
         <div class="logo-area">
             <h2><i class="fas fa-coins"></i> Brankas LM</h2>
@@ -521,18 +378,11 @@
             <div class="nav-item" data-page="riwayat"><i class="fas fa-history"></i> <span>Riwayat P2P</span></div>
         </div>
     </div>
-    <div class="main-content">
-        <div class="user-info-bar" id="userInfoBar">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div class="user-avatar" id="userAvatar">👤</div>
-                <div><strong id="userName">Loading...</strong><br><span id="userRole" style="font-size: 12px;"></span></div>
-            </div>
-            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-        <div id="mainContent"></div>
-    </div>
+
+    <div class="main-content" id="mainContent"></div>
 </div>
 
+<!-- Modal Detail Listing & Tawar -->
 <div id="detailModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" id="closeDetailModal">&times;</span>
@@ -541,152 +391,37 @@
 </div>
 
 <script>
-    // ==================== FIREBASE CONFIG ====================
-    const firebaseConfig = {
-        apiKey: "AIzaSyDummyKeyForDemo123456789", // Demo - untuk testing, sebenarnya perlu config valid
-        authDomain: "brankas-lm-demo.firebaseapp.com",
-        projectId: "brankas-lm-demo",
-        storageBucket: "brankas-lm-demo.appspot.com",
-        messagingSenderId: "123456789012",
-        appId: "1:123456789012:web:abcdef123456"
-    };
-    
-    // Inisialisasi Firebase (akan error jika tidak ada koneksi, tapi kita pakem untuk demo auth)
-    // Untuk demo, kita akan menggunakan localStorage sebagai fallback agar tetap bisa diuji
-    let currentUser = null;
-    let userRole = null; // 'penjual' atau 'pembeli'
-    
-    // Data storage per user (berdasarkan email)
-    let userDataStore = {};
-    
-    function loadUserData(email) {
-        const stored = localStorage.getItem(`brankas_data_${email}`);
-        if (stored) {
-            return JSON.parse(stored);
-        }
-        return {
-            goldBalance: { gram: 50.0, accountNumber: "E000007474", userName: "" },
-            marketplaceListings: [],
-            pendingOffers: [],
-            p2pTransactions: []
-        };
-    }
-    
-    function saveUserData(email, data) {
-        localStorage.setItem(`brankas_data_${email}`, JSON.stringify(data));
-    }
-    
-    // Data default untuk penjual dan pembeli
-    function getDefaultDataForRole(role, email, name) {
-        const userName = name || email.split('@')[0];
-        if (role === 'penjual') {
-            return {
-                goldBalance: { gram: 100.0, accountNumber: "SELL" + Math.floor(Math.random()*10000), userName: userName },
-                marketplaceListings: [
-                    { id: "GLD1001", name: "Emas Digital 10 Gram", gram: 10, pricePerGram: 1295000, totalPrice: 12950000, qty: 3, seller: userName, sellerId: email, desc: "Emas digital murni 24k", createdAt: new Date().toISOString().slice(0,10) },
-                    { id: "GLD1002", name: "Emas Digital 5 Gram", gram: 5, pricePerGram: 1295000, totalPrice: 6475000, qty: 5, seller: userName, sellerId: email, desc: "Sertifikat kepemilikan digital", createdAt: new Date().toISOString().slice(0,10) }
-                ],
-                pendingOffers: [],
-                p2pTransactions: []
-            };
-        } else {
-            return {
-                goldBalance: { gram: 25.0, accountNumber: "BUY" + Math.floor(Math.random()*10000), userName: userName },
-                marketplaceListings: [],
-                pendingOffers: [],
-                p2pTransactions: []
-            };
-        }
-    }
-    
-    // Untuk demo tanpa Firebase real, kita gunakan simulasi login
-    function simulateGoogleLogin() {
-        return new Promise((resolve) => {
-            const email = prompt("Masukkan email untuk testing (contoh: penjual@gmail.com atau pembeli@gmail.com):", "penjual@test.com");
-            if (email) {
-                const name = email.split('@')[0];
-                resolve({ user: { email: email, displayName: name }, credential: null });
-            } else {
-                resolve(null);
-            }
-        });
-    }
-    
-    async function handleLogin() {
-        const result = await simulateGoogleLogin();
-        if (result && result.user) {
-            currentUser = result.user;
-            // Ambil role yang dipilih
-            const selectedRole = document.querySelector('.role-btn.active')?.getAttribute('data-role') || 'pembeli';
-            userRole = selectedRole;
-            
-            let userData = loadUserData(currentUser.email);
-            if (Object.keys(userData).length === 0) {
-                userData = getDefaultDataForRole(userRole, currentUser.email, currentUser.displayName);
-            }
-            userDataStore = userData;
-            
-            document.getElementById("loginOverlay").style.display = "none";
-            document.getElementById("appContainer").style.display = "flex";
-            document.getElementById("userName").innerText = currentUser.displayName || currentUser.email;
-            document.getElementById("userRole").innerHTML = userRole === 'penjual' ? '👨‍💼 Penjual Emas' : '👨‍💻 Pembeli Emas';
-            document.getElementById("userAvatar").innerHTML = userRole === 'penjual' ? '💰' : '🛒';
-            
-            // Inisialisasi global variables dari userData
-            initializeFromUserData();
-            setActivePage("dashboard");
-        }
-    }
-    
-    function initializeFromUserData() {
-        window.userGoldBalance = userDataStore.goldBalance;
-        window.marketplaceListings = userDataStore.marketplaceListings || [];
-        window.pendingOffers = userDataStore.pendingOffers || [];
-        window.p2pTransactions = userDataStore.p2pTransactions || [];
-    }
-    
-    function saveCurrentState() {
-        if (currentUser) {
-            userDataStore.goldBalance = window.userGoldBalance;
-            userDataStore.marketplaceListings = window.marketplaceListings;
-            userDataStore.pendingOffers = window.pendingOffers;
-            userDataStore.p2pTransactions = window.p2pTransactions;
-            saveUserData(currentUser.email, userDataStore);
-        }
-    }
-    
-    function logout() {
-        currentUser = null;
-        userRole = null;
-        document.getElementById("loginOverlay").style.display = "flex";
-        document.getElementById("appContainer").style.display = "none";
-        // Reset role selection
-        document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector('.role-btn[data-role="pembeli"]').classList.add('active');
-    }
-    
-    // Role selection
-    document.querySelectorAll('.role-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
-    });
-    document.querySelector('.role-btn[data-role="pembeli"]').classList.add('active');
-    
-    document.getElementById("googleLoginBtn").addEventListener("click", handleLogin);
-    document.getElementById("logoutBtn")?.addEventListener("click", logout);
-    
-    // ==================== GLOBAL VARIABLES (akan diisi dari userData) ====================
+    // ==================== DATA GLOBAL ====================
     let goldPricePerGram = 2795000;
     const PLATFORM_FEE_PERCENT = 0.5;
     const MAX_PRICE_MARKUP_PERCENT = 15;
-    
-    let userGoldBalance = { gram: 0, userName: "", accountNumber: "" };
-    let marketplaceListings = [];
-    let pendingOffers = [];
-    let p2pTransactions = [];
-    
+
+    // User Saldo Emas
+    let userGoldBalance = {
+        gram: 50.0,
+        minSaldo: 0.0,
+        maxSaldo: 5000.0,
+        validUntil: "31/12/9999",
+        accountNumber: "E000007474",
+        userName: "DIMAS KURNIAWAN"
+    };
+
+    // Listing Marketplace
+    let marketplaceListings = [
+        { id: "GLD1001", name: "Emas Digital 10 Gram", gram: 10, pricePerGram: 1295000, totalPrice: 12950000, qty: 2, seller: "EmasKuOfficial", sellerId: "seller1", desc: "Emas digital murni 24k", createdAt: "2026-03-28" },
+        { id: "GLD1002", name: "Emas Digital 5 Gram", gram: 5, pricePerGram: 1295000, totalPrice: 6475000, qty: 3, seller: "GoldTrader99", sellerId: "seller2", desc: "Sertifikat kepemilikan digital", createdAt: "2026-03-27" },
+        { id: "GLD1003", name: "Emas Digital 25 Gram", gram: 25, pricePerGram: 1295000, totalPrice: 32375000, qty: 1, seller: "InvestorEmas", sellerId: "seller3", desc: "Harga spesial grosir", createdAt: "2026-03-26" }
+    ];
+
+    // Struktur Tawaran (Offer) - Menunggu respons penjual
+    let pendingOffers = []; // { id, listingId, buyerName, offeredPricePerGram, offeredTotal, gram, status, createdAt }
+    let acceptedOffers = []; // tawaran yang disetujui
+
+    let p2pTransactions = [
+        { id: "TRX001", asset: "Emas Digital 5 Gram", gram: 5, counterparty: "AhmadFauzi", type: "Beli", totalPrice: 6475000, date: "2026-03-25", status: "Selesai", fee: 32375 }
+    ];
+
+    // Helper
     function formatRupiah(amount) {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
     }
@@ -694,9 +429,9 @@
     function getSaldoRupiah() { return userGoldBalance.gram * goldPricePerGram; }
     function getMaxPricePerGram() { return goldPricePerGram * (1 + MAX_PRICE_MARKUP_PERCENT / 100); }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
-    
+
     let currentPage = "dashboard";
-    
+
     function render() {
         const container = document.getElementById("mainContent");
         if (!container) return;
@@ -705,129 +440,315 @@
         else if (currentPage === "buat-listing") renderBuatListing(container);
         else if (currentPage === "riwayat") renderRiwayat(container);
         attachNavEvents();
-        saveCurrentState();
     }
-    
+
+    // DASHBOARD dengan Tampilan Tawaran Masuk untuk Penjual
     function renderDashboard(container) {
         const saldoRupiah = getSaldoRupiah();
-        const myListingsIds = marketplaceListings.filter(l => l.sellerId === currentUser?.email).map(l => l.id);
+        // Tawaran yang masuk ke listing milik "Anda" (sebagai penjual)
+        const myListingsIds = marketplaceListings.filter(l => l.seller === "Anda").map(l => l.id);
         const incomingOffers = pendingOffers.filter(offer => myListingsIds.includes(offer.listingId));
         
         container.innerHTML = `
-            <div class="page-header"><h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard Emas Digital</h1></div>
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard Emas Digital</h1>
+                <div class="btn-outline btn-sm"><i class="fas fa-sync-alt"></i> ${new Date().toLocaleDateString('id-ID')}</div>
+            </div>
             <div class="gold-card">
-                <div class="gold-card-header"><div class="gold-brand"><h3>BRANKAS</h3><span>LM</span></div><div class="gold-brand"><h3>ANTM</h3></div></div>
+                <div class="gold-card-header">
+                    <div class="gold-brand"><h3>BRANKAS</h3><span>LM</span></div>
+                    <div class="gold-brand"><h3>ANTM</h3></div>
+                    <div class="gold-badge"><i class="fas fa-gem"></i> Premium</div>
+                </div>
                 <div class="gold-card-body">
                     <div class="gold-user"><i class="far fa-id-card"></i> ${userGoldBalance.accountNumber} | ${userGoldBalance.userName}</div>
                     <div class="gold-balance"><div class="balance-gram">${formatGram(userGoldBalance.gram)}</div><div class="balance-label">SALDO EMAS DIGITAL</div></div>
                     <div class="rupiah-conversion"><div class="balance-label">NILAI KONVERSI RUPIAH</div><div class="rupiah-value">${formatRupiah(saldoRupiah)}</div><div style="font-size:0.7rem;">Harga pasar: ${formatRupiah(goldPricePerGram)}/gram</div></div>
+                    <div class="gold-limits"><div><span class="limit-label">Min Saldo</span><br><span class="limit-value">${formatGram(userGoldBalance.minSaldo)}</span></div><div><span class="limit-label">Max Saldo</span><br><span class="limit-value">${formatGram(userGoldBalance.maxSaldo)}</span></div><div><span class="limit-label">Valid Until</span><br><span class="limit-value">${userGoldBalance.validUntil}</span></div></div>
                 </div>
             </div>
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-title">Harga Emas/gram</div><div class="stat-value">${formatRupiah(goldPricePerGram)}</div></div>
-                <div class="stat-card"><div class="stat-title">Listing Saya</div><div class="stat-value">${marketplaceListings.filter(l => l.sellerId === currentUser?.email).length}</div></div>
+                <div class="stat-card"><div class="stat-title">Listing Aktif</div><div class="stat-value">${marketplaceListings.length}</div></div>
                 <div class="stat-card"><div class="stat-title">Tawaran Masuk</div><div class="stat-value">${incomingOffers.length}</div></div>
             </div>
             ${incomingOffers.length > 0 ? `
             <div class="section-card offers-card">
                 <h3><i class="fas fa-handshake"></i> Tawaran Masuk (Menunggu Respon Anda)</h3>
-                ${incomingOffers.map(offer => {
-                    const listing = marketplaceListings.find(l => l.id === offer.listingId);
-                    return `<div class="offer-item"><div><strong>${offer.buyerName}</strong> menawar <strong>${listing?.name}</strong> (${offer.gram}g)</div><div>${formatRupiah(offer.offeredPricePerGram)}/gram → Total: ${formatRupiah(offer.offeredTotal)}</div><div><button class="btn-success btn-sm accept-offer" data-offer-id="${offer.id}">✔ Terima</button><button class="btn-danger btn-sm reject-offer" data-offer-id="${offer.id}">✘ Tolak</button></div></div>`;
-                }).join('')}
-            </div>` : ''}
-            <div class="section-card"><div class="flex-between"><h3>Marketplace</h3><button id="gotoMarketBtn" class="btn-primary">Jelajahi Listing →</button></div></div>
+                <div id="incomingOffersList">
+                    ${incomingOffers.map(offer => {
+                        const listing = marketplaceListings.find(l => l.id === offer.listingId);
+                        return `
+                        <div class="offer-item" data-offer-id="${offer.id}">
+                            <div><strong>${offer.buyerName}</strong> menawar <strong>${listing?.name || 'Emas'}</strong> (${offer.gram}g)</div>
+                            <div>Harga tawar: ${formatRupiah(offer.offeredPricePerGram)}/gram → Total: ${formatRupiah(offer.offeredTotal)}</div>
+                            <div>
+                                <button class="btn-success btn-sm accept-offer" data-offer-id="${offer.id}">✔ Terima</button>
+                                <button class="btn-danger btn-sm reject-offer" data-offer-id="${offer.id}">✘ Tolak</button>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+            ` : ''}
+            <div class="section-card">
+                <div class="flex-between"><h3>Marketplace</h3><button id="gotoMarketBtn" class="btn-primary">Jelajahi Listing →</button></div>
+                <div class="info-message">Harga jual maksimal +15% dari pasar. Fee platform 0.5%</div>
+            </div>
         `;
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
-        document.querySelectorAll(".accept-offer").forEach(btn => btn.addEventListener("click", (e) => acceptOffer(btn.getAttribute("data-offer-id"))));
-        document.querySelectorAll(".reject-offer").forEach(btn => btn.addEventListener("click", (e) => rejectOffer(btn.getAttribute("data-offer-id"))));
+        
+        // Event untuk menerima/menolak tawaran
+        document.querySelectorAll(".accept-offer").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const offerId = btn.getAttribute("data-offer-id");
+                acceptOffer(offerId);
+            });
+        });
+        document.querySelectorAll(".reject-offer").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const offerId = btn.getAttribute("data-offer-id");
+                rejectOffer(offerId);
+            });
+        });
     }
-    
+
+    // Menerima tawaran
     function acceptOffer(offerId) {
         const offer = pendingOffers.find(o => o.id === offerId);
         if (!offer) return;
         const listing = marketplaceListings.find(l => l.id === offer.listingId);
         if (!listing) return;
-        if (confirm(`Terima tawaran dari ${offer.buyerName}?`)) {
+        
+        if (confirm(`Terima tawaran dari ${offer.buyerName} sebesar ${formatRupiah(offer.offeredPricePerGram)}/gram? Transaksi akan diproses.`)) {
+            // Pindahkan ke transaksi
             const fee = calculatePlatformFee(offer.offeredTotal);
-            p2pTransactions.unshift({ id: "TRX" + Date.now(), asset: listing.name, gram: offer.gram, counterparty: offer.buyerName, type: "Jual", totalPrice: offer.offeredTotal, date: new Date().toISOString().slice(0,10), status: "Selesai", fee: fee });
+            p2pTransactions.unshift({
+                id: "TRX" + Date.now(),
+                asset: listing.name,
+                gram: offer.gram,
+                counterparty: offer.buyerName,
+                type: "Jual",
+                totalPrice: offer.offeredTotal,
+                pricePerGram: offer.offeredPricePerGram,
+                date: new Date().toISOString().slice(0,10),
+                status: "Selesai",
+                fee: fee
+            });
+            // Kurangi stok listing
             listing.qty -= 1;
-            if (listing.qty <= 0) marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
+            if (listing.qty <= 0) {
+                const idx = marketplaceListings.findIndex(l => l.id === listing.id);
+                if (idx !== -1) marketplaceListings.splice(idx, 1);
+            }
+            // Hapus tawaran
             pendingOffers = pendingOffers.filter(o => o.id !== offerId);
-            alert(`✅ Transaksi berhasil!`);
+            alert(`✅ Tawaran diterima! Transaksi berhasil. Fee platform: ${formatRupiah(fee)}`);
             render();
         }
     }
-    function rejectOffer(offerId) { if(confirm("Tolak?")){ pendingOffers = pendingOffers.filter(o=>o.id !== offerId); render(); } }
-    
-    function renderMarketplace(container) {
-        container.innerHTML = `<div class="page-header"><h1 class="page-title">Marketplace</h1><button id="quickSellBtn" class="btn-outline btn-sm">+ Jual Emas</button></div><div class="section-card"><div id="marketplaceList" class="listing-grid"></div></div>`;
-        const listContainer = document.getElementById("marketplaceList");
-        if (marketplaceListings.length === 0) listContainer.innerHTML = "<p>Belum ada listing</p>";
-        else listContainer.innerHTML = marketplaceListings.map(item => `<div class="listing-item"><div><i class="fas fa-coins"></i> <strong>${item.name}</strong><br><span style="font-size:0.7rem;">Penjual: ${item.seller} | Stok: ${item.qty}</span></div><div>${formatRupiah(item.pricePerGram)}/gram<br>Total: ${formatRupiah(item.totalPrice)}</div><div><button class="btn-outline btn-sm detail-btn" data-id="${item.id}">Detail & Tawar</button></div></div>`).join('');
-        document.getElementById("quickSellBtn")?.addEventListener("click", () => setActivePage("buat-listing"));
-        document.querySelectorAll(".detail-btn").forEach(btn => btn.addEventListener("click", () => showDetailModal(marketplaceListings.find(l => l.id === btn.getAttribute("data-id")))));
+
+    function rejectOffer(offerId) {
+        if (confirm("Tolak tawaran ini?")) {
+            pendingOffers = pendingOffers.filter(o => o.id !== offerId);
+            alert("Tawaran ditolak.");
+            render();
+        }
     }
-    
+
+    // MARKETPLACE
+    function renderMarketplace(container) {
+        container.innerHTML = `
+            <div class="page-header"><h1 class="page-title"><i class="fas fa-store"></i> Marketplace</h1><button id="quickSellBtn" class="btn-outline btn-sm"><i class="fas fa-plus"></i> Jual Emas</button></div>
+            <div class="section-card"><div id="marketplaceList" class="listing-grid"></div></div>
+        `;
+        const listContainer = document.getElementById("marketplaceList");
+        if (marketplaceListings.length === 0) listContainer.innerHTML = "<p style='padding:40px;text-align:center'>Belum ada listing</p>";
+        else {
+            listContainer.innerHTML = marketplaceListings.map(item => {
+                const markup = ((item.pricePerGram / goldPricePerGram) - 1) * 100;
+                return `
+                <div class="listing-item">
+                    <div class="listing-info">
+                        <div><i class="fas fa-coins" style="font-size:28px; color:#FFB347;"></i> <strong>${item.name}</strong></div>
+                        <div style="font-size:0.75rem;">Penjual: ${item.seller} | Stok: ${item.qty} | ${markup > 0 ? '+' : ''}${markup.toFixed(1)}% dari pasar</div>
+                    </div>
+                    <div class="listing-price">${formatRupiah(item.pricePerGram)}<span style="font-size:0.7rem;">/gram</span><br><span style="font-size:0.85rem;">Total: ${formatRupiah(item.totalPrice)}</span></div>
+                    <div><button class="btn-outline btn-sm detail-btn" data-id="${item.id}">Detail & Tawar</button></div>
+                </div>`;
+            }).join('');
+        }
+        document.getElementById("quickSellBtn")?.addEventListener("click", () => setActivePage("buat-listing"));
+        document.querySelectorAll(".detail-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const id = btn.getAttribute("data-id");
+                const listing = marketplaceListings.find(l => l.id === id);
+                if (listing) showDetailModal(listing);
+            });
+        });
+    }
+
+    // MODAL DETAIL + FITUR TAWAR (Menunggu Respon Penjual)
     function showDetailModal(listing) {
         const modal = document.getElementById("detailModal");
-        document.getElementById("modalDynamicContent").innerHTML = `
-            <h3>${listing.name}</h3><div style="background:#f8fafc;border-radius:20px;padding:16px;margin:16px 0;"><p>Penjual: ${listing.seller}</p><p>Berat: ${listing.gram}g</p><p>Harga: ${formatRupiah(listing.pricePerGram)}/gram</p><p><strong>Total: ${formatRupiah(listing.totalPrice)}</strong></p></div>
-            <div style="display:flex;gap:12px;"><button id="buyNowBtn" class="btn-primary">Beli Langsung</button><button id="offerBtn" class="btn-outline">Ajukan Tawaran</button></div>
-            <div id="offerSection" style="display:none;margin-top:16px;"><input type="number" id="offerPrice" placeholder="Harga tawar/gram" style="width:100%;padding:10px;"><button id="submitOffer" class="btn-primary btn-sm" style="margin-top:8px;">Kirim Tawaran</button></div>`;
+        const modalContent = document.getElementById("modalDynamicContent");
+        const fee = calculatePlatformFee(listing.totalPrice);
+        
+        modalContent.innerHTML = `
+            <h3><i class="fas fa-coins"></i> ${listing.name}</h3>
+            <div style="background:#f8fafc; border-radius: 20px; padding: 16px; margin:16px 0;">
+                <p>Penjual: ${listing.seller}</p>
+                <p>Berat: ${listing.gram} gram</p>
+                <p>Harga/gram: ${formatRupiah(listing.pricePerGram)}</p>
+                <p><strong>Total: ${formatRupiah(listing.totalPrice)}</strong></p>
+                <p>Stok: ${listing.qty}</p>
+                <p>Deskripsi: ${listing.desc}</p>
+            </div>
+            <div class="fee-breakdown">Fee platform 0.5%: ${formatRupiah(fee)} (ditanggung penjual)</div>
+            <div style="display:flex; gap:12px; margin:20px 0;">
+                <button id="buyNowBtn" class="btn-primary">Beli Langsung</button>
+                <button id="offerBtn" class="btn-outline"><i class="fas fa-gavel"></i> Ajukan Tawaran</button>
+            </div>
+            <div id="offerSection" style="display:none; margin-top:16px; padding:16px; background:#fef7e0; border-radius:20px;">
+                <h4>💰 Buat Tawaran</h4>
+                <input type="number" id="offerPricePerGram" placeholder="Harga per gram (Rp)" style="width:100%; padding:10px; border-radius:20px; border:1px solid #FFA41C; margin:10px 0;">
+                <button id="submitOfferBtn" class="btn-primary btn-sm">Kirim Tawaran</button>
+                <p style="font-size:0.7rem; margin-top:8px;">Tawaran akan dikirim ke penjual dan menunggu respons.</p>
+            </div>
+            <p style="font-size:0.7rem; color:#7899b0;">Transaksi aman melalui escrow Brankas LM.</p>
+        `;
         modal.style.display = "flex";
         document.getElementById("closeDetailModal").onclick = () => modal.style.display = "none";
+        window.onclick = (e) => { if(e.target === modal) modal.style.display = "none"; };
+        
+        // Beli Langsung
         document.getElementById("buyNowBtn").onclick = () => {
             if (userGoldBalance.gram >= listing.gram) {
                 userGoldBalance.gram -= listing.gram;
-                p2pTransactions.unshift({ id: "TRX" + Date.now(), asset: listing.name, gram: listing.gram, counterparty: listing.seller, type: "Beli", totalPrice: listing.totalPrice, date: new Date().toISOString().slice(0,10), status: "Selesai", fee: calculatePlatformFee(listing.totalPrice) });
-                alert("Pembelian berhasil!");
+                const feePaid = calculatePlatformFee(listing.totalPrice);
+                p2pTransactions.unshift({
+                    id: "TRX" + Date.now(), asset: listing.name, gram: listing.gram,
+                    counterparty: listing.seller, type: "Beli", totalPrice: listing.totalPrice,
+                    date: new Date().toISOString().slice(0,10), status: "Selesai", fee: feePaid
+                });
+                alert(`✅ Pembelian berhasil! Saldo emas Anda: ${formatGram(userGoldBalance.gram)}`);
                 modal.style.display = "none";
                 render();
-            } else alert("Saldo emas tidak cukup!");
-        };
-        let offerSec = document.getElementById("offerSection");
-        document.getElementById("offerBtn").onclick = () => offerSec.style.display = offerSec.style.display === "none" ? "block" : "none";
-        document.getElementById("submitOffer").onclick = () => {
-            const offerPrice = parseFloat(document.getElementById("offerPrice").value);
-            if (offerPrice > getMaxPricePerGram()) alert("Harga melebihi batas +15%");
-            else {
-                pendingOffers.push({ id: "OFFER_" + Date.now(), listingId: listing.id, buyerName: userGoldBalance.userName, offeredPricePerGram: offerPrice, offeredTotal: offerPrice * listing.gram, gram: listing.gram, createdAt: new Date().toISOString() });
-                alert("Tawaran dikirim ke penjual!");
-                modal.style.display = "none";
+            } else {
+                alert(`Saldo emas tidak cukup! Saldo: ${formatGram(userGoldBalance.gram)}`);
             }
+        };
+        
+        // Tampilkan form tawaran
+        let offerSection = document.getElementById("offerSection");
+        document.getElementById("offerBtn").onclick = () => {
+            offerSection.style.display = offerSection.style.display === "none" ? "block" : "none";
+        };
+        
+        document.getElementById("submitOfferBtn").onclick = () => {
+            const offerPricePerGram = parseFloat(document.getElementById("offerPricePerGram").value);
+            if (isNaN(offerPricePerGram) || offerPricePerGram <= 0) {
+                alert("Masukkan harga tawaran per gram yang valid!");
+                return;
+            }
+            const maxAllowed = getMaxPricePerGram();
+            if (offerPricePerGram > maxAllowed) {
+                alert(`Harga tawaran melebihi batas maksimal +15% (${formatRupiah(maxAllowed)}/gram)`);
+                return;
+            }
+            const offeredTotal = offerPricePerGram * listing.gram;
+            const newOffer = {
+                id: "OFFER_" + Date.now(),
+                listingId: listing.id,
+                buyerName: userGoldBalance.userName,
+                offeredPricePerGram: offerPricePerGram,
+                offeredTotal: offeredTotal,
+                gram: listing.gram,
+                status: "pending",
+                createdAt: new Date().toISOString()
+            };
+            pendingOffers.push(newOffer);
+            alert(`✅ Tawaran ${formatRupiah(offerPricePerGram)}/gram (Total: ${formatRupiah(offeredTotal)}) telah dikirim ke ${listing.seller}.\nMenunggu respons penjual.`);
+            offerSection.style.display = "none";
+            modal.style.display = "none";
         };
     }
-    
+
     function renderBuatListing(container) {
-        if (userRole !== 'penjual') {
-            container.innerHTML = `<div class="section-card"><div class="info-message">⚠️ Hanya akun PENJUAL yang dapat membuat listing. Silakan login sebagai penjual.</div></div>`;
-            return;
-        }
-        container.innerHTML = `<div class="page-header"><h1 class="page-title">Buat Listing</h1></div><div class="section-card"><form id="createForm"><div class="form-group"><label>Nama Emas</label><input type="text" id="name" required></div><div class="row-2cols"><div><label>Berat (Gram)</label><input type="number" id="gram" step="0.1" required></div><div><label>Harga/gram</label><input type="number" id="price" required></div></div><div class="form-group"><label>Stok</label><input type="number" id="qty" value="1"></div><button type="submit" class="btn-primary">Terbitkan</button></form></div>`;
-        document.getElementById("createForm").addEventListener("submit", (e) => {
-            e.preventDefault();
-            const gram = parseFloat(document.getElementById("gram").value);
-            const price = parseFloat(document.getElementById("price").value);
-            if (price > getMaxPricePerGram()) alert("Harga melebihi +15%");
-            else {
-                marketplaceListings.push({ id: "GLD" + Date.now(), name: document.getElementById("name").value, gram, pricePerGram: price, totalPrice: gram * price, qty: parseInt(document.getElementById("qty").value), seller: userGoldBalance.userName, sellerId: currentUser.email, desc: "", createdAt: new Date().toISOString().slice(0,10) });
-                alert("Listing berhasil!");
-                setActivePage("marketplace");
+        container.innerHTML = `
+            <div class="page-header"><h1 class="page-title">Buat Listing Emas Digital</h1></div>
+            <div class="section-card">
+                <form id="createListingForm">
+                    <div class="form-group"><label>Nama Emas</label><input type="text" id="assetName" required></div>
+                    <div class="row-2cols">
+                        <div class="form-group"><label>Berat (Gram)</label><input type="number" id="gram" step="0.1" required></div>
+                        <div class="form-group"><label>Harga Jual (per gram)</label><input type="number" id="pricePerGram" required></div>
+                    </div>
+                    <div id="priceRangeInfo" class="price-range-info"></div>
+                    <div id="totalPreview" class="info-message"></div>
+                    <div class="form-group"><label>Stok</label><input type="number" id="qty" value="1"></div>
+                    <div class="form-group"><label>Deskripsi</label><textarea rows="2" id="desc"></textarea></div>
+                    <button type="submit" class="btn-primary">Terbitkan Listing</button>
+                </form>
+            </div>
+        `;
+        const gramInput = document.getElementById("gram");
+        const priceInput = document.getElementById("pricePerGram");
+        const updatePreview = () => {
+            const gram = parseFloat(gramInput.value);
+            const price = parseFloat(priceInput.value);
+            if (!isNaN(gram) && gram > 0 && !isNaN(price) && price > 0) {
+                document.getElementById("totalPreview").innerHTML = `💰 Total harga: ${gram} × ${formatRupiah(price)} = ${formatRupiah(gram * price)}`;
+                const maxPerGram = getMaxPricePerGram();
+                if (price > maxPerGram) document.getElementById("priceRangeInfo").innerHTML = `<span style="color:red;">❌ Harga melebihi batas maksimal +15% (${formatRupiah(maxPerGram)}/gram)</span>`;
+                else document.getElementById("priceRangeInfo").innerHTML = `✅ Harga dalam batasan. Maksimal: ${formatRupiah(maxPerGram)}/gram`;
             }
+        };
+        gramInput.addEventListener("input", updatePreview);
+        priceInput.addEventListener("input", updatePreview);
+        document.getElementById("createListingForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const gram = parseFloat(gramInput.value);
+            const pricePerGram = parseFloat(priceInput.value);
+            if (pricePerGram > getMaxPricePerGram()) { alert("Harga melebihi batas maksimal +15%"); return; }
+            marketplaceListings.push({
+                id: "GLD" + Date.now(), name: document.getElementById("assetName").value, gram, pricePerGram,
+                totalPrice: gram * pricePerGram, qty: parseInt(document.getElementById("qty").value),
+                seller: "Anda", sellerId: "currentUser", desc: document.getElementById("desc").value, createdAt: new Date().toISOString().slice(0,10)
+            });
+            alert("Listing berhasil dibuat!");
+            setActivePage("marketplace");
         });
     }
-    
+
     function renderRiwayat(container) {
-        container.innerHTML = `<div class="page-header"><h1 class="page-title">Riwayat Transaksi</h1></div><div class="section-card"><table class="history-table"><thead><tr><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Fee</th><th>Tanggal</th><th>Status</th></tr></thead><tbody>${p2pTransactions.map(t => `<tr><td>${t.asset}</td><td>${t.gram}g</td><td>${t.counterparty}</td><td>${formatRupiah(t.totalPrice)}</td><td>${formatRupiah(t.fee)}</td><td>${t.date}</td><td>${t.status}</td></tr>`).join('')}</tbody></table></div>`;
+        container.innerHTML = `
+            <div class="page-header"><h1 class="page-title">Riwayat Transaksi</h1></div>
+            <div class="section-card">
+                <table class="history-table"><thead><tr><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Fee</th><th>Tanggal</th><th>Status</th></tr></thead>
+                <tbody>${p2pTransactions.map(t => `<tr><td>${t.asset}</td><td>${t.gram}g</td><td>${t.counterparty}</td><td>${formatRupiah(t.totalPrice)}</td><td>${formatRupiah(t.fee)}</td><td>${t.date}</td><td>${t.status}</td></tr>`).join('')}</tbody></table>
+            </div>
+        `;
     }
-    
+
     function setActivePage(pageId) {
         currentPage = pageId;
-        document.querySelectorAll(".nav-item").forEach(item => { if(item.getAttribute("data-page") === pageId) item.classList.add("active"); else item.classList.remove("active"); });
+        document.querySelectorAll(".nav-item").forEach(item => {
+            if(item.getAttribute("data-page") === pageId) item.classList.add("active");
+            else item.classList.remove("active");
+        });
         render();
     }
-    function attachNavEvents() { document.querySelectorAll(".nav-item").forEach(nav => { nav.removeEventListener("click", nav._listener); nav.addEventListener("click", () => setActivePage(nav.getAttribute("data-page"))); nav._listener = () => setActivePage(nav.getAttribute("data-page")); }); }
+
+    function attachNavEvents() {
+        document.querySelectorAll(".nav-item").forEach(nav => {
+            nav.removeEventListener("click", nav._listener);
+            nav.addEventListener("click", () => setActivePage(nav.getAttribute("data-page")));
+            nav._listener = () => setActivePage(nav.getAttribute("data-page"));
+        });
+    }
+
+    setActivePage("dashboard");
 </script>
 </body>
 </html>

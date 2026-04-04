@@ -66,6 +66,8 @@
         .page-title { font-size: 1.9rem; font-weight: 700; background: linear-gradient(130deg, #1c4e6e, #2c6f96); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .sync-btn { background: #2ecc71 !important; color: white !important; border: none !important; }
         .load-btn { background: #3498db !important; color: white !important; border: none !important; }
+        .toast-notification { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 30px; z-index: 3000; animation: fadeInOut 3s ease forwards; }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(20px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; transform: translateY(20px); } }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -128,7 +130,16 @@
     let pendingOffers = [];
     let p2pTransactions = [];
     
-    // Helper functions
+    // Toast notification helper
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.background = isError ? '#e74c3c' : '#2ecc71';
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
     function formatRupiah(amount) {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
     }
@@ -136,69 +147,122 @@
     function getMaxPricePerGram() { return goldPricePerGram * (1 + MAX_PRICE_MARKUP_PERCENT / 100); }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
     
-    // ==================== GOOGLE SHEETS SYNC ====================
+    // ==================== GOOGLE SHEETS SYNC (DENGAN FALLBACK & ERROR HANDLING LEBIH BAIK) ====================
     async function syncToGoogleSheets() {
-        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL === "YOUR_WEBAPP_URL_HERE") {
-            alert("⚠️ URL Google Sheets Web App belum dikonfigurasi!\n\nLangkah:\n1. Buka spreadsheet Anda\n2. Extensions > Apps Script\n3. Deploy sebagai Web App\n4. Copy URL dan paste di kode");
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE") || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
+            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi! Data hanya disimpan di local browser.", true);
             return false;
         }
         
+        showToast("🔄 Menyinkronkan data ke Google Sheets...", false);
+        
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            
             const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'save',
-                    listings: marketplaceListings
-                })
+                    listings: marketplaceListings,
+                    timestamp: new Date().toISOString()
+                }),
+                signal: controller.signal
             });
-            const result = await response.json();
-            if (result.success) {
-                alert(`✅ Data berhasil disinkronkan ke Google Sheets!\n${result.count || marketplaceListings.length} listing tersimpan.`);
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const textResponse = await response.text();
+            let result;
+            try {
+                result = JSON.parse(textResponse);
+            } catch (e) {
+                console.warn("Response bukan JSON:", textResponse.substring(0, 100));
+                throw new Error("Respons dari server tidak valid (bukan format JSON). Periksa Apps Script.");
+            }
+            
+            if (result && result.success) {
+                showToast(`✅ Berhasil! ${result.count || marketplaceListings.length} listing tersimpan di Google Sheets.`);
                 return true;
             } else {
-                alert("❌ Gagal sync: " + (result.error || "Unknown error"));
-                return false;
+                throw new Error(result?.error || "Gagal menyimpan data");
             }
         } catch (error) {
-            console.error("Sync error:", error);
-            alert("❌ Gagal terhubung ke Google Sheets. Periksa koneksi internet dan URL Web App.");
+            console.error("Sync error detail:", error);
+            if (error.name === 'AbortError') {
+                showToast("❌ Timeout: Server Google Sheets tidak merespon. Cek URL Web App Anda!", true);
+            } else if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+                showToast("❌ Gagal terhubung ke Google Sheets. Periksa koneksi internet dan pastikan Web App sudah di-deploy dengan akses 'Anyone'", true);
+            } else {
+                showToast(`❌ Sync gagal: ${error.message}`, true);
+            }
             return false;
         }
     }
     
     async function loadFromGoogleSheets() {
-        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL === "YOUR_WEBAPP_URL_HERE") {
-            alert("⚠️ URL Google Sheets Web App belum dikonfigurasi!");
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE") || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
+            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi! Gunakan data lokal.", true);
             return false;
         }
         
+        showToast("🔄 Memuat data dari Google Sheets...", false);
+        
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            
             const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'load' })
+                body: JSON.stringify({ action: 'load' }),
+                signal: controller.signal
             });
-            const result = await response.json();
-            if (result.success && result.listings) {
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const textResponse = await response.text();
+            let result;
+            try {
+                result = JSON.parse(textResponse);
+            } catch (e) {
+                console.warn("Response bukan JSON:", textResponse.substring(0, 100));
+                throw new Error("Respons dari server tidak valid. Pastikan Apps Script mengembalikan JSON yang benar.");
+            }
+            
+            if (result && result.success && result.listings) {
                 if (result.listings.length > 0) {
                     marketplaceListings = result.listings;
                     if (currentUserEmail) saveUserData(currentUserEmail);
                     render();
-                    alert(`✅ Berhasil memuat ${result.listings.length} listing dari Google Sheets!`);
+                    showToast(`✅ Berhasil memuat ${result.listings.length} listing dari Google Sheets!`);
                 } else {
-                    alert("ℹ️ Tidak ada data di Google Sheets. Silakan buat listing terlebih dahulu, lalu klik Sync.");
+                    showToast("ℹ️ Tidak ada data di Google Sheets. Silakan buat listing terlebih dahulu.", false);
                 }
                 return true;
             } else {
-                alert("❌ Gagal load: " + (result.error || "Unknown error"));
-                return false;
+                throw new Error(result?.error || "Gagal memuat data");
             }
         } catch (error) {
-            console.error("Load error:", error);
-            alert("❌ Gagal terhubung ke Google Sheets. Periksa koneksi internet dan URL Web App.");
+            console.error("Load error detail:", error);
+            if (error.name === 'AbortError') {
+                showToast("❌ Timeout: Server tidak merespon. Cek URL Web App Anda!", true);
+            } else if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+                showToast("❌ Gagal terhubung ke Google Sheets. Periksa: 1) URL Web App sudah di-deploy? 2) Akses 'Execute as me' dan 'Who has access: Anyone'? 3) Koneksi internet", true);
+            } else {
+                showToast(`❌ Load gagal: ${error.message}`, true);
+            }
             return false;
         }
     }
@@ -210,11 +274,13 @@
         const key = getStorageKey(email);
         const stored = localStorage.getItem(key);
         if (stored) {
-            const data = JSON.parse(stored);
-            userGoldBalance = data.userGoldBalance;
-            marketplaceListings = data.marketplaceListings || [];
-            pendingOffers = data.pendingOffers || [];
-            p2pTransactions = data.p2pTransactions || [];
+            try {
+                const data = JSON.parse(stored);
+                userGoldBalance = data.userGoldBalance;
+                marketplaceListings = data.marketplaceListings || [];
+                pendingOffers = data.pendingOffers || [];
+                p2pTransactions = data.p2pTransactions || [];
+            } catch(e) { console.error("Parse error", e); }
         } else {
             userGoldBalance = { 
                 gram: 50.0, 
@@ -239,12 +305,16 @@
     
     // ==================== GOOGLE LOGIN ====================
     function initGoogleLogin() {
-        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com") {
+        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")) {
             document.getElementById("googleButton").innerHTML = '<div style="background:#fef3c7; padding:12px; border-radius:50px; margin-bottom:16px; color:#b45309;"><i class="fas fa-exclamation-triangle"></i> Google Client ID belum dikonfigurasi</div>';
             return;
         }
         
         try {
+            if (typeof google === 'undefined' || !google.accounts) {
+                throw new Error("Google Identity Services belum dimuat");
+            }
+            
             google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
                 callback: handleGoogleCredential,
@@ -319,7 +389,7 @@
     }
     
     function logout() {
-        if (google && google.accounts && google.accounts.id) {
+        if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
             google.accounts.id.disableAutoSelect();
         }
         
@@ -383,7 +453,7 @@
             btn.addEventListener("click", (e) => { 
                 pendingOffers = pendingOffers.filter(o => o.id !== btn.dataset.offerId); 
                 render(); 
-                alert("Tawaran ditolak"); 
+                showToast("Tawaran ditolak");
             });
         });
     }
@@ -410,7 +480,7 @@
             if (listing.qty <= 0) marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
             pendingOffers = pendingOffers.filter(o => o.id !== offerId);
             render();
-            alert(`✅ Tawaran diterima! Fee platform: ${formatRupiah(fee)}`);
+            showToast(`✅ Tawaran diterima! Fee platform: ${formatRupiah(fee)}`);
         }
     }
     
@@ -418,7 +488,7 @@
         container.innerHTML = `
             <div class="flex-between">
                 <h1 class="page-title"><i class="fas fa-store"></i> Marketplace</h1>
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button id="syncToSheetBtn" class="btn-outline sync-btn"><i class="fas fa-cloud-upload-alt"></i> Sync ke Spreadsheet</button>
                     <button id="loadFromSheetBtn" class="btn-outline load-btn"><i class="fas fa-cloud-download-alt"></i> Load dari Spreadsheet</button>
                     <button id="quickSellBtn" class="btn-outline"><i class="fas fa-plus"></i> Jual Emas</button>
@@ -496,9 +566,9 @@
                 });
                 render(); 
                 modal.style.display = "none"; 
-                alert(`✅ Pembelian berhasil! Saldo emas Anda: ${formatGram(userGoldBalance.gram)}`);
+                showToast(`✅ Pembelian berhasil! Saldo emas Anda: ${formatGram(userGoldBalance.gram)}`);
             } else {
-                alert(`❌ Saldo emas tidak cukup! Saldo: ${formatGram(userGoldBalance.gram)}`);
+                showToast(`❌ Saldo emas tidak cukup! Saldo: ${formatGram(userGoldBalance.gram)}`, true);
             }
         };
         
@@ -510,12 +580,12 @@
         document.getElementById("submitOfferBtn").onclick = () => {
             const price = parseFloat(document.getElementById("offerPrice").value);
             if (isNaN(price) || price <= 0) {
-                alert("Masukkan harga tawaran yang valid!");
+                showToast("Masukkan harga tawaran yang valid!", true);
                 return;
             }
             const maxAllowed = getMaxPricePerGram();
             if (price > maxAllowed) {
-                alert(`Harga tawaran melebihi batas maksimal +15% (${formatRupiah(maxAllowed)}/gram)`);
+                showToast(`Harga tawaran melebihi batas maksimal +15% (${formatRupiah(maxAllowed)}/gram)`, true);
                 return;
             }
             pendingOffers.push({ 
@@ -530,7 +600,7 @@
             });
             render(); 
             modal.style.display = "none"; 
-            alert(`✅ Tawaran ${formatRupiah(price)}/gram (Total: ${formatRupiah(price * listing.gram)}) telah dikirim ke ${listing.seller}.\nMenunggu respons penjual.`);
+            showToast(`✅ Tawaran ${formatRupiah(price)}/gram (Total: ${formatRupiah(price * listing.gram)}) telah dikirim ke ${listing.seller}.`);
         };
     }
     
@@ -576,7 +646,7 @@
             const gram = parseFloat(gramInput.value);
             const price = parseFloat(priceInput.value);
             if (price > getMaxPricePerGram()) { 
-                alert("Harga melebihi batas maksimal +15%"); 
+                showToast("Harga melebihi batas maksimal +15%", true);
                 return; 
             }
             marketplaceListings.push({
@@ -593,7 +663,7 @@
             });
             render(); 
             setActivePage("marketplace"); 
-            alert("✅ Listing berhasil dibuat!");
+            showToast("✅ Listing berhasil dibuat!");
         });
     }
     
@@ -616,7 +686,7 @@
                                 <td><span style="background:#e6f7e6; padding:4px 12px; border-radius:20px; font-size:0.7rem;">${t.status || 'Selesai'}</span></td>
                             </tr>
                         `).join('')}</tbody>
-                    </table>`
+                     </table>`
                 }
             </div>
         `;
@@ -644,7 +714,7 @@
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
     
     // Inisialisasi Google Login
-    if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com") {
+    if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")) {
         if (typeof google !== 'undefined' && google.accounts) {
             initGoogleLogin();
         } else {

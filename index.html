@@ -68,6 +68,7 @@
         .load-btn { background: #3498db !important; color: white !important; border: none !important; }
         .toast-notification { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 30px; z-index: 3000; animation: fadeInOut 3s ease forwards; }
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(20px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; transform: translateY(20px); } }
+        .debug-panel { position: fixed; bottom: 10px; left: 10px; background: #1a1a2e; color: #0f0; font-family: monospace; font-size: 10px; padding: 8px; border-radius: 8px; z-index: 9999; max-width: 300px; word-break: break-all; display: none; }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -112,12 +113,16 @@
 </div>
 
 <div id="detailModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeDetailModal">&times;</span><div id="modalDynamicContent"></div></div></div>
+<div id="debugPanel" class="debug-panel"></div>
 
 <script>
     // ==================== KONFIGURASI ====================
     const GOOGLE_CLIENT_ID = "359149804614-u5fje7e1rb8m8a8p1hgcq9abj8mkh9e9.apps.googleusercontent.com";
-    // GANTI DENGAN URL WEB APP DARI GOOGLE APPS SCRIPT
-    const GOOGLE_SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz10Je_4AOgnOx0HejIRCATbeO8hjrwK3FzwACJv1TZXuEakknHaVm7pcC58k8RH4TrJQ/exec"; // <-- GANTI INI!
+    
+    // ⚠️⚠️⚠️ PERHATIAN! ⚠️⚠️⚠️
+    // GANTI URL DI BAWAH INI DENGAN URL WEB APP YANG ANDA DEPLOY DARI APPS SCRIPT!
+    // URL INI ADALAH CONTOH, HARUS DIGANTI DENGAN URL ANDA SENDIRI!
+    const GOOGLE_SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz10Je_4AOgnOx0HejIRCATbeO8hjrwK3FzwACJv1TZXuEakknHaVm7pcC58k8RH4TrJQ/exec";
     
     const PLATFORM_FEE_PERCENT = 0.5;
     const MAX_PRICE_MARKUP_PERCENT = 15;
@@ -130,7 +135,18 @@
     let pendingOffers = [];
     let p2pTransactions = [];
     
-    // Toast notification helper
+    // Debug function
+    function debugLog(message, data = null) {
+        const panel = document.getElementById("debugPanel");
+        if (panel) {
+            const time = new Date().toLocaleTimeString();
+            const logMsg = `[${time}] ${message}${data ? " " + JSON.stringify(data).substring(0, 200) : ""}`;
+            panel.innerHTML += "<div>" + logMsg + "</div>";
+            panel.scrollTop = panel.scrollHeight;
+            console.log(message, data);
+        }
+    }
+    
     function showToast(message, isError = false) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification';
@@ -138,6 +154,7 @@
         toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+        debugLog(message, { isError });
     }
     
     function formatRupiah(amount) {
@@ -147,122 +164,120 @@
     function getMaxPricePerGram() { return goldPricePerGram * (1 + MAX_PRICE_MARKUP_PERCENT / 100); }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
     
-    // ==================== GOOGLE SHEETS SYNC (DENGAN FALLBACK & ERROR HANDLING LEBIH BAIK) ====================
+    // ==================== GOOGLE SHEETS SYNC ====================
     async function syncToGoogleSheets() {
-        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE") || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
-            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi! Data hanya disimpan di local browser.", true);
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
+            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi!", true);
             return false;
         }
         
         showToast("🔄 Menyinkronkan data ke Google Sheets...", false);
+        debugLog("Starting sync...", { listingsCount: marketplaceListings.length });
         
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
             const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
                 method: 'POST',
-                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'save',
-                    listings: marketplaceListings,
-                    timestamp: new Date().toISOString()
-                }),
-                signal: controller.signal
+                    listings: marketplaceListings
+                })
             });
             
-            clearTimeout(timeoutId);
+            debugLog("Sync response status:", response.status);
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const textResponse = await response.text();
-            let result;
-            try {
-                result = JSON.parse(textResponse);
-            } catch (e) {
-                console.warn("Response bukan JSON:", textResponse.substring(0, 100));
-                throw new Error("Respons dari server tidak valid (bukan format JSON). Periksa Apps Script.");
-            }
+            const result = await response.json();
+            debugLog("Sync result:", result);
             
             if (result && result.success) {
-                showToast(`✅ Berhasil! ${result.count || marketplaceListings.length} listing tersimpan di Google Sheets.`);
+                showToast(`✅ Berhasil! ${result.count || marketplaceListings.length} listing tersimpan.`);
                 return true;
             } else {
                 throw new Error(result?.error || "Gagal menyimpan data");
             }
         } catch (error) {
-            console.error("Sync error detail:", error);
-            if (error.name === 'AbortError') {
-                showToast("❌ Timeout: Server Google Sheets tidak merespon. Cek URL Web App Anda!", true);
-            } else if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
-                showToast("❌ Gagal terhubung ke Google Sheets. Periksa koneksi internet dan pastikan Web App sudah di-deploy dengan akses 'Anyone'", true);
-            } else {
-                showToast(`❌ Sync gagal: ${error.message}`, true);
-            }
+            console.error("Sync error:", error);
+            showToast(`❌ Sync gagal: ${error.message}`, true);
+            debugLog("Sync error:", error.message);
             return false;
         }
     }
     
     async function loadFromGoogleSheets() {
-        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE") || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
-            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi! Gunakan data lokal.", true);
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
+            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi!", true);
             return false;
         }
         
         showToast("🔄 Memuat data dari Google Sheets...", false);
+        debugLog("Starting load...");
         
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
             const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
                 method: 'POST',
-                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'load' }),
-                signal: controller.signal
+                body: JSON.stringify({ action: 'load' })
             });
             
-            clearTimeout(timeoutId);
+            debugLog("Load response status:", response.status);
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            const textResponse = await response.text();
-            let result;
-            try {
-                result = JSON.parse(textResponse);
-            } catch (e) {
-                console.warn("Response bukan JSON:", textResponse.substring(0, 100));
-                throw new Error("Respons dari server tidak valid. Pastikan Apps Script mengembalikan JSON yang benar.");
-            }
+            const result = await response.json();
+            debugLog("Load result:", result);
             
             if (result && result.success && result.listings) {
                 if (result.listings.length > 0) {
                     marketplaceListings = result.listings;
                     if (currentUserEmail) saveUserData(currentUserEmail);
                     render();
-                    showToast(`✅ Berhasil memuat ${result.listings.length} listing dari Google Sheets!`);
+                    showToast(`✅ Berhasil memuat ${result.listings.length} listing!`);
                 } else {
-                    showToast("ℹ️ Tidak ada data di Google Sheets. Silakan buat listing terlebih dahulu.", false);
+                    showToast("ℹ️ Tidak ada data di Google Sheets.", false);
                 }
                 return true;
             } else {
                 throw new Error(result?.error || "Gagal memuat data");
             }
         } catch (error) {
-            console.error("Load error detail:", error);
-            if (error.name === 'AbortError') {
-                showToast("❌ Timeout: Server tidak merespon. Cek URL Web App Anda!", true);
-            } else if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
-                showToast("❌ Gagal terhubung ke Google Sheets. Periksa: 1) URL Web App sudah di-deploy? 2) Akses 'Execute as me' dan 'Who has access: Anyone'? 3) Koneksi internet", true);
+            console.error("Load error:", error);
+            showToast(`❌ Load gagal: ${error.message}`, true);
+            debugLog("Load error:", error.message);
+            return false;
+        }
+    }
+    
+    async function testConnection() {
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
+            showToast("⚠️ URL belum dikonfigurasi!", true);
+            return false;
+        }
+        
+        showToast("🔄 Testing koneksi...", false);
+        debugLog("Testing connection...");
+        
+        try {
+            const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'test' })
+            });
+            
+            const result = await response.json();
+            debugLog("Test result:", result);
+            
+            if (result && result.success) {
+                showToast("✅ Koneksi ke Google Sheets berhasil!");
+                return true;
             } else {
-                showToast(`❌ Load gagal: ${error.message}`, true);
+                throw new Error(result?.error || "Koneksi gagal");
             }
+        } catch (error) {
+            console.error("Test error:", error);
+            showToast(`❌ Test gagal: ${error.message}`, true);
+            debugLog("Test error:", error.message);
             return false;
         }
     }
@@ -336,7 +351,7 @@
             
             google.accounts.id.prompt();
             
-            console.log("Google Login initialized with Client ID:", GOOGLE_CLIENT_ID.substring(0, 20) + "...");
+            console.log("Google Login initialized");
         } catch (error) {
             console.error("Google Login initialization error:", error);
             document.getElementById("googleButton").innerHTML = '<div style="background:#fee2e2; padding:12px; border-radius:50px; margin-bottom:16px; color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> Error: ' + error.message + '</div>';
@@ -385,6 +400,11 @@
         document.getElementById("userName").innerText = displayName;
         document.getElementById("userEmail").innerHTML = email;
         document.getElementById("userAvatar").innerHTML = displayName.charAt(0).toUpperCase();
+        
+        // Show debug panel (optional, bisa dihapus nanti)
+        const panel = document.getElementById("debugPanel");
+        if (panel) panel.style.display = "block";
+        
         render();
     }
     
@@ -443,8 +463,18 @@
                 <div class="flex-between"><h3><i class="fas fa-store"></i> Marketplace</h3><button id="gotoMarketBtn" class="btn-primary">Jelajahi →</button></div>
                 <div class="info-message">Harga jual maksimal +15% dari pasar. Fee platform 0.5%</div>
             </div>
+            <div class="section-card">
+                <div class="flex-between"><h3><i class="fas fa-database"></i> Google Sheets Sync</h3></div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="testConnBtn" class="btn-outline"><i class="fas fa-plug"></i> Test Koneksi</button>
+                </div>
+                <div class="info-message" style="margin-top: 10px; font-size: 11px;">
+                    📊 URL Web App: ${GOOGLE_SHEETS_WEBAPP_URL.substring(0, 60)}...
+                </div>
+            </div>
         `;
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
+        document.getElementById("testConnBtn")?.addEventListener("click", () => testConnection());
         
         document.querySelectorAll(".accept-offer").forEach(btn => {
             btn.addEventListener("click", (e) => acceptOffer(btn.dataset.offerId));
@@ -489,6 +519,7 @@
             <div class="flex-between">
                 <h1 class="page-title"><i class="fas fa-store"></i> Marketplace</h1>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="testConnBtn" class="btn-outline"><i class="fas fa-plug"></i> Test</button>
                     <button id="syncToSheetBtn" class="btn-outline sync-btn"><i class="fas fa-cloud-upload-alt"></i> Sync ke Spreadsheet</button>
                     <button id="loadFromSheetBtn" class="btn-outline load-btn"><i class="fas fa-cloud-download-alt"></i> Load dari Spreadsheet</button>
                     <button id="quickSellBtn" class="btn-outline"><i class="fas fa-plus"></i> Jual Emas</button>
@@ -513,6 +544,7 @@
         document.getElementById("quickSellBtn")?.addEventListener("click", () => setActivePage("buat-listing"));
         document.getElementById("syncToSheetBtn")?.addEventListener("click", () => syncToGoogleSheets());
         document.getElementById("loadFromSheetBtn")?.addEventListener("click", () => loadFromGoogleSheets());
+        document.getElementById("testConnBtn")?.addEventListener("click", () => testConnection());
         document.querySelectorAll(".detail-btn").forEach(btn => {
             btn.addEventListener("click", () => showDetailModal(marketplaceListings.find(l => l.id === btn.dataset.id)));
         });
@@ -729,6 +761,8 @@
     } else {
         document.getElementById("googleButton").innerHTML = '<div style="background:#fef3c7; padding:12px; border-radius:50px; margin-bottom:16px; color:#b45309;"><i class="fas fa-cog"></i> Google Client ID belum dikonfigurasi. Gunakan Demo Mode.</div>';
     }
+    
+    debugLog("Aplikasi dimuat. URL Web App: " + GOOGLE_SHEETS_WEBAPP_URL.substring(0, 50) + "...");
 </script>
 </body>
 </html>

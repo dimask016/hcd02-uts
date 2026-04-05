@@ -1,7 +1,12 @@
 // GANTI dengan nilai dari Google Apps Script Anda setelah deploy
-    const GOOGLE_CLIENT_ID = "359149804614-vnhcg76muilk77homh9dlkj2qg3lol5u.apps.googleusercontent.com";
+    const GOOGLE_CLIENT_ID = "1NH4y4x0BcyG4CU_f17kOjY7HS5Gu4RU8TaNpxW6RmKg.apps.googleusercontent.com";
     
     // === PENTING: Ganti dengan URL Web App dan API Key Anda ===
     // Setelah deploy Google Apps Script, copy URL-nya dan paste di sini
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyek0jYUTNaduvAnVvUR4hzTli-F5-h0B1m647_GvdeAFG4ItQILwGAkQIW4_CG1VeF/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyek0jYUTNaduvAnVvUR4hzTli-F5-h0B1m647_GvdeAFG4ltQlLwGAkQlW4_CG1VeF/exec";
     const API_KEY = "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"; // Ganti dengan API Key yang sama di Apps Script
+
+
+    api_key="AIzaSyApQbt03G_BRNWhvGaDnAG2vwrt72cSbMY"
+
+    https://docs.google.com/spreadsheets/d/1NH4y4x0BcyG4CU_f17kOjY7HS5Gu4RU8TaNpxW6RmKg/edit?usp=sharing

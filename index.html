@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v10</title>
+    <title>Brankas LM - P2P Emas Digital v11</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -87,11 +87,10 @@
         .flow-diagram { background: #f8f9fa; border-radius: 16px; padding: 16px; margin-top: 16px; text-align: center; font-size: 13px; }
         .badge-own { background: #e3f2fd; color: #1565c0; }
         .mitra-label { font-size: 10px; color: #6c757d; display: block; }
-        .role-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
-        .role-badge.buyer { background: #e8f5e9; color: #2e7d32; }
-        .role-badge.seller { background: #fff3e0; color: #e65100; }
         .btn-refresh { background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-weight: 500; }
         .btn-refresh:hover { background: #2980b9; }
+        .btn-warning { background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-weight: 500; }
+        .btn-warning:hover { background: #e67e22; }
     </style>
 </head>
 <body>
@@ -132,6 +131,7 @@
                 <button id="manualSyncBtn" class="btn-info" style="padding: 8px 16px;"><i class="fas fa-sync-alt"></i> Sync ke Cloud</button>
                 <button id="loadCloudBtn" class="btn-primary" style="background: #27ae60;"><i class="fas fa-cloud-download-alt"></i> Load Data Global</button>
                 <button id="refreshMyDataBtn" class="btn-refresh"><i class="fas fa-refresh"></i> Refresh Data Saya</button>
+                <button id="fixDataBtn" class="btn-warning"><i class="fas fa-tools"></i> Perbaiki Data</button>
                 <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
@@ -155,12 +155,10 @@
     let currentUserDisplayName = null;
     let userGoldBalance = { gram: 50.0, accountNumber: "", userName: "" };
     
-    // DATA GLOBAL (shared antar semua user)
+    // DATA GLOBAL
     let marketplaceListings = [];
     let p2pTransactions = [];
     let pendingOffers = [];
-    
-    // DATA TRANSAKSI GLOBAL (untuk menyimpan semua transaksi dari semua user)
     let allGlobalTransactions = [];
     
     let isSyncing = false;
@@ -269,15 +267,40 @@
                 if (result.globalTransactions) {
                     // Filter transaksi untuk user yang sedang login
                     const userTransactions = result.globalTransactions.filter(t => 
-                        t.userEmail === currentUserEmail
+                        t.userEmail === currentUserEmail || t.counterpartyEmail === currentUserEmail
                     );
-                    p2pTransactions = userTransactions;
+                    
+                    // Konversi transaksi yang counterparty ke format yang sesuai
+                    const convertedTransactions = userTransactions.map(t => {
+                        if (t.userEmail === currentUserEmail) {
+                            return t;
+                        } else if (t.counterpartyEmail === currentUserEmail) {
+                            // Transaksi dari sisi counterparty (sebagai mitra)
+                            return {
+                                id: t.id,
+                                asset: t.asset,
+                                gram: t.gram,
+                                counterparty: t.userName || t.userEmail?.split('@')[0] || 'Pengguna',
+                                counterpartyEmail: t.userEmail,
+                                type: t.type === "Beli" ? "Jual" : "Beli", // Inverse type
+                                totalPrice: t.totalPrice,
+                                date: t.date,
+                                fee: t.fee,
+                                status: t.status,
+                                userEmail: currentUserEmail,
+                                yourBalance: null
+                            };
+                        }
+                        return t;
+                    });
+                    
+                    p2pTransactions = convertedTransactions;
                     allGlobalTransactions = result.globalTransactions;
                     
                     // Debug log
-                    const sellCount = userTransactions.filter(t => t.type === "Jual").length;
-                    const buyCount = userTransactions.filter(t => t.type === "Beli").length;
-                    console.log(`📊 Loaded ${userTransactions.length} transaksi untuk ${currentUserEmail}`);
+                    const sellCount = p2pTransactions.filter(t => t.type === "Jual").length;
+                    const buyCount = p2pTransactions.filter(t => t.type === "Beli").length;
+                    console.log(`📊 Loaded ${p2pTransactions.length} transaksi untuk ${currentUserEmail}`);
                     console.log(`   - JUAL: ${sellCount} transaksi`);
                     console.log(`   - BELI: ${buyCount} transaksi`);
                 }
@@ -328,11 +351,9 @@
     }
     
     async function loadUserData(email, displayName) {
-        // Coba load dari cloud dulu
         const globalData = await loadGlobalData(true);
         
         if (!globalData || !globalData.userData) {
-            // Jika tidak ada data di cloud, cek localStorage
             const stored = localStorage.getItem(getStorageKey(email));
             if (stored) {
                 const data = JSON.parse(stored);
@@ -342,7 +363,6 @@
                 pendingOffers = data.pendingOffers || [];
                 if (data.goldPrice) goldPricePerGram = data.goldPrice;
             } else {
-                // Data baru
                 userGoldBalance = { 
                     gram: 50.0, 
                     accountNumber: "LM" + Math.floor(Math.random() * 10000000), 
@@ -371,35 +391,9 @@
         return { valid: true, message: null };
     }
     
-    // ========== FUNGSI UNTUK REFRESH DATA PENJUAL ==========
-    async function refreshSellerData(sellerEmail) {
-        if (!sellerEmail || sellerEmail === currentUserEmail) return false;
-        
-        try {
-            const url = `${SCRIPT_URL}?action=getUserData&email=${encodeURIComponent(sellerEmail)}&t=${Date.now()}`;
-            const response = await fetch(url, {
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache'
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success && result.userData) {
-                    console.log(`🔄 Data penjual ${sellerEmail} berhasil direfresh dari cloud`);
-                    return true;
-                }
-            }
-        } catch(e) {
-            console.warn('Gagal refresh data penjual:', e);
-        }
-        return false;
-    }
-    
-    // ========== FUNGSI BISNIS YANG DIPERBAIKI ==========
+    // ========== FUNGSI BISNIS ==========
     
     async function buyListing(listing) {
-        // Cek apakah pembeli bukan penjual sendiri
         if (listing.sellerEmail === currentUserEmail) {
             alert("❌ Anda tidak bisa membeli listing milik sendiri!");
             return false;
@@ -420,17 +414,14 @@
             
         if (!confirm(confirmMsg)) return false;
         
-        // === PROSES TRANSAKSI ===
-        
         const transactionId = "TRX"+Date.now()+Math.random().toString(36).substr(2, 6);
         const currentDate = new Date().toISOString().slice(0,10);
         const fee = calculatePlatformFee(listing.totalPrice);
         
         // 1. PEMBELI: Saldo BERTAMBAH
-        const oldBuyerBalance = userGoldBalance.gram;
         userGoldBalance.gram += listing.gram;
         
-        // 2. Transaksi untuk PEMBELI (Type: BELI, Mitra: Penjual)
+        // 2. Transaksi untuk PEMBELI
         const buyerTransaction = { 
             id: transactionId, 
             asset: listing.name, 
@@ -443,12 +434,13 @@
             status: "Selesai", 
             fee: fee,
             userEmail: currentUserEmail,
+            userName: userGoldBalance.userName,
             userRole: "pembeli",
             yourBalance: userGoldBalance.gram
         };
         p2pTransactions.unshift(buyerTransaction);
         
-        // 3. Transaksi untuk PENJUAL (Type: JUAL, Mitra: Pembeli)
+        // 3. Transaksi untuk PENJUAL
         const sellerTransaction = { 
             id: transactionId, 
             asset: listing.name, 
@@ -461,87 +453,39 @@
             status: "Selesai", 
             fee: fee,
             userEmail: listing.sellerEmail,
+            userName: listing.sellerName,
             userRole: "penjual",
             yourBalance: null
         };
         
-        // 4. Hapus listing dari marketplace
+        // 4. Hapus listing
         marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
         
-        // 5. SIMPAN DATA PEMBELI
+        // 5. Simpan ke cloud dengan kedua transaksi
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'saveBothTransactions',
+                    buyerEmail: currentUserEmail,
+                    buyerTransaction: buyerTransaction,
+                    sellerEmail: listing.sellerEmail,
+                    sellerTransaction: sellerTransaction,
+                    buyerGoldBalance: userGoldBalance,
+                    timestamp: Date.now()
+                })
+            });
+            console.log('✅ Kedua transaksi dikirim ke cloud');
+        } catch(e) {
+            console.warn('Gagal mengirim transaksi ke cloud:', e);
+        }
+        
+        // 6. Simpan data pembeli lokal
         await saveToLocalAndCloud();
         
-        // 6. SIMPAN DATA PENJUAL ke localStorage dan cloud
-        const sellerKey = getStorageKey(listing.sellerEmail);
-        let sellerStored = localStorage.getItem(sellerKey);
-        let sellerData = null;
-        
-        if (sellerStored) {
-            sellerData = JSON.parse(sellerStored);
-        } else {
-            sellerData = {
-                userGoldBalance: { gram: 50.0, accountNumber: "LM" + Math.floor(Math.random() * 10000000), userName: listing.sellerName },
-                marketplaceListings: [],
-                p2pTransactions: [],
-                pendingOffers: []
-            };
-        }
-        
-        // Update saldo penjual
-        sellerData.userGoldBalance.gram -= listing.gram;
-        sellerTransaction.yourBalance = sellerData.userGoldBalance.gram;
-        
-        // Tambahkan transaksi ke penjual
-        sellerData.p2pTransactions = sellerData.p2pTransactions || [];
-        sellerData.p2pTransactions.unshift(sellerTransaction);
-        
-        // Simpan kembali ke localStorage penjual
-        localStorage.setItem(sellerKey, JSON.stringify(sellerData));
-        
-        console.log(`✅ Transaksi penjual disimpan:`, sellerTransaction);
-        console.log(`📊 Penjual ${listing.sellerName} sekarang memiliki ${sellerData.p2pTransactions.length} transaksi`);
-        console.log(`   - Transaksi JUAL: ${sellerData.p2pTransactions.filter(t => t.type === "Jual").length}`);
-        console.log(`   - Transaksi BELI: ${sellerData.p2pTransactions.filter(t => t.type === "Beli").length}`);
-        
-        // 7. KIRIM ke cloud untuk sinkronisasi data penjual
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'saveSellerData',
-                    email: listing.sellerEmail,
-                    userData: sellerData,
-                    timestamp: Date.now()
-                })
-            });
-            console.log('✅ Data penjual dikirim ke cloud');
-        } catch(e) {
-            console.warn('Gagal mengirim data penjual ke cloud:', e);
-        }
-        
-        // 8. Simpan ke global transactions
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'saveGlobalTransaction',
-                    transaction: buyerTransaction,
-                    sellerTransaction: sellerTransaction,
-                    timestamp: Date.now()
-                })
-            });
-            console.log('✅ Transaksi global disimpan ke cloud');
-        } catch(e) {
-            console.warn('Gagal menyimpan transaksi global:', e);
-        }
-        
-        // 9. NOTIFIKASI
         showNotification(`✅ Pembelian Berhasil! +${listing.gram} gram dari ${listing.sellerName}`, 'success');
         
         alert(`✅ TRANSAKSI BERHASIL!\n\n` +
@@ -551,13 +495,9 @@
             `• +${listing.gram} gram\n` +
             `• Harga: ${formatRupiah(listing.totalPrice)}\n` +
             `• Fee: ${formatRupiah(fee)}\n\n` +
-            `📋 DETAIL TRANSAKSI PENJUAL (${listing.sellerName}):\n` +
-            `• Type: JUAL\n` +
-            `• Mitra: ${userGoldBalance.userName}\n` +
-            `• -${listing.gram} gram\n\n` +
             `💰 Saldo emas Anda SEKARANG: ${formatGram(userGoldBalance.gram)}\n\n` +
             `⚠️ PENTING UNTUK PENJUAL:\n` +
-            `Penjual (${listing.sellerName}) HARUS klik tombol "Refresh Data Saya" atau "Load Data Global"\n` +
+            `Penjual (${listing.sellerName}) HARUS klik tombol "Refresh Data Saya"\n` +
             `untuk melihat transaksi "JUAL" dan saldo yang berkurang.`);
         
         render();
@@ -593,7 +533,6 @@
             
         if (!confirm(confirmMsg)) return false;
         
-        const oldBalance = userGoldBalance.gram;
         userGoldBalance.gram -= totalGram;
         
         const newListing = { 
@@ -619,9 +558,56 @@
             `• Jumlah stok: ${qty}\n` +
             `• Total emas dijual: ${totalGram} gram\n` +
             `• Harga/gram: ${formatRupiah(pricePerGram)}\n\n` +
-            `💰 Saldo Anda: ${formatGram(oldBalance)} → ${formatGram(userGoldBalance.gram)} (berkurang ${totalGram} gram)`);
+            `💰 Saldo Anda: ${formatGram(userGoldBalance.gram)} (berkurang ${totalGram} gram)`);
             
         return true;
+    }
+    
+    // ========== FUNGSI PERBAIKAN DATA ==========
+    async function fixUserData() {
+        if (!currentUserEmail) return;
+        
+        const fixBtn = document.getElementById("fixDataBtn");
+        const originalText = fixBtn.innerHTML;
+        fixBtn.innerHTML = '<span class="loading-spinner"></span> Memperbaiki...';
+        fixBtn.disabled = true;
+        
+        try {
+            showNotification("🔧 Memperbaiki data transaksi...", "info");
+            
+            // Load ulang data dari cloud
+            await loadGlobalData(false);
+            
+            // Hitung ulang saldo berdasarkan transaksi
+            let calculatedBalance = 50.0; // Starting balance
+            
+            for (const tx of p2pTransactions) {
+                if (tx.type === "Beli") {
+                    calculatedBalance += tx.gram;
+                } else if (tx.type === "Jual") {
+                    calculatedBalance -= tx.gram;
+                }
+            }
+            
+            const oldBalance = userGoldBalance.gram;
+            userGoldBalance.gram = calculatedBalance;
+            
+            // Simpan perbaikan
+            await saveToLocalAndCloud();
+            
+            const jualCount = p2pTransactions.filter(t => t.type === "Jual").length;
+            const beliCount = p2pTransactions.filter(t => t.type === "Beli").length;
+            
+            showNotification(`✅ Data diperbaiki! ${jualCount} Jual, ${beliCount} Beli. Saldo: ${oldBalance} → ${calculatedBalance} gram`, "success");
+            render();
+            
+        } catch (error) {
+            console.error('Fix error:', error);
+            showNotification("❌ Gagal memperbaiki data", "error");
+        } finally {
+            fixBtn.innerHTML = originalText;
+            fixBtn.disabled = false;
+        }
     }
     
     function showDetailModal(listing) {
@@ -686,7 +672,6 @@
         const myListings = marketplaceListings.filter(l => l.sellerEmail === currentUserEmail);
         const goldValueIDR = convertGoldToIDR(userGoldBalance.gram);
         
-        // Hitung statistik dari transaksi yang ada
         const totalBeli = p2pTransactions.filter(t => t.type === "Beli").reduce((sum, t) => sum + t.gram, 0);
         const totalJual = p2pTransactions.filter(t => t.type === "Jual").reduce((sum, t) => sum + t.gram, 0);
         
@@ -899,10 +884,8 @@
     }
     
     function renderRiwayat(container) {
-        // Urutkan transaksi dari yang terbaru
         const sortedTransactions = [...p2pTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
         
-        // Hitung statistik
         const totalBeli = sortedTransactions.filter(t => t.type === "Beli").reduce((sum, t) => sum + t.gram, 0);
         const totalJual = sortedTransactions.filter(t => t.type === "Jual").reduce((sum, t) => sum + t.gram, 0);
         
@@ -963,7 +946,7 @@
                     </div>`
                 }
                 ${totalJual > 0 ? `
-                    <div class="info-message" style="margin-top:16px; background:#fff3e0;">
+                    <div class="info-message" style="margin-top:16px; background:#e8f5e9;">
                         <i class="fas fa-check-circle text-success"></i> <strong>Transaksi JUAL ditemukan!</strong> 
                         Anda telah menjual emas sebanyak ${totalJual} gram kepada para pembeli.
                     </div>
@@ -1091,7 +1074,6 @@
         }
     });
     
-    // Tombol Refresh Data Saya
     document.getElementById("refreshMyDataBtn")?.addEventListener("click", async () => {
         if(currentUserEmail) {
             const refreshBtn = document.getElementById("refreshMyDataBtn");
@@ -1120,18 +1102,14 @@
         }
     });
     
-    // Event listener untuk update real-time dari tab lain
-    window.addEventListener('storage', async (event) => {
-        if (event.key && event.key.startsWith('pending_update_') && event.key.includes(currentUserEmail?.replace(/[^a-zA-Z0-9]/g, '_') || '')) {
-            console.log('📢 Mendeteksi update untuk user ini!');
-            await loadGlobalData(true);
-            render();
-            showNotification('🔄 Data Anda telah diperbarui! Ada transaksi baru.', 'info');
+    document.getElementById("fixDataBtn")?.addEventListener("click", async () => {
+        if(currentUserEmail) {
+            await fixUserData();
         }
     });
     
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
-    console.log('🚀 P2P Marketplace v10 - Perbaikan: Transaksi JUAL sekarang tersimpan dan bisa dimuat dengan tombol Refresh Data Saya');
+    console.log('🚀 P2P Marketplace v11 - Terintegrasi penuh dengan Apps Script');
 </script>
 </body>
 </html>

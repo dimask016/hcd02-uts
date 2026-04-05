@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v11</title>
+    <title>Brankas LM - P2P Emas Digital v12</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -45,6 +46,8 @@
         .btn-success { background: #27ae60; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
         .btn-danger { background: #e74c3c; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
         .btn-info { background: #3498db; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
+        .btn-qris { background: linear-gradient(135deg, #00B4D8, #0077B6); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: 600; }
+        .btn-qris:hover { transform: scale(0.97); }
         .listing-grid { display: flex; flex-direction: column; gap: 16px; }
         .listing-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: #fefefe; border-radius: 24px; border: 1px solid #eef2f6; flex-wrap: wrap; gap: 12px; }
         .form-group { margin-bottom: 20px; }
@@ -91,22 +94,26 @@
         .btn-refresh:hover { background: #2980b9; }
         .btn-warning { background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-weight: 500; }
         .btn-warning:hover { background: #e67e22; }
+        .qr-reader { width: 100%; max-width: 400px; margin: 0 auto; }
+        #qr-reader { width: 100%; }
+        #qr-reader video { width: 100%; border-radius: 20px; }
+        .qris-amount { font-size: 28px; font-weight: bold; color: #1e577a; }
     </style>
 </head>
 <body>
 <div id="loginOverlay" class="login-overlay">
     <div class="login-card">
         <h2><i class="fas fa-coins"></i> Brankas LM</h2>
-        <div class="subtitle">P2P Marketplace Emas Digital | Cloud Sync Global</div>
+        <div class="subtitle">P2P Marketplace Emas Digital | QRIS Payment</div>
         <div id="googleButton" class="google-btn-container"></div>
         <div class="divider">atau</div>
         <button id="demoLoginBtn" class="demo-btn"><i class="fas fa-user-friends"></i> Demo Mode (Tanpa Login)</button>
         <div id="googleErrorMsg" style="display:none; background:#fee2e2; color:#b91c1c; padding:10px; border-radius:16px; margin-top:12px; font-size:12px;"></div>
         <div class="demo-note">
-            <i class="fas fa-globe"></i> <strong>Sistem Marketplace P2P Global:</strong><br>
-            • Penjual: menjual emas → saldo BERKURANG, tercatat sebagai "Jual" dengan mitra = Pembeli<br>
-            • Pembeli: membeli emas → saldo BERTAMBAH, tercatat sebagai "Beli" dengan mitra = Penjual<br>
-            • Data tersimpan di cloud dan bisa diakses semua akun
+            <i class="fas fa-globe"></i> <strong>Sistem Marketplace P2P Global + QRIS:</strong><br>
+            • Penjual: menjual emas → saldo BERKURANG<br>
+            • Pembeli: membeli emas → saldo BERTAMBAH<br>
+            • QRIS: Bayar dengan scan QRIS → otomatis konversi Rupiah ke Gram Emas
         </div>
     </div>
 </div>
@@ -118,6 +125,7 @@
             <div class="nav-item active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div>
             <div class="nav-item" data-page="marketplace"><i class="fas fa-store"></i> <span>Marketplace</span></div>
             <div class="nav-item" data-page="buat-listing"><i class="fas fa-plus-circle"></i> <span>Buat Listing</span></div>
+            <div class="nav-item" data-page="qris"><i class="fas fa-qrcode"></i> <span>QRIS Top Up</span></div>
             <div class="nav-item" data-page="riwayat"><i class="fas fa-history"></i> <span>Riwayat P2P</span></div>
         </div>
     </div>
@@ -131,7 +139,6 @@
                 <button id="manualSyncBtn" class="btn-info" style="padding: 8px 16px;"><i class="fas fa-sync-alt"></i> Sync ke Cloud</button>
                 <button id="loadCloudBtn" class="btn-primary" style="background: #27ae60;"><i class="fas fa-cloud-download-alt"></i> Load Data Global</button>
                 <button id="refreshMyDataBtn" class="btn-refresh"><i class="fas fa-refresh"></i> Refresh Data Saya</button>
-                <button id="fixDataBtn" class="btn-warning"><i class="fas fa-tools"></i> Perbaiki Data</button>
                 <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
@@ -155,7 +162,6 @@
     let currentUserDisplayName = null;
     let userGoldBalance = { gram: 50.0, accountNumber: "", userName: "" };
     
-    // DATA GLOBAL
     let marketplaceListings = [];
     let p2pTransactions = [];
     let pendingOffers = [];
@@ -164,13 +170,15 @@
     let isSyncing = false;
     let currentPage = "dashboard";
     let isDemoMode = false;
+    let html5QrCode = null;
     
     function formatRupiah(amount) { 
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount); 
     }
-    function formatGram(gram) { return gram.toFixed(2) + " gr"; }
+    function formatGram(gram) { return gram.toFixed(3).replace(/\./g, ',') + " gr"; }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
     function convertGoldToIDR(gram) { return gram * goldPricePerGram; }
+    function convertIDRToGold(rupiah) { return rupiah / goldPricePerGram; }
     function getMaxPricePerGram() { return goldPricePerGram * (1 + MAX_PRICE_MARKUP_PERCENT / 100); }
     
     function showNotification(message, type = 'success') {
@@ -209,7 +217,6 @@
         
         try {
             showSyncStatus('Menyimpan ke cloud...', 'syncing');
-            
             await fetch(SCRIPT_URL, { 
                 method: 'POST', 
                 mode: 'no-cors',
@@ -222,13 +229,11 @@
                     timestamp: Date.now()
                 })
             });
-            
             showSyncStatus('✓ Data tersimpan di cloud', 'success');
             return true;
-            
         } catch (error) {
             console.warn('Sync error:', error.message);
-            showSyncStatus('⚠️ Sync gagal, data tersimpan di lokal', 'error');
+            showSyncStatus('⚠️ Sync gagal', 'error');
             return false;
         } finally {
             isSyncing = false;
@@ -240,94 +245,47 @@
         
         try {
             if (!silent) showSyncStatus('Mengambil data global...', 'syncing');
-            
             const url = `${SCRIPT_URL}?action=getGlobalData&email=${encodeURIComponent(currentUserEmail)}&t=${Date.now()}`;
+            const response = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-cache' });
             
-            const response = await fetch(url, {
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache'
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const result = await response.json();
             
             if (result.success) {
-                if (result.userData) {
-                    userGoldBalance = result.userData;
-                }
-                
-                if (result.globalListings) {
-                    marketplaceListings = result.globalListings;
-                }
-                
+                if (result.userData) userGoldBalance = result.userData;
+                if (result.globalListings) marketplaceListings = result.globalListings;
                 if (result.globalTransactions) {
-                    // Filter transaksi untuk user yang sedang login
                     const userTransactions = result.globalTransactions.filter(t => 
                         t.userEmail === currentUserEmail || t.counterpartyEmail === currentUserEmail
                     );
-                    
-                    // Konversi transaksi yang counterparty ke format yang sesuai
                     const convertedTransactions = userTransactions.map(t => {
-                        if (t.userEmail === currentUserEmail) {
-                            return t;
-                        } else if (t.counterpartyEmail === currentUserEmail) {
-                            // Transaksi dari sisi counterparty (sebagai mitra)
+                        if (t.userEmail === currentUserEmail) return t;
+                        else if (t.counterpartyEmail === currentUserEmail) {
                             return {
-                                id: t.id,
-                                asset: t.asset,
-                                gram: t.gram,
+                                id: t.id, asset: t.asset, gram: t.gram,
                                 counterparty: t.userName || t.userEmail?.split('@')[0] || 'Pengguna',
                                 counterpartyEmail: t.userEmail,
-                                type: t.type === "Beli" ? "Jual" : "Beli", // Inverse type
-                                totalPrice: t.totalPrice,
-                                date: t.date,
-                                fee: t.fee,
-                                status: t.status,
-                                userEmail: currentUserEmail,
-                                yourBalance: null
+                                type: t.type === "Beli" ? "Jual" : "Beli",
+                                totalPrice: t.totalPrice, date: t.date, fee: t.fee, status: t.status,
+                                userEmail: currentUserEmail, yourBalance: null
                             };
                         }
                         return t;
                     });
-                    
                     p2pTransactions = convertedTransactions;
                     allGlobalTransactions = result.globalTransactions;
-                    
-                    // Debug log
-                    const sellCount = p2pTransactions.filter(t => t.type === "Jual").length;
-                    const buyCount = p2pTransactions.filter(t => t.type === "Beli").length;
-                    console.log(`📊 Loaded ${p2pTransactions.length} transaksi untuk ${currentUserEmail}`);
-                    console.log(`   - JUAL: ${sellCount} transaksi`);
-                    console.log(`   - BELI: ${buyCount} transaksi`);
                 }
+                if (result.globalOffers) pendingOffers = result.globalOffers;
+                if (result.goldPrice) goldPricePerGram = result.goldPrice;
                 
-                if (result.globalOffers) {
-                    pendingOffers = result.globalOffers;
-                }
-                
-                if (result.goldPrice) {
-                    goldPricePerGram = result.goldPrice;
-                }
-                
-                if (!silent) showSyncStatus(`✓ Loaded ${marketplaceListings.length} listings, ${p2pTransactions.filter(t=>t.type==="Jual").length} Jual, ${p2pTransactions.filter(t=>t.type==="Beli").length} Beli`, 'success');
+                if (!silent) showSyncStatus(`✓ ${marketplaceListings.length} listings, ${p2pTransactions.filter(t=>t.type==="Jual").length} Jual`, 'success');
                 
                 const key = getStorageKey(currentUserEmail);
-                localStorage.setItem(key, JSON.stringify({
-                    userGoldBalance, marketplaceListings, p2pTransactions, pendingOffers, goldPrice: goldPricePerGram
-                }));
-                
+                localStorage.setItem(key, JSON.stringify({ userGoldBalance, marketplaceListings, p2pTransactions, pendingOffers, goldPrice: goldPricePerGram }));
                 return result;
-            } else {
-                throw new Error(result.error || 'Gagal load data');
-            }
-            
+            } else throw new Error(result.error || 'Gagal load data');
         } catch (error) {
             console.warn('Load error:', error.message);
-            
             const stored = localStorage.getItem(getStorageKey(currentUserEmail));
             if (stored) {
                 const data = JSON.parse(stored);
@@ -338,21 +296,15 @@
                 if (data.goldPrice) goldPricePerGram = data.goldPrice;
                 if (!silent) showSyncStatus('⚠️ Memuat dari cache lokal', 'error');
             }
-            
             return null;
         }
     }
     
     function getStorageKey(email) { return `brankas_lm_${email.replace(/[^a-zA-Z0-9]/g, '_')}`; }
-    
-    async function saveToLocalAndCloud() {
-        if (!currentUserEmail) return;
-        await syncToCloud();
-    }
+    async function saveToLocalAndCloud() { if (currentUserEmail) await syncToCloud(); }
     
     async function loadUserData(email, displayName) {
         const globalData = await loadGlobalData(true);
-        
         if (!globalData || !globalData.userData) {
             const stored = localStorage.getItem(getStorageKey(email));
             if (stored) {
@@ -363,36 +315,173 @@
                 pendingOffers = data.pendingOffers || [];
                 if (data.goldPrice) goldPricePerGram = data.goldPrice;
             } else {
-                userGoldBalance = { 
-                    gram: 50.0, 
-                    accountNumber: "LM" + Math.floor(Math.random() * 10000000), 
-                    userName: displayName || email.split('@')[0] 
-                };
+                userGoldBalance = { gram: 50.0, accountNumber: "LM" + Math.floor(Math.random() * 10000000), userName: displayName || email.split('@')[0] };
                 p2pTransactions = [];
             }
         }
-        
-        console.log(`📊 Data loaded - ${marketplaceListings.length} listings, ${p2pTransactions.length} transactions`);
-        console.log(`💰 Saldo ${userGoldBalance.userName}: ${userGoldBalance.gram} gram`);
-        console.log(`📋 Detail transaksi:`, p2pTransactions.map(t => `${t.type}: ${t.gram}g dengan ${t.counterparty}`));
-        
         await syncToCloud();
+    }
+    
+    // ========== FUNGSI QRIS TOP UP ==========
+    async function processQRISPayment(amount) {
+        if (!currentUserEmail) return false;
+        if (amount <= 0) {
+            showNotification("Masukkan nominal yang valid!", "error");
+            return false;
+        }
+        
+        const goldAmount = convertIDRToGold(amount);
+        
+        const confirmMsg = `💳 KONFIRMASI PEMBAYARAN QRIS\n\n` +
+            `Nominal: ${formatRupiah(amount)}\n` +
+            `💰 Harga Emas/Gram: ${formatRupiah(goldPricePerGram)}\n` +
+            `⚖️ Anda akan mendapatkan: ${formatGram(goldAmount)}\n\n` +
+            `Saldo emas Anda akan BERTAMBAH +${formatGram(goldAmount)}\n\n` +
+            `Lanjutkan pembayaran?`;
+        
+        if (!confirm(confirmMsg)) return false;
+        
+        // Simulasi pembayaran QRIS
+        showNotification("🔄 Memproses pembayaran QRIS...", "info");
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Tambah saldo emas
+        const oldBalance = userGoldBalance.gram;
+        userGoldBalance.gram += goldAmount;
+        
+        // Catat transaksi
+        const transactionId = "QRIS" + Date.now() + Math.random().toString(36).substr(2, 4);
+        const currentDate = new Date().toISOString().slice(0, 10);
+        
+        const qrisTransaction = {
+            id: transactionId,
+            asset: "Top Up QRIS",
+            gram: goldAmount,
+            counterparty: "QRIS Payment Gateway",
+            counterpartyEmail: "qris@brankas.lm",
+            type: "Beli",
+            totalPrice: amount,
+            date: currentDate,
+            status: "Selesai",
+            fee: 0,
+            userEmail: currentUserEmail,
+            userName: userGoldBalance.userName,
+            userRole: "pembeli",
+            yourBalance: userGoldBalance.gram
+        };
+        
+        p2pTransactions.unshift(qrisTransaction);
+        await saveToLocalAndCloud();
+        
+        showNotification(`✅ Pembayaran berhasil! +${formatGram(goldAmount)} emas`, "success");
+        alert(`✅ TOP UP BERHASIL!\n\n` +
+            `💳 Nominal: ${formatRupiah(amount)}\n` +
+            `⚖️ Emas didapat: ${formatGram(goldAmount)}\n` +
+            `💰 Saldo emas Anda: ${formatGram(oldBalance)} → ${formatGram(userGoldBalance.gram)}`);
+        
+        render();
+        return true;
+    }
+    
+    async function scanQRIS() {
+        return new Promise((resolve) => {
+            const modal = document.getElementById("detailModal");
+            const modalContent = document.getElementById("modalDynamicContent");
+            
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-qrcode"></i> Scan QRIS</h3>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                    <div id="qr-reader-results" style="margin-top: 16px;"></div>
+                </div>
+                <div class="form-group">
+                    <label>Atau Masukkan Nominal Manual</label>
+                    <input type="number" id="manualAmount" placeholder="Masukkan nominal Rupiah" step="1000">
+                </div>
+                <div class="info-message">
+                    <i class="fas fa-info-circle"></i> Harga Emas saat ini: ${formatRupiah(goldPricePerGram)}/gram<br>
+                    1 gram = ${formatRupiah(goldPricePerGram)}
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 16px;">
+                    <button id="manualPayBtn" class="btn-primary">Bayar Manual</button>
+                    <button id="closeQrModal" class="btn-outline">Tutup</button>
+                </div>
+            `;
+            
+            modal.style.display = "flex";
+            
+            // Inisialisasi QR scanner
+            const qrReaderElement = document.getElementById("qr-reader");
+            if (qrReaderElement && html5QrCode) {
+                html5QrCode.stop().catch(() => {});
+            }
+            
+            html5QrCode = new Html5Qrcode("qr-reader");
+            const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText, decodedResult) => {
+                // Parse QR code result - cari nominal dalam Rupiah
+                let nominal = null;
+                const match = decodedText.match(/(\d{1,3}(?:\.\d{3})*|\d+)/g);
+                if (match) {
+                    for (let m of match) {
+                        let num = parseInt(m.replace(/\./g, ''));
+                        if (!isNaN(num) && num >= 1000 && num <= 100000000) {
+                            nominal = num;
+                            break;
+                        }
+                    }
+                }
+                
+                if (nominal) {
+                    html5QrCode.stop();
+                    document.getElementById("qr-reader-results").innerHTML = `<div class="success-text">✅ QRIS Terdeteksi! Nominal: ${formatRupiah(nominal)}</div>`;
+                    processQRISPayment(nominal).then(() => {
+                        modal.style.display = "none";
+                        resolve(true);
+                    });
+                } else {
+                    document.getElementById("qr-reader-results").innerHTML = `<div class="warning-text">⚠️ QR tidak mengandung nominal yang valid. Silakan input manual.</div>`;
+                }
+            }, (errorMessage) => {});
+            
+            document.getElementById("manualPayBtn")?.addEventListener("click", async () => {
+                const amount = parseInt(document.getElementById("manualAmount")?.value);
+                if (amount && amount > 0) {
+                    if (html5QrCode) await html5QrCode.stop().catch(() => {});
+                    modal.style.display = "none";
+                    await processQRISPayment(amount);
+                    resolve(true);
+                } else {
+                    showNotification("Masukkan nominal yang valid!", "error");
+                }
+            });
+            
+            document.getElementById("closeQrModal")?.addEventListener("click", async () => {
+                if (html5QrCode) await html5QrCode.stop().catch(() => {});
+                modal.style.display = "none";
+                resolve(false);
+            });
+            
+            document.getElementById("closeDetailModal").onclick = async () => {
+                if (html5QrCode) await html5QrCode.stop().catch(() => {});
+                modal.style.display = "none";
+                resolve(false);
+            };
+        });
     }
     
     // ========== VALIDASI HARGA ==========
     function validateSellingPrice(pricePerGram) {
         const maxPrice = getMaxPricePerGram();
         if (pricePerGram > maxPrice) {
-            return {
-                valid: false,
-                message: `Harga jual melebihi batas maksimal! Maksimal ${formatRupiah(maxPrice)}/gram (${MAX_PRICE_MARKUP_PERCENT}% dari harga pasar)`
-            };
+            return { valid: false, message: `Harga jual melebihi batas maksimal! Maksimal ${formatRupiah(maxPrice)}/gram` };
         }
         return { valid: true, message: null };
     }
     
     // ========== FUNGSI BISNIS ==========
-    
     async function buyListing(listing) {
         if (listing.sellerEmail === currentUserEmail) {
             alert("❌ Anda tidak bisa membeli listing milik sendiri!");
@@ -400,344 +489,108 @@
         }
         
         const confirmMsg = `🔔 KONFIRMASI PEMBELIAN\n\n` +
-            `Anda akan MEMBELI:\n` +
-            `📦 ${listing.name}\n` +
-            `⚖️ Berat: ${listing.gram} gram\n` +
-            `💰 Harga: ${formatRupiah(listing.totalPrice)}\n` +
-            `👤 Penjual: ${listing.sellerName}\n\n` +
-            `📌 EFEK TRANSAKSI:\n` +
-            `• Saldo Anda akan BERTAMBAH +${listing.gram} gram ✅\n` +
-            `• Saldo Penjual akan BERKURANG -${listing.gram} gram\n` +
-            `• Transaksi Anda: Type "BELI" dengan mitra ${listing.sellerName}\n` +
-            `• Transaksi Penjual: Type "JUAL" dengan mitra ${userGoldBalance.userName}\n\n` +
-            `Lanjutkan pembelian?`;
-            
+            `Anda akan MEMBELI:\n📦 ${listing.name}\n⚖️ Berat: ${listing.gram} gram\n💰 Harga: ${formatRupiah(listing.totalPrice)}\n👤 Penjual: ${listing.sellerName}\n\nLanjutkan?`;
         if (!confirm(confirmMsg)) return false;
         
         const transactionId = "TRX"+Date.now()+Math.random().toString(36).substr(2, 6);
         const currentDate = new Date().toISOString().slice(0,10);
         const fee = calculatePlatformFee(listing.totalPrice);
         
-        // 1. PEMBELI: Saldo BERTAMBAH
         userGoldBalance.gram += listing.gram;
         
-        // 2. Transaksi untuk PEMBELI
         const buyerTransaction = { 
-            id: transactionId, 
-            asset: listing.name, 
-            gram: listing.gram, 
-            counterparty: listing.sellerName,
-            counterpartyEmail: listing.sellerEmail,
-            type: "Beli",
-            totalPrice: listing.totalPrice, 
-            date: currentDate, 
-            status: "Selesai", 
-            fee: fee,
-            userEmail: currentUserEmail,
-            userName: userGoldBalance.userName,
-            userRole: "pembeli",
-            yourBalance: userGoldBalance.gram
+            id: transactionId, asset: listing.name, gram: listing.gram, counterparty: listing.sellerName,
+            counterpartyEmail: listing.sellerEmail, type: "Beli", totalPrice: listing.totalPrice, 
+            date: currentDate, status: "Selesai", fee: fee, userEmail: currentUserEmail,
+            userName: userGoldBalance.userName, userRole: "pembeli", yourBalance: userGoldBalance.gram
         };
         p2pTransactions.unshift(buyerTransaction);
         
-        // 3. Transaksi untuk PENJUAL
         const sellerTransaction = { 
-            id: transactionId, 
-            asset: listing.name, 
-            gram: listing.gram, 
-            counterparty: userGoldBalance.userName,
-            counterpartyEmail: currentUserEmail,
-            type: "Jual",
-            totalPrice: listing.totalPrice, 
-            date: currentDate, 
-            status: "Selesai", 
-            fee: fee,
-            userEmail: listing.sellerEmail,
-            userName: listing.sellerName,
-            userRole: "penjual",
-            yourBalance: null
+            id: transactionId, asset: listing.name, gram: listing.gram, counterparty: userGoldBalance.userName,
+            counterpartyEmail: currentUserEmail, type: "Jual", totalPrice: listing.totalPrice, 
+            date: currentDate, status: "Selesai", fee: fee, userEmail: listing.sellerEmail,
+            userName: listing.sellerName, userRole: "penjual", yourBalance: null
         };
         
-        // 4. Hapus listing
         marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
         
-        // 5. Simpan ke cloud dengan kedua transaksi
         try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', cache: 'no-cache',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'saveBothTransactions',
-                    buyerEmail: currentUserEmail,
-                    buyerTransaction: buyerTransaction,
-                    sellerEmail: listing.sellerEmail,
-                    sellerTransaction: sellerTransaction,
-                    buyerGoldBalance: userGoldBalance,
-                    timestamp: Date.now()
-                })
+                body: JSON.stringify({ action: 'saveBothTransactions', buyerEmail: currentUserEmail,
+                    buyerTransaction, sellerEmail: listing.sellerEmail, sellerTransaction,
+                    buyerGoldBalance: userGoldBalance, timestamp: Date.now() })
             });
-            console.log('✅ Kedua transaksi dikirim ke cloud');
-        } catch(e) {
-            console.warn('Gagal mengirim transaksi ke cloud:', e);
-        }
+        } catch(e) { console.warn(e); }
         
-        // 6. Simpan data pembeli lokal
         await saveToLocalAndCloud();
-        
-        showNotification(`✅ Pembelian Berhasil! +${listing.gram} gram dari ${listing.sellerName}`, 'success');
-        
-        alert(`✅ TRANSAKSI BERHASIL!\n\n` +
-            `📋 DETAIL TRANSAKSI ANDA (PEMBELI):\n` +
-            `• Type: BELI\n` +
-            `• Mitra: ${listing.sellerName}\n` +
-            `• +${listing.gram} gram\n` +
-            `• Harga: ${formatRupiah(listing.totalPrice)}\n` +
-            `• Fee: ${formatRupiah(fee)}\n\n` +
-            `💰 Saldo emas Anda SEKARANG: ${formatGram(userGoldBalance.gram)}\n\n` +
-            `⚠️ PENTING UNTUK PENJUAL:\n` +
-            `Penjual (${listing.sellerName}) HARUS klik tombol "Refresh Data Saya"\n` +
-            `untuk melihat transaksi "JUAL" dan saldo yang berkurang.`);
-        
+        showNotification(`✅ Pembelian Berhasil! +${listing.gram} gram`, 'success');
         render();
         return true;
     }
     
     async function createListing(name, gram, pricePerGram, qty, desc) {
         const validation = validateSellingPrice(pricePerGram);
-        if (!validation.valid) {
-            alert(validation.message);
-            return false;
-        }
+        if (!validation.valid) { alert(validation.message); return false; }
         
         const totalGram = gram * qty;
-        
         if (userGoldBalance.gram < totalGram) {
-            alert(`❌ Saldo tidak cukup untuk menjual ${totalGram} gram!\n` +
-                  `Saldo Anda saat ini: ${formatGram(userGoldBalance.gram)}`);
+            alert(`❌ Saldo tidak cukup! Saldo: ${formatGram(userGoldBalance.gram)}`);
             return false;
         }
         
-        const confirmMsg = `🔔 KONFIRMASI PENJUALAN\n\n` +
-            `Anda akan MENJUAL:\n` +
-            `📦 ${name}\n` +
-            `⚖️ Berat per item: ${gram} gram\n` +
-            `📦 Jumlah stok: ${qty}\n` +
-            `⚖️ Total emas dijual: ${totalGram} gram\n` +
-            `💰 Harga/gram: ${formatRupiah(pricePerGram)}\n\n` +
-            `📌 EFEK TRANSAKSI:\n` +
-            `• Saldo Anda akan BERKURANG -${totalGram} gram\n` +
-            `• Saat dibeli, transaksi Anda akan tercatat sebagai "JUAL" dengan mitra = pembeli\n\n` +
-            `Lanjutkan membuat listing?`;
-            
-        if (!confirm(confirmMsg)) return false;
+        if (!confirm(`Jual ${totalGram} gram dengan harga ${formatRupiah(pricePerGram)}/gram?`)) return false;
         
         userGoldBalance.gram -= totalGram;
-        
         const newListing = { 
-            id: "GLD"+Date.now()+Math.random().toString(36).substr(2, 6), 
-            name: name, 
-            gram: gram, 
-            pricePerGram: pricePerGram, 
-            totalPrice: gram * pricePerGram,
-            qty: qty,
-            sellerName: userGoldBalance.userName,
-            sellerEmail: currentUserEmail,
-            desc: desc,
-            createdAt: new Date().toISOString()
+            id: "GLD"+Date.now()+Math.random().toString(36).substr(2, 6), name, gram, pricePerGram,
+            totalPrice: gram * pricePerGram, qty, sellerName: userGoldBalance.userName,
+            sellerEmail: currentUserEmail, desc, createdAt: new Date().toISOString()
         };
-        
         marketplaceListings.push(newListing);
         await saveToLocalAndCloud();
-        
-        alert(`✅ LISTING BERHASIL DIBUAT!\n\n` +
-            `📋 Detail Listing:\n` +
-            `• Emas: ${name}\n` +
-            `• Berat per item: ${gram} gram\n` +
-            `• Jumlah stok: ${qty}\n` +
-            `• Total emas dijual: ${totalGram} gram\n` +
-            `• Harga/gram: ${formatRupiah(pricePerGram)}\n\n` +
-            `💰 Saldo Anda: ${formatGram(userGoldBalance.gram)} (berkurang ${totalGram} gram)`);
-            
+        alert(`✅ Listing berhasil! Saldo: ${formatGram(userGoldBalance.gram)}`);
         return true;
-    }
-    
-    // ========== FUNGSI PERBAIKAN DATA ==========
-    async function fixUserData() {
-        if (!currentUserEmail) return;
-        
-        const fixBtn = document.getElementById("fixDataBtn");
-        const originalText = fixBtn.innerHTML;
-        fixBtn.innerHTML = '<span class="loading-spinner"></span> Memperbaiki...';
-        fixBtn.disabled = true;
-        
-        try {
-            showNotification("🔧 Memperbaiki data transaksi...", "info");
-            
-            // Load ulang data dari cloud
-            await loadGlobalData(false);
-            
-            // Hitung ulang saldo berdasarkan transaksi
-            let calculatedBalance = 50.0; // Starting balance
-            
-            for (const tx of p2pTransactions) {
-                if (tx.type === "Beli") {
-                    calculatedBalance += tx.gram;
-                } else if (tx.type === "Jual") {
-                    calculatedBalance -= tx.gram;
-                }
-            }
-            
-            const oldBalance = userGoldBalance.gram;
-            userGoldBalance.gram = calculatedBalance;
-            
-            // Simpan perbaikan
-            await saveToLocalAndCloud();
-            
-            const jualCount = p2pTransactions.filter(t => t.type === "Jual").length;
-            const beliCount = p2pTransactions.filter(t => t.type === "Beli").length;
-            
-            showNotification(`✅ Data diperbaiki! ${jualCount} Jual, ${beliCount} Beli. Saldo: ${oldBalance} → ${calculatedBalance} gram`, "success");
-            render();
-            
-        } catch (error) {
-            console.error('Fix error:', error);
-            showNotification("❌ Gagal memperbaiki data", "error");
-        } finally {
-            fixBtn.innerHTML = originalText;
-            fixBtn.disabled = false;
-        }
-    }
-    
-    function showDetailModal(listing) {
-        const modal = document.getElementById("detailModal");
-        const modalContent = document.getElementById("modalDynamicContent");
-        const isOwnListing = (listing.sellerEmail === currentUserEmail);
-        
-        modalContent.innerHTML = `
-            <h3>${listing.name}</h3>
-            <div style="background:#f8fafc; border-radius:20px; padding:16px; margin:16px 0;">
-                <p><i class="fas fa-user"></i> Penjual: ${listing.sellerName}</p>
-                <p><i class="fas fa-envelope"></i> Email: ${listing.sellerEmail}</p>
-                <p><i class="fas fa-weight-hanging"></i> Berat: ${listing.gram} gram</p>
-                <p><i class="fas fa-tag"></i> Harga/gram: ${formatRupiah(listing.pricePerGram)}</p>
-                <p><strong><i class="fas fa-calculator"></i> Total: ${formatRupiah(listing.totalPrice)}</strong></p>
-                <p><i class="fas fa-boxes"></i> Stok: ${listing.qty}</p>
-                ${listing.desc ? `<p><i class="fas fa-file-alt"></i> Deskripsi: ${listing.desc}</p>` : ''}
-            </div>
-            
-            <div class="flow-diagram">
-                <strong><i class="fas fa-exchange-alt"></i> Alur Transaksi:</strong><br>
-                <span class="text-danger">Penjual (${listing.sellerName})</span> 
-                <i class="fas fa-arrow-right"></i> menjual ${listing.gram} gram 
-                <i class="fas fa-arrow-right"></i> 
-                <span class="text-success">Pembeli (Anda)</span><br>
-                <small>Penjual: <span class="text-danger">BERKURANG</span> (type: JUAL, mitra: pembeli) | Pembeli: <span class="text-success">BERTAMBAH</span> (type: BELI, mitra: penjual)</small>
-            </div>
-            
-            ${!isOwnListing ? `
-                <div style="background:#e8f5e9; padding:12px; border-radius:12px; margin:16px 0;">
-                    <small><i class="fas fa-info-circle"></i> <strong>Setelah membeli:</strong><br>
-                    • Saldo emas Anda akan <span class="text-success">BERTAMBAH +${listing.gram} gram</span><br>
-                    • Saldo penjual akan <span class="text-danger">BERKURANG -${listing.gram} gram</span><br>
-                    • Transaksi Anda: <strong class="text-success">"BELI"</strong> dengan mitra ${listing.sellerName}<br>
-                    • Transaksi penjual: <strong class="text-danger">"JUAL"</strong> dengan mitra ${userGoldBalance.userName}</small>
-                </div>
-                <div style="display:flex; gap:12px;">
-                    <button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button>
-                </div>
-            ` : `
-                <div class="info-message" style="background:#fff3e0; margin-top:16px;">
-                    <i class="fas fa-exclamation-triangle"></i> Ini adalah listing milik Anda sendiri. 
-                    Listing akan otomatis hilang setelah dibeli oleh pengguna lain.
-                    Saat dibeli, transaksi Anda akan tercatat sebagai <strong class="text-danger">"JUAL"</strong> dengan mitra = pembeli.
-                </div>
-            `}
-        `;
-        
-        modal.style.display = "flex";
-        document.getElementById("closeDetailModal").onclick = () => modal.style.display = "none";
-        
-        if (!isOwnListing) {
-            document.getElementById("buyNowBtn").onclick = async () => {
-                modal.style.display = "none";
-                await buyListing(listing);
-            };
-        }
     }
     
     // ========== RENDER FUNCTIONS ==========
     function renderDashboard(container) {
         const myListings = marketplaceListings.filter(l => l.sellerEmail === currentUserEmail);
         const goldValueIDR = convertGoldToIDR(userGoldBalance.gram);
-        
         const totalBeli = p2pTransactions.filter(t => t.type === "Beli").reduce((sum, t) => sum + t.gram, 0);
         const totalJual = p2pTransactions.filter(t => t.type === "Jual").reduce((sum, t) => sum + t.gram, 0);
         
         container.innerHTML = `
-            <div class="flex-between">
-                <h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard</h1>
-                <span style="background:#eef2fa; padding:4px 12px; border-radius:50px; font-size:12px;">
-                    <i class="fas fa-globe"></i> Global P2P Marketplace
-                </span>
-            </div>
-            
-            <div class="gold-card">
-                <div class="gold-balance">
-                    <div class="balance-gram">${formatGram(userGoldBalance.gram)}</div>
-                    <div class="balance-idr">≈ ${formatRupiah(goldValueIDR)}</div>
-                    <div>SALDO EMAS DIGITAL</div>
-                </div>
-                <div style="margin-top:10px; text-align:center;">${userGoldBalance.accountNumber} | ${userGoldBalance.userName}</div>
-            </div>
-            
+            <div class="flex-between"><h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard</h1>
+            <span style="background:#eef2fa; padding:4px 12px; border-radius:50px;"><i class="fas fa-globe"></i> QRIS Ready</span></div>
+            <div class="gold-card"><div class="gold-balance">
+                <div class="balance-gram">${formatGram(userGoldBalance.gram)}</div>
+                <div class="balance-idr">≈ ${formatRupiah(goldValueIDR)}</div>
+                <div>SALDO EMAS DIGITAL</div>
+            </div></div>
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-title">Total Pembelian</div>
-                    <div class="stat-value" style="color:#27ae60;">+${totalBeli}g</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Total Penjualan</div>
-                    <div class="stat-value" style="color:#e65100;">-${totalJual}g</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Listing Aktif</div>
-                    <div class="stat-value">${marketplaceListings.length}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Listing Saya</div>
-                    <div class="stat-value">${myListings.length}</div>
-                </div>
+                <div class="stat-card"><div class="stat-title">Total Beli</div><div class="stat-value" style="color:#27ae60;">+${totalBeli.toFixed(3)}g</div></div>
+                <div class="stat-card"><div class="stat-title">Total Jual</div><div class="stat-value" style="color:#e65100;">-${totalJual.toFixed(3)}g</div></div>
+                <div class="stat-card"><div class="stat-title">Listing Aktif</div><div class="stat-value">${marketplaceListings.length}</div></div>
+                <div class="stat-card"><div class="stat-title">Listing Saya</div><div class="stat-value">${myListings.length}</div></div>
             </div>
-            
             <div class="section-card">
-                <div class="flex-between">
-                    <h3><i class="fas fa-store"></i> Marketplace Global</h3>
-                    <button id="gotoMarketBtn" class="btn-primary">Lihat Semua Listing →</button>
-                </div>
-                ${marketplaceListings.length > 0 ? 
-                    `<div class="listing-grid">
-                        ${marketplaceListings.slice(0, 3).map(item => `
-                            <div class="listing-item">
-                                <div>
-                                    <i class="fas fa-coins" style="color:#FFB347;"></i> 
-                                    <strong>${item.name}</strong>
-                                    <br><small>Penjual: ${item.sellerName} | ${item.gram} gram</small>
-                                </div>
-                                <div>${formatRupiah(item.pricePerGram)}/gram<br>${formatRupiah(item.totalPrice)}</div>
-                                <div><button class="btn-outline detail-quick-btn" data-id="${item.id}">Detail</button></div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    ${marketplaceListings.length > 3 ? `<div style="text-align:center; margin-top:12px;"><small>+ ${marketplaceListings.length - 3} listing lainnya</small></div>` : ''}
-                    ` : 
-                    `<p style="text-align:center; padding:20px;">Belum ada listing. Jadi penjual pertama!</p>`
-                }
+                <div class="flex-between"><h3><i class="fas fa-store"></i> Marketplace</h3>
+                <button id="gotoMarketBtn" class="btn-primary">Lihat Semua →</button></div>
+                ${marketplaceListings.length > 0 ? `<div class="listing-grid">${marketplaceListings.slice(0,3).map(item => `
+                    <div class="listing-item"><div><strong>${item.name}</strong><br><small>${item.sellerName} | ${item.gram} gram</small></div>
+                    <div>${formatRupiah(item.pricePerGram)}/gram</div>
+                    <div><button class="btn-outline detail-quick-btn" data-id="${item.id}">Detail</button></div></div>`).join('')}</div>` : '<p style="text-align:center;">Belum ada listing</p>'}
             </div>
-        `;
+            <div class="section-card">
+                <div class="flex-between"><h3><i class="fas fa-qrcode"></i> Top Up via QRIS</h3>
+                <button id="qrisTopUpBtn" class="btn-qris"><i class="fas fa-qrcode"></i> Scan QRIS</button></div>
+                <p>Scan QRIS untuk top up saldo emas digital</p>
+            </div>`;
         
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
+        document.getElementById("qrisTopUpBtn")?.addEventListener("click", () => scanQRIS());
         document.querySelectorAll(".detail-quick-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 const listing = marketplaceListings.find(l => l.id === btn.dataset.id);
@@ -747,43 +600,17 @@
     }
     
     function renderMarketplace(container) {
-        container.innerHTML = `
-            <div class="flex-between">
-                <h1 class="page-title"><i class="fas fa-store"></i> Marketplace Global</h1>
-                <button id="quickSellBtn" class="btn-outline"><i class="fas fa-plus"></i> Jual Emas</button>
-            </div>
-            <div class="info-message" style="margin-bottom:16px;">
-                <i class="fas fa-globe"></i> Semua listing dari seluruh pengguna Brankas LM. 
-                ${marketplaceListings.filter(l => l.sellerEmail === currentUserEmail).length > 0 ? 
-                    `<span class="badge-own" style="margin-left:8px;">Listing Anda: ${marketplaceListings.filter(l => l.sellerEmail === currentUserEmail).length} item</span>` : ''}
-            </div>
-            <div class="section-card">
-                <div id="marketplaceList" class="listing-grid"></div>
-            </div>
-        `;
+        container.innerHTML = `<div class="flex-between"><h1 class="page-title"><i class="fas fa-store"></i> Marketplace</h1>
+            <button id="quickSellBtn" class="btn-outline"><i class="fas fa-plus"></i> Jual Emas</button></div>
+            <div class="section-card"><div id="marketplaceList" class="listing-grid"></div></div>`;
         
         const listContainer = document.getElementById("marketplaceList");
-        if (marketplaceListings.length === 0) {
-            listContainer.innerHTML = "<p style='padding:40px;text-align:center'>Belum ada listing. Jadilah penjual pertama! 🚀</p>";
-        } else {
-            listContainer.innerHTML = marketplaceListings.map(item => {
-                const isOwn = item.sellerEmail === currentUserEmail;
-                return `
-                    <div class="listing-item">
-                        <div>
-                            <i class="fas fa-coins" style="color:#FFB347;"></i> 
-                            <strong>${item.name}</strong>
-                            ${isOwn ? '<span class="badge-own" style="margin-left:8px;">Milik Saya</span>' : ''}
-                            <br><small>Penjual: ${item.sellerName} | ${item.gram} gram</small>
-                        </div>
-                        <div>${formatRupiah(item.pricePerGram)}/gram<br>${formatRupiah(item.totalPrice)}</div>
-                        <div>
-                            <button class="btn-outline detail-btn" data-id="${item.id}">Detail & Beli</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
+        if (marketplaceListings.length === 0) listContainer.innerHTML = "<p style='padding:40px;text-align:center'>Belum ada listing</p>";
+        else listContainer.innerHTML = marketplaceListings.map(item => `
+            <div class="listing-item"><div><strong>${item.name}</strong>${item.sellerEmail === currentUserEmail ? '<span class="badge-own"> Milik Saya</span>' : ''}
+            <br><small>${item.sellerName} | ${item.gram} gram</small></div>
+            <div>${formatRupiah(item.pricePerGram)}/gram<br>${formatRupiah(item.totalPrice)}</div>
+            <div><button class="btn-outline detail-btn" data-id="${item.id}">Detail & Beli</button></div></div>`).join('');
         
         document.getElementById("quickSellBtn")?.addEventListener("click", () => setActivePage("buat-listing"));
         document.querySelectorAll(".detail-btn").forEach(btn => {
@@ -795,169 +622,102 @@
     }
     
     function renderBuatListing(container) {
-        container.innerHTML = `
-            <div class="flex-between">
-                <h1 class="page-title"><i class="fas fa-plus-circle"></i> Jual Emas</h1>
-            </div>
-            <div class="info-message" style="margin-bottom:16px; background:#fff3e0;">
-                <i class="fas fa-info-circle"></i> <strong>Perhatian:</strong> Saat Anda membuat listing, emas akan langsung 
-                <span class="text-danger">BERKURANG</span> dari saldo Anda dan dititipkan ke platform.
-                <br>Setelah dibeli, transaksi Anda akan tercatat sebagai <strong class="text-danger">"JUAL"</strong> dengan mitra = nama pembeli.
-            </div>
-            <div class="section-card">
-                <form id="createListingForm">
-                    <div class="form-group">
-                        <label>Nama Emas <span style="color:red;">*</span></label>
-                        <input type="text" id="assetName" placeholder="Contoh: Emas Antam 24K" required>
-                    </div>
-                    <div class="row-2cols">
-                        <div class="form-group">
-                            <label>Berat per Item (Gram) <span style="color:red;">*</span></label>
-                            <input type="number" id="gram" step="0.1" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Harga Jual (per gram) <span style="color:red;">*</span></label>
-                            <input type="number" id="pricePerGram" required>
-                            <div id="priceValidationMsg" class="warning-text"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Jumlah Stok</label>
-                        <input type="number" id="qty" value="1" min="1">
-                        <small class="info-message" style="display:block; margin-top:4px;">Total emas yang akan dijual = Berat × Stok</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Deskripsi (Opsional)</label>
-                        <textarea rows="2" id="desc" placeholder="Sertifikat, kondisi, dll."></textarea>
-                    </div>
-                    <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Terbitkan Listing</button>
-                </form>
-            </div>
-        `;
+        container.innerHTML = `<div class="flex-between"><h1 class="page-title"><i class="fas fa-plus-circle"></i> Jual Emas</h1></div>
+            <div class="section-card"><form id="createListingForm">
+                <div class="form-group"><label>Nama Emas</label><input type="text" id="assetName" required></div>
+                <div class="row-2cols"><div class="form-group"><label>Berat (Gram)</label><input type="number" id="gram" step="0.001" required></div>
+                <div class="form-group"><label>Harga/Gram</label><input type="number" id="pricePerGram" required><div id="priceValidationMsg"></div></div></div>
+                <div class="form-group"><label>Stok</label><input type="number" id="qty" value="1" min="1"></div>
+                <div class="form-group"><label>Deskripsi</label><textarea rows="2" id="desc"></textarea></div>
+                <button type="submit" class="btn-primary">Terbitkan Listing</button></form></div>`;
         
         const priceInput = document.getElementById("pricePerGram");
-        const priceValidationMsg = document.getElementById("priceValidationMsg");
-        
         const validatePrice = () => {
             const price = parseFloat(priceInput?.value);
             if (!isNaN(price) && price > 0) {
                 const validation = validateSellingPrice(price);
-                if (!validation.valid) {
-                    priceValidationMsg.innerHTML = validation.message;
-                    priceInput.classList.add("error-border");
-                    return false;
-                } else {
-                    priceValidationMsg.innerHTML = `✅ Harga dalam batas maksimal ${formatRupiah(getMaxPricePerGram())}/gram`;
-                    priceInput.classList.remove("error-border");
-                    return true;
-                }
+                document.getElementById("priceValidationMsg").innerHTML = validation.valid ? `✅ Maksimal ${formatRupiah(getMaxPricePerGram())}/gram` : validation.message;
+                priceInput.classList.toggle("error-border", !validation.valid);
             }
-            return false;
         };
-        
         if (priceInput) priceInput.addEventListener("input", validatePrice);
         
         document.getElementById("createListingForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            
             const name = document.getElementById("assetName").value;
             const gram = parseFloat(document.getElementById("gram").value);
             const price = parseFloat(priceInput.value);
             const qty = parseInt(document.getElementById("qty").value);
             const desc = document.getElementById("desc").value;
-            
-            if (!name) { alert("Masukkan nama emas!"); return; }
-            if (isNaN(gram) || gram <= 0) { alert("Masukkan berat yang valid!"); return; }
-            if (isNaN(price) || price <= 0) { alert("Masukkan harga yang valid!"); return; }
-            
-            const validation = validateSellingPrice(price);
-            if (!validation.valid) {
-                alert(validation.message);
-                priceInput.focus();
-                return;
-            }
-            
+            if (!name || isNaN(gram) || gram <= 0 || isNaN(price) || price <= 0) { alert("Isi semua data!"); return; }
+            if (!validateSellingPrice(price).valid) { alert("Harga melebihi batas!"); return; }
             await createListing(name, gram, price, qty, desc);
-            render();
             setActivePage("marketplace");
+        });
+    }
+    
+    function renderQRIS(container) {
+        const goldAmountPerRupiah = 1 / goldPricePerGram;
+        container.innerHTML = `
+            <div class="flex-between"><h1 class="page-title"><i class="fas fa-qrcode"></i> Top Up via QRIS</h1></div>
+            <div class="section-card">
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-qrcode" style="font-size: 80px; color: #0077B6;"></i>
+                    <h3 style="margin: 16px 0;">Scan QRIS untuk Top Up</h3>
+                    <p>Scan QRIS menggunakan aplikasi mobile banking atau e-wallet</p>
+                    <div class="info-message" style="margin: 20px 0;">
+                        <strong>💰 Harga Emas Saat Ini:</strong><br>
+                        ${formatRupiah(goldPricePerGram)} / gram<br>
+                        1 Rupiah = ${goldAmountPerRupiah.toFixed(6)} gram
+                    </div>
+                    <button id="scanQrisBtn" class="btn-qris" style="font-size: 18px; padding: 14px 32px;">
+                        <i class="fas fa-camera"></i> Scan QRIS Sekarang
+                    </button>
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label>Atau Masukkan Nominal Top Up</label>
+                        <input type="number" id="topupAmount" placeholder="Masukkan nominal Rupiah" step="1000" style="text-align: center; font-size: 18px;">
+                        <small>Contoh: 100000 = ${formatGram(convertIDRToGold(100000))}</small>
+                    </div>
+                    <button id="manualTopUpBtn" class="btn-primary" style="margin-top: 12px;">Top Up Manual</button>
+                </div>
+            </div>`;
+        
+        document.getElementById("scanQrisBtn")?.addEventListener("click", () => scanQRIS());
+        document.getElementById("manualTopUpBtn")?.addEventListener("click", async () => {
+            const amount = parseInt(document.getElementById("topupAmount")?.value);
+            if (amount && amount > 0) await processQRISPayment(amount);
+            else showNotification("Masukkan nominal yang valid!", "error");
         });
     }
     
     function renderRiwayat(container) {
         const sortedTransactions = [...p2pTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-        
         const totalBeli = sortedTransactions.filter(t => t.type === "Beli").reduce((sum, t) => sum + t.gram, 0);
         const totalJual = sortedTransactions.filter(t => t.type === "Jual").reduce((sum, t) => sum + t.gram, 0);
         
-        container.innerHTML = `
-            <div class="flex-between">
-                <h1 class="page-title"><i class="fas fa-history"></i> Riwayat Transaksi</h1>
-                <div style="display: flex; gap: 8px;">
-                    <span style="background:#e8f5e9; padding:4px 12px; border-radius:50px; font-size:12px;">
-                        <i class="fas fa-arrow-down text-success"></i> Beli: ${totalBeli}g
-                    </span>
-                    <span style="background:#fff3e0; padding:4px 12px; border-radius:50px; font-size:12px;">
-                        <i class="fas fa-arrow-up text-danger"></i> Jual: ${totalJual}g
-                    </span>
-                </div>
-            </div>
-            <div class="info-message" style="margin-bottom:16px; background:#e8f5e9;">
-                <i class="fas fa-info-circle"></i> <strong>Keterangan:</strong><br>
-                🟢 <span class="badge-beli" style="margin-left:0; margin-right:8px;">BELI</span> = Anda <strong>MEMBELI</strong> emas (saldo <span class="text-success">BERTAMBAH</span>) → <strong>Mitra = Penjual</strong><br>
-                🟠 <span class="badge-jual" style="margin-left:8px;">JUAL</span> = Anda <strong>MENJUAL</strong> emas (saldo <span class="text-danger">BERKURANG</span>) → <strong>Mitra = Pembeli</strong>
-            </div>
-            <div class="section-card">
-                ${sortedTransactions.length === 0 ? 
-                    '<p style="text-align:center;padding:40px;">Belum ada transaksi. Mulai beli/jual emas!</p>' : 
-                    `<div style="overflow-x: auto;">
-                        <table class="history-table" style="width:100%; min-width:600px;">
-                            <thead>
-                                <tr><th>Tipe</th><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Fee</th><th>Tanggal</th></tr>
-                            </thead>
-                            <tbody>
-                                ${sortedTransactions.map(t => {
-                                    const icon = t.type === "Beli" ? "📥" : "📤";
-                                    const mitraLabel = t.type === "Beli" ? "Penjual" : "Pembeli";
-                                    return `
-                                        <tr style="border-bottom: 1px solid #ecf3f8;">
-                                            <td>
-                                                <span class="${t.type === 'Beli' ? 'badge-beli' : 'badge-jual'}" style="display: inline-flex; align-items: center; gap: 4px;">
-                                                    ${icon} ${t.type}
-                                                </span>
-                                            </td>
-                                            <td><strong>${t.asset}</strong></td>
-                                            <td>
-                                                <span class="${t.type === 'Beli' ? 'text-success' : 'text-danger'}" style="font-weight: 600;">
-                                                    ${t.type === 'Beli' ? '+' : '-'}${t.gram}g
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <strong>${t.counterparty}</strong>
-                                                <div class="mitra-label">(${mitraLabel})</div>
-                                            </td>
-                                            <td>${formatRupiah(t.totalPrice)}</td>
-                                            <td style="font-size:12px; color:#6c757d;">${formatRupiah(t.fee || 0)}</td>
-                                            <td style="font-size:12px;">${t.date}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>`
-                }
-                ${totalJual > 0 ? `
-                    <div class="info-message" style="margin-top:16px; background:#e8f5e9;">
-                        <i class="fas fa-check-circle text-success"></i> <strong>Transaksi JUAL ditemukan!</strong> 
-                        Anda telah menjual emas sebanyak ${totalJual} gram kepada para pembeli.
-                    </div>
-                ` : `
-                    <div class="info-message" style="margin-top:16px; background:#fff3e0;">
-                        <i class="fas fa-info-circle"></i> <strong>Belum ada transaksi JUAL?</strong><br>
-                        Jika Anda sudah menjual emas tapi tidak muncul, klik tombol <strong>"Refresh Data Saya"</strong> atau <strong>"Load Data Global"</strong> di bagian atas untuk memuat data terbaru dari cloud.
-                    </div>
-                `}
-            </div>
-        `;
+        container.innerHTML = `<div class="flex-between"><h1 class="page-title"><i class="fas fa-history"></i> Riwayat Transaksi</h1>
+            <div><span class="badge-beli">Beli: ${totalBeli.toFixed(3)}g</span> <span class="badge-jual">Jual: ${totalJual.toFixed(3)}g</span></div></div>
+            <div class="section-card">${sortedTransactions.length === 0 ? '<p style="text-align:center;">Belum ada transaksi</p>' :
+            `<table class="history-table"><thead><tr><th>Tipe</th><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Tanggal</th></tr></thead>
+            <tbody>${sortedTransactions.map(t => `<tr><td><span class="${t.type === 'Beli' ? 'badge-beli' : 'badge-jual'}">${t.type}</span></td>
+            <td>${t.asset}</td><td>${t.type === 'Beli' ? '+' : '-'}${t.gram.toFixed(3)}g</td>
+            <td>${t.counterparty}</td><td>${formatRupiah(t.totalPrice)}</td><td>${t.date}</td></tr>`).join('')}</tbody></table>`}</div>`;
+    }
+    
+    function showDetailModal(listing) {
+        const modal = document.getElementById("detailModal");
+        const modalContent = document.getElementById("modalDynamicContent");
+        const isOwnListing = (listing.sellerEmail === currentUserEmail);
+        
+        modalContent.innerHTML = `<h3>${listing.name}</h3><div style="background:#f8fafc; border-radius:20px; padding:16px; margin:16px 0;">
+            <p>Penjual: ${listing.sellerName}</p><p>Berat: ${listing.gram} gram</p><p>Harga/gram: ${formatRupiah(listing.pricePerGram)}</p>
+            <p><strong>Total: ${formatRupiah(listing.totalPrice)}</strong></p>${listing.desc ? `<p>${listing.desc}</p>` : ''}</div>
+            ${!isOwnListing ? `<div style="display:flex; gap:12px;"><button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button></div>` : 
+            `<div class="info-message">Ini listing Anda sendiri. Listing akan hilang saat dibeli.</div>`}`;
+        
+        modal.style.display = "flex";
+        document.getElementById("closeDetailModal").onclick = () => modal.style.display = "none";
+        if (!isOwnListing) document.getElementById("buyNowBtn").onclick = async () => { modal.style.display = "none"; await buyListing(listing); };
     }
     
     function render() {
@@ -966,6 +726,7 @@
         if (currentPage === "dashboard") renderDashboard(container);
         else if (currentPage === "marketplace") renderMarketplace(container);
         else if (currentPage === "buat-listing") renderBuatListing(container);
+        else if (currentPage === "qris") renderQRIS(container);
         else if (currentPage === "riwayat") renderRiwayat(container);
         attachNavEvents();
     }
@@ -1035,6 +796,7 @@
     }
     
     function logout() {
+        if (html5QrCode) html5QrCode.stop().catch(() => {});
         document.getElementById("loginOverlay").style.display = "flex";
         document.getElementById("appContainer").style.display = "none";
         currentUserEmail = null;
@@ -1045,71 +807,12 @@
     // Event listeners
     document.getElementById("demoLoginBtn")?.addEventListener("click", demoLogin);
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
-    document.getElementById("manualSyncBtn")?.addEventListener("click", async () => { 
-        if(currentUserEmail) { 
-            await saveToLocalAndCloud(); 
-            showNotification("✅ Data disimpan ke cloud!", "success");
-        } 
-    });
-    document.getElementById("loadCloudBtn")?.addEventListener("click", async () => { 
-        if(currentUserEmail) { 
-            const loadingBtn = document.getElementById("loadCloudBtn");
-            const originalText = loadingBtn.innerHTML;
-            loadingBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
-            loadingBtn.disabled = true;
-            
-            try {
-                await loadGlobalData(false);
-                render(); 
-                const jualCount = p2pTransactions.filter(t => t.type === "Jual").length;
-                const beliCount = p2pTransactions.filter(t => t.type === "Beli").length;
-                showNotification(`✅ Data global dimuat! ${marketplaceListings.length} listing, ${jualCount} Jual, ${beliCount} Beli`, "success");
-            } catch (error) {
-                console.error('Load error:', error);
-                showNotification("❌ Gagal memuat data dari cloud", "error");
-            } finally {
-                loadingBtn.innerHTML = originalText;
-                loadingBtn.disabled = false;
-            }
-        }
-    });
-    
-    document.getElementById("refreshMyDataBtn")?.addEventListener("click", async () => {
-        if(currentUserEmail) {
-            const refreshBtn = document.getElementById("refreshMyDataBtn");
-            const originalText = refreshBtn.innerHTML;
-            refreshBtn.innerHTML = '<span class="loading-spinner"></span> Refreshing...';
-            refreshBtn.disabled = true;
-            
-            try {
-                showNotification("🔄 Memuat ulang data Anda dari cloud...", "info");
-                await loadGlobalData(false);
-                render();
-                const jualCount = p2pTransactions.filter(t => t.type === "Jual").length;
-                const beliCount = p2pTransactions.filter(t => t.type === "Beli").length;
-                showNotification(`✅ Data direfresh! Transaksi: ${jualCount} Jual, ${beliCount} Beli`, "success");
-                
-                if (jualCount > 0) {
-                    console.log(`📊 Ditemukan ${jualCount} transaksi JUAL:`, p2pTransactions.filter(t => t.type === "Jual"));
-                }
-            } catch (error) {
-                console.error('Refresh error:', error);
-                showNotification("❌ Gagal merefresh data", "error");
-            } finally {
-                refreshBtn.innerHTML = originalText;
-                refreshBtn.disabled = false;
-            }
-        }
-    });
-    
-    document.getElementById("fixDataBtn")?.addEventListener("click", async () => {
-        if(currentUserEmail) {
-            await fixUserData();
-        }
-    });
+    document.getElementById("manualSyncBtn")?.addEventListener("click", async () => { if(currentUserEmail) { await saveToLocalAndCloud(); showNotification("✅ Data disimpan ke cloud!", "success"); } });
+    document.getElementById("loadCloudBtn")?.addEventListener("click", async () => { if(currentUserEmail) { await loadGlobalData(false); render(); } });
+    document.getElementById("refreshMyDataBtn")?.addEventListener("click", async () => { if(currentUserEmail) { await loadGlobalData(false); render(); showNotification("✅ Data direfresh!", "success"); } });
     
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
-    console.log('🚀 P2P Marketplace v11 - Terintegrasi penuh dengan Apps Script');
+    console.log('🚀 P2P Marketplace v12 - Saldo desimal 3 digit + QRIS Top Up');
 </script>
 </body>
 </html>

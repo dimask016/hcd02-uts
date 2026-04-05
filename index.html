@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v5</title>
+    <title>Brankas LM - P2P Emas Digital v6</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -79,8 +79,13 @@
         .warning-text { color: #e74c3c; font-size: 12px; margin-top: 5px; }
         .error-border { border-color: #e74c3c !important; }
         .success-text { color: #27ae60; font-size: 12px; margin-top: 5px; }
-        .notification { position: fixed; top: 20px; right: 20px; background: white; border-radius: 12px; padding: 12px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 2000; border-left: 4px solid #27ae60; animation: slideIn 0.3s ease; }
+        .notification { position: fixed; top: 20px; right: 20px; background: white; border-radius: 12px; padding: 12px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 2000; border-left: 4px solid #27ae60; animation: slideIn 0.3s ease; max-width: 350px; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .text-success { color: #27ae60; }
+        .text-danger { color: #e74c3c; }
+        .text-warning { color: #f39c12; }
+        .flow-diagram { background: #f8f9fa; border-radius: 16px; padding: 16px; margin-top: 16px; text-align: center; font-size: 13px; }
+        .flow-diagram i { margin: 0 8px; }
     </style>
 </head>
 <body>
@@ -94,8 +99,8 @@
         <div id="googleErrorMsg" style="display:none; background:#fee2e2; color:#b91c1c; padding:10px; border-radius:16px; margin-top:12px; font-size:12px;"></div>
         <div class="demo-note">
             <i class="fas fa-globe"></i> <strong>Sistem Marketplace P2P Global:</strong><br>
-            • Semua listing dari semua pengguna tampil di marketplace<br>
-            • Transaksi jual beli antar pengguna<br>
+            • Penjual: menjual emas → saldo BERKURANG<br>
+            • Pembeli: membeli emas → saldo BERTAMBAH<br>
             • Data tersimpan di cloud dan bisa diakses semua akun
         </div>
     </div>
@@ -148,9 +153,6 @@
     let p2pTransactions = [];
     let pendingOffers = [];
     
-    // Data untuk update saldo penjual (disimpan sementara untuk sync)
-    let pendingSellerUpdates = [];
-    
     let isSyncing = false;
     let currentPage = "dashboard";
     let isDemoMode = false;
@@ -166,10 +168,10 @@
     function showNotification(message, type = 'success') {
         const notif = document.createElement('div');
         notif.className = 'notification';
-        notif.style.borderLeftColor = type === 'success' ? '#27ae60' : '#e74c3c';
-        notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="margin-right: 8px; color: ${type === 'success' ? '#27ae60' : '#e74c3c'}"></i> ${message}`;
+        notif.style.borderLeftColor = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#f39c12';
+        notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}" style="margin-right: 8px; color: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#f39c12'}"></i> ${message}`;
         document.body.appendChild(notif);
-        setTimeout(() => notif.remove(), 3000);
+        setTimeout(() => notif.remove(), 4000);
     }
     
     function showSyncStatus(message, type) {
@@ -330,36 +332,6 @@
         await syncToCloud();
     }
     
-    // ========== UPDATE SALDO PENJUAL (FUNGSI BARU) ==========
-    async function updateSellerBalance(sellerEmail, sellerName, gramToAdd) {
-        // Simpan request update untuk seller
-        pendingSellerUpdates.push({
-            email: sellerEmail,
-            name: sellerName,
-            gram: gramToAdd,
-            timestamp: Date.now()
-        });
-        
-        // Kirim update ke cloud melalui endpoint terpisah
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'updateSellerBalance',
-                    email: sellerEmail,
-                    sellerName: sellerName,
-                    gramToAdd: gramToAdd,
-                    timestamp: Date.now()
-                })
-            });
-        } catch(e) {
-            console.warn('Gagal update seller balance:', e);
-        }
-    }
-    
     // ========== VALIDASI HARGA ==========
     function validateSellingPrice(pricePerGram) {
         const maxPrice = getMaxPricePerGram();
@@ -373,6 +345,10 @@
     }
     
     // ========== FUNGSI BISNIS YANG DIPERBAIKI ==========
+    // LOGIKA YANG BENAR:
+    // Penjual (menjual emas) → Saldo BERKURANG
+    // Pembeli (membeli emas) → Saldo BERTAMBAH
+    
     async function buyListing(listing) {
         // Cek apakah pembeli bukan penjual sendiri
         if (listing.sellerEmail === currentUserEmail) {
@@ -380,22 +356,26 @@
             return false;
         }
         
-        // Cek saldo pembeli
-        if (userGoldBalance.gram < listing.gram) {
-            alert(`❌ Saldo tidak cukup! Saldo Anda: ${formatGram(userGoldBalance.gram)}`);
-            return false;
-        }
-        
-        const confirmMsg = `Beli ${listing.name} (${listing.gram} gram) dari ${listing.sellerName} seharga ${formatRupiah(listing.totalPrice)}?\n\nSetelah transaksi:\n• Saldo Anda akan berkurang ${listing.gram} gram\n• Saldo penjual (${listing.sellerName}) akan bertambah ${listing.gram} gram`;
+        const confirmMsg = `🔔 KONFIRMASI PEMBELIAN\n\n` +
+            `Anda akan MEMBELI:\n` +
+            `📦 ${listing.name}\n` +
+            `⚖️ Berat: ${listing.gram} gram\n` +
+            `💰 Harga: ${formatRupiah(listing.totalPrice)}\n` +
+            `👤 Penjual: ${listing.sellerName}\n\n` +
+            `📌 EFEK TRANSAKSI:\n` +
+            `• Saldo Anda akan BERTAMBAH +${listing.gram} gram ✅\n` +
+            `• Saldo Penjual akan BERKURANG -${listing.gram} gram\n\n` +
+            `Lanjutkan pembelian?`;
+            
         if (!confirm(confirmMsg)) return false;
         
         // === PROSES TRANSAKSI ===
         
-        // 1. Kurangi saldo PEMBELI (user saat ini)
+        // 1. PEMBELI: Saldo BERTAMBAH (menerima emas dari penjual)
         const oldBuyerBalance = userGoldBalance.gram;
-        userGoldBalance.gram -= listing.gram;
+        userGoldBalance.gram += listing.gram;
         
-        // 2. Hitung fee platform
+        // 2. Hitung fee platform (dari nilai rupiah transaksi)
         const fee = calculatePlatformFee(listing.totalPrice);
         
         // 3. Catat transaksi untuk PEMBELI
@@ -413,17 +393,32 @@
             fee: fee 
         });
         
-        // 4. Hapus listing dari marketplace
+        // 4. Hapus listing dari marketplace (karena sudah dibeli)
         marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
         
         // 5. SIMPAN PERUBAHAN UNTUK PEMBELI
         await saveToLocalAndCloud();
         
         // 6. TAMPILKAN NOTIFIKASI
-        showNotification(`✅ Pembelian berhasil!\nAnda membeli ${listing.gram} gram dari ${listing.sellerName}\nSaldo Anda: ${formatGram(userGoldBalance.gram)}`, 'success');
+        showNotification(
+            `✅ Pembelian Berhasil!\n\n` +
+            `Anda membeli ${listing.gram} gram dari ${listing.sellerName}\n` +
+            `Saldo Anda: ${formatGram(userGoldBalance.gram)} ` +
+            `(sebelumnya: ${formatGram(oldBuyerBalance)})`,
+            'success'
+        );
         
-        // 7. INFORMASIKAN bahwa penjual perlu melakukan sync untuk melihat saldo bertambah
-        alert(`✅ Transaksi berhasil!\n\nDetail:\n• Anda membeli: ${listing.gram} gram\n• Harga: ${formatRupiah(listing.totalPrice)}\n• Fee platform: ${formatRupiah(fee)}\n\n💰 Saldo emas Anda sekarang: ${formatGram(userGoldBalance.gram)}\n\n📌 Catatan: Penjual (${listing.sellerName}) harus melakukan "Load Data Global" untuk melihat saldo emasnya bertambah.`);
+        // 7. INFORMASIKAN bahwa penjual perlu melakukan sync
+        alert(`✅ TRANSAKSI BERHASIL!\n\n` +
+            `📋 Detail Transaksi:\n` +
+            `• Pembeli (Anda): +${listing.gram} gram\n` +
+            `• Penjual (${listing.sellerName}): -${listing.gram} gram\n` +
+            `• Harga: ${formatRupiah(listing.totalPrice)}\n` +
+            `• Fee platform: ${formatRupiah(fee)}\n\n` +
+            `💰 Saldo emas Anda SEKARANG: ${formatGram(userGoldBalance.gram)}\n\n` +
+            `📌 Catatan Penting:\n` +
+            `Penjual (${listing.sellerName}) HARUS melakukan "Load Data Global" ` +
+            `untuk melihat saldo emasnya berkurang sesuai penjualan.`);
         
         // 8. Refresh tampilan
         render();
@@ -438,12 +433,30 @@
         }
         
         const totalGram = gram * qty;
+        
+        // Cek saldo penjual (apakah cukup untuk dijual)
         if (userGoldBalance.gram < totalGram) {
-            alert(`❌ Saldo tidak cukup untuk menjual ${totalGram} gram! Saldo: ${formatGram(userGoldBalance.gram)}`);
+            alert(`❌ Saldo tidak cukup untuk menjual ${totalGram} gram!\n` +
+                  `Saldo Anda saat ini: ${formatGram(userGoldBalance.gram)}`);
             return false;
         }
         
-        // Kurangi saldo penjual (emas akan dititipkan ke platform saat listing)
+        const confirmMsg = `🔔 KONFIRMASI PENJUALAN\n\n` +
+            `Anda akan MENJUAL:\n` +
+            `📦 ${name}\n` +
+            `⚖️ Berat per item: ${gram} gram\n` +
+            `📦 Jumlah stok: ${qty}\n` +
+            `⚖️ Total emas dijual: ${totalGram} gram\n` +
+            `💰 Harga/gram: ${formatRupiah(pricePerGram)}\n\n` +
+            `📌 EFEK TRANSAKSI:\n` +
+            `• Saldo Anda akan BERKURANG -${totalGram} gram\n` +
+            `• Pembeli akan BERTAMBAH sesuai berat yang dibeli\n\n` +
+            `Lanjutkan membuat listing?`;
+            
+        if (!confirm(confirmMsg)) return false;
+        
+        // PENJUAL: Saldo BERKURANG (emasnya akan dijual ke pembeli)
+        const oldBalance = userGoldBalance.gram;
         userGoldBalance.gram -= totalGram;
         
         const newListing = { 
@@ -463,7 +476,19 @@
         
         await saveToLocalAndCloud();
         
-        alert(`✅ Listing berhasil dibuat!\n\nDetail:\n• Emas: ${name}\n• Berat per item: ${gram} gram\n• Jumlah stok: ${qty}\n• Total emas dijual: ${totalGram} gram\n\n💰 Saldo emas Anda sekarang: ${formatGram(userGoldBalance.gram)}`);
+        alert(`✅ LISTING BERHASIL DIBUAT!\n\n` +
+            `📋 Detail Listing:\n` +
+            `• Emas: ${name}\n` +
+            `• Berat per item: ${gram} gram\n` +
+            `• Jumlah stok: ${qty}\n` +
+            `• Total emas dijual: ${totalGram} gram\n` +
+            `• Harga/gram: ${formatRupiah(pricePerGram)}\n\n` +
+            `💰 Perubahan Saldo Anda:\n` +
+            `• Sebelum: ${formatGram(oldBalance)}\n` +
+            `• Setelah: ${formatGram(userGoldBalance.gram)} ` +
+            `(berkurang ${totalGram} gram)\n\n` +
+            `📌 Listing akan muncul di marketplace dan dapat dibeli oleh pengguna lain.`);
+            
         return true;
     }
     
@@ -483,16 +508,29 @@
                 <p><i class="fas fa-boxes"></i> Stok: ${listing.qty}</p>
                 ${listing.desc ? `<p><i class="fas fa-file-alt"></i> Deskripsi: ${listing.desc}</p>` : ''}
             </div>
+            
+            <div class="flow-diagram">
+                <strong><i class="fas fa-exchange-alt"></i> Alur Transaksi:</strong><br>
+                <span class="text-danger">Penjual (${listing.sellerName})</span> 
+                <i class="fas fa-arrow-right"></i> menjual ${listing.gram} gram 
+                <i class="fas fa-arrow-right"></i> 
+                <span class="text-success">Pembeli (Anda)</span><br>
+                <small>Penjual: <span class="text-danger">BERKURANG</span> | Pembeli: <span class="text-success">BERTAMBAH</span></small>
+            </div>
+            
             ${!isOwnListing ? `
-                <div style="background:#e8f5e9; padding:12px; border-radius:12px; margin-bottom:16px;">
-                    <small><i class="fas fa-info-circle"></i> Setelah membeli, saldo emas Anda akan berkurang ${listing.gram} gram dan penjual akan menerima ${listing.gram} gram emas.</small>
+                <div style="background:#e8f5e9; padding:12px; border-radius:12px; margin:16px 0;">
+                    <small><i class="fas fa-info-circle"></i> <strong>Setelah membeli:</strong><br>
+                    • Saldo emas Anda akan <span class="text-success">BERTAMBAH +${listing.gram} gram</span><br>
+                    • Saldo penjual akan <span class="text-danger">BERKURANG -${listing.gram} gram</span></small>
                 </div>
                 <div style="display:flex; gap:12px;">
-                    <button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Langsung</button>
+                    <button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button>
                 </div>
             ` : `
-                <div class="info-message" style="background:#fff3e0;">
-                    <i class="fas fa-exclamation-triangle"></i> Ini adalah listing milik Anda sendiri. Listing akan otomatis menghilang setelah dibeli oleh pengguna lain.
+                <div class="info-message" style="background:#fff3e0; margin-top:16px;">
+                    <i class="fas fa-exclamation-triangle"></i> Ini adalah listing milik Anda sendiri. 
+                    Listing akan otomatis hilang setelah dibeli oleh pengguna lain.
                 </div>
             `}
         `;
@@ -643,9 +681,10 @@
             <div class="flex-between">
                 <h1 class="page-title"><i class="fas fa-plus-circle"></i> Jual Emas</h1>
             </div>
-            <div class="info-message" style="margin-bottom:16px;">
-                <i class="fas fa-info-circle"></i> Listing Anda akan tampil di marketplace dan bisa dilihat semua pengguna.
-                <br><strong>Perhatian:</strong> Emas akan langsung berkurang dari saldo Anda saat listing dibuat.
+            <div class="info-message" style="margin-bottom:16px; background:#fff3e0;">
+                <i class="fas fa-info-circle"></i> <strong>Perhatian:</strong> Saat Anda membuat listing, emas akan langsung 
+                <span class="text-danger">BERKURANG</span> dari saldo Anda dan dititipkan ke platform.
+                <br>Setelah dibeli, pembeli akan <span class="text-success">MENERIMA</span> emas tersebut.
             </div>
             <div class="section-card">
                 <form id="createListingForm">
@@ -741,12 +780,13 @@
                                 <tr>
                                     <td><span class="${t.type === 'Beli' ? 'badge-seller' : 'badge-own'}" style="padding:4px 8px;">${t.type}</span></td>
                                     <td>${t.asset}</td>
-                                    <td>${t.gram}g</td>
+                                    <td>${t.type === 'Beli' ? '+' : '-'}${t.gram}g</td>
                                     <td>${t.counterparty}</td>
                                     <td>${formatRupiah(t.totalPrice)}</td>
                                     <td>${formatRupiah(t.fee)}</td>
                                     <td>${t.date}</td>
-                                </tr>
+                                
+
                             `).join('')}
                         </tbody>
                     </table>`
@@ -806,6 +846,7 @@
                 document.getElementById("userEmail").innerHTML = data.email;
                 document.getElementById("userAvatar").innerHTML = data.name.charAt(0).toUpperCase();
                 render();
+                showNotification(`Selamat datang ${data.name}! Saldo awal: ${formatGram(userGoldBalance.gram)}`, 'success');
             }
         } catch(error) { alert("Login gagal: " + error.message); }
     }
@@ -824,6 +865,7 @@
             document.getElementById("userEmail").innerHTML = demoEmail;
             document.getElementById("userAvatar").innerHTML = name.trim().charAt(0).toUpperCase();
             render();
+            showNotification(`Selamat datang ${name.trim()}! Mode Demo - Saldo: ${formatGram(userGoldBalance.gram)}`, 'success');
         }
     }
     
@@ -866,7 +908,7 @@
     });
     
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
-    console.log('🚀 P2P Marketplace v5 - Transaksi P2P dengan update saldo penjual');
+    console.log('🚀 P2P Marketplace v6 - Logika Jual Beli yang BENAR: Penjual (-) | Pembeli (+)');
 </script>
 </body>
 </html>

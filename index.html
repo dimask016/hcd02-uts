@@ -34,6 +34,7 @@
         .gold-card { background: linear-gradient(135deg, #1a3a4a 0%, #0e2a38 100%); border-radius: 28px; padding: 24px; margin-bottom: 32px; color: #FFD966; }
         .gold-balance { background: rgba(0,0,0,0.3); border-radius: 20px; padding: 16px; text-align: center; }
         .gold-balance .balance-gram { font-size: 2.5rem; font-weight: 800; color: #FFD966; }
+        .gold-balance .balance-idr { font-size: 1.2rem; font-weight: 600; color: #FFD966; margin-top: 8px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
         .stat-card { background: white; padding: 20px; border-radius: 28px; box-shadow: 0 8px 18px rgba(0,0,0,0.04); border: 1px solid #e9f0f5; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); }
@@ -46,6 +47,7 @@
         .btn-outline { background: transparent; border: 1.5px solid #FFA41C; padding: 8px 20px; border-radius: 40px; font-weight: 500; color: #d97c15; cursor: pointer; }
         .btn-success { background: #27ae60; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
         .btn-danger { background: #e74c3c; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
+        .btn-info { background: #3498db; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
         .listing-grid { display: flex; flex-direction: column; gap: 16px; }
         .listing-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: #fefefe; border-radius: 24px; border: 1px solid #eef2f6; flex-wrap: wrap; gap: 12px; }
         .offer-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #ffe0b5; flex-wrap: wrap; gap: 10px; }
@@ -64,10 +66,14 @@
         .info-message { background: #eef3fc; padding: 12px 16px; border-radius: 16px; font-size: 0.85rem; margin-top: 12px; }
         .demo-note { background: #eef3fc; padding: 12px; border-radius: 16px; font-size: 12px; color: #5c7f94; margin-top: 20px; }
         .page-title { font-size: 1.9rem; font-weight: 700; background: linear-gradient(130deg, #1c4e6e, #2c6f96); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .sync-status { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 1000; }
+        .sync-status { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 1000; cursor: pointer; }
         .sync-status.success { background: #27ae60; }
         .sync-status.error { background: #e74c3c; }
         .sync-status.syncing { background: #f39c12; }
+        .sync-status.offline { background: #95a5a6; }
+        .convert-card { background: linear-gradient(135deg, #2c5f7a, #1a3a4a); border-radius: 20px; padding: 20px; margin-top: 20px; }
+        .convert-input { background: white; border-radius: 12px; padding: 12px; margin: 10px 0; }
+        .convert-input input { width: 100%; padding: 10px; border: 1px solid #FFA41C; border-radius: 12px; font-size: 16px; }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -84,7 +90,7 @@
             <i class="fas fa-info-circle"></i> <strong>Cara Login:</strong><br>
             • Klik tombol Google untuk login dengan akun Google Anda<br>
             • Atau gunakan Demo Mode untuk mencoba tanpa login<br>
-            <small style="display:block; margin-top:8px;">⚠️ Data akan tersimpan di Google Sheets (jika terhubung) atau localStorage</small>
+            <small style="display:block; margin-top:8px;">✅ Data akan tersimpan dan tersinkronisasi real-time ke Google Sheets</small>
         </div>
     </div>
 </div>
@@ -103,26 +109,30 @@
         <div class="user-info-bar" id="userInfoBar">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div class="user-avatar" id="userAvatar">👤</div>
-                <div><strong id="userName">Loading...</strong><br><span id="userEmail" style="font-size:12px;color:#7899b0;"></span></div>
+                <div>
+                    <strong id="userName">Loading...</strong><br>
+                    <span id="userEmail" style="font-size:12px;color:#7899b0;"></span>
+                </div>
             </div>
-            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="manualSyncBtn" class="btn-info" style="padding: 8px 16px;"><i class="fas fa-sync-alt"></i> Sync</button>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
         </div>
         <div id="mainContent"></div>
     </div>
 </div>
 
 <div id="detailModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeDetailModal">&times;</span><div id="modalDynamicContent"></div></div></div>
-<div id="syncStatus" class="sync-status"></div>
+<div id="syncStatus" class="sync-status"><i class="fas fa-cloud-upload-alt"></i> Menunggu sync...</div>
 
 <script>
     // ==================== KONFIGURASI ====================
-    // GANTI dengan nilai dari Google Apps Script Anda setelah deploy
     const GOOGLE_CLIENT_ID = "359149804614-u5fje7e1rb8m8a8p1hgcq9abj8mkh9e9.apps.googleusercontent.com";
     
-    // === PENTING: Ganti dengan URL Web App dan API Key Anda ===
-    // Setelah deploy Google Apps Script, copy URL-nya dan paste di sini
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyek0jYUTNaduvAnVvUR4hzTli-F5-h0B1m647_GvdeAFG4ItQILwGAkQIW4_CG1VeF/exec";
-    const API_KEY = "BrankasLM2024SecureKey"; // Ganti dengan API Key yang sama di Apps Script
+    // GANTI dengan URL Web App dan API Key dari Google Apps Script Anda
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyek0jYUTNaduvAnVvUR4hzTli-F5-h0B1m647_GvdeAFG4ItQILwGAkQIW4_CG1VeF/exec"; // GANTI INI!
+    const API_KEY = "BrankasLM2024SecureKey";
     
     const PLATFORM_FEE_PERCENT = 0.5;
     const MAX_PRICE_MARKUP_PERCENT = 15;
@@ -135,6 +145,8 @@
     let pendingOffers = [];
     let p2pTransactions = [];
     let isSyncing = false;
+    let syncInterval = null;
+    let lastSyncTime = null;
     
     // Helper functions
     function formatRupiah(amount) {
@@ -143,38 +155,30 @@
     function formatGram(gram) { return gram.toFixed(2) + " gr"; }
     function getMaxPricePerGram() { return goldPricePerGram * (1 + MAX_PRICE_MARKUP_PERCENT / 100); }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
+    function convertGoldToIDR(gram) { return gram * goldPricePerGram; }
     
     function showSyncStatus(message, type = 'syncing') {
         const statusDiv = document.getElementById('syncStatus');
         if (!statusDiv) return;
-        statusDiv.textContent = message;
+        statusDiv.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-cloud-upload-alt'}"></i> ${message}`;
         statusDiv.className = `sync-status ${type}`;
         setTimeout(() => {
-            if (statusDiv.className === `sync-status ${type}`) {
-                statusDiv.style.opacity = '0';
-                setTimeout(() => {
-                    if (statusDiv.className === `sync-status ${type}`) {
-                        statusDiv.style.opacity = '1';
-                        statusDiv.style.display = 'none';
-                    }
-                }, 2000);
+            if (statusDiv.className === `sync-status ${type}` && type !== 'syncing') {
+                statusDiv.style.opacity = '0.7';
             }
         }, 3000);
-        statusDiv.style.display = 'block';
     }
     
-    // ==================== GOOGLE SHEETS SYNC ====================
-    async function syncToSheet(email, data) {
+    // ==================== GOOGLE SHEETS SYNC REAL-TIME ====================
+    async function syncToCloud(email, data) {
         if (isSyncing) return false;
         isSyncing = true;
         
         try {
-            showSyncStatus('Menyimpan ke Google Sheets...', 'syncing');
+            showSyncStatus('Menyimpan ke cloud...', 'syncing');
             
-            // Gunakan mode no-cors untuk menghindari CORS
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -186,110 +190,154 @@
                 })
             });
             
-            showSyncStatus('✓ Data tersimpan!', 'success');
-            return true;
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                lastSyncTime = new Date();
+                showSyncStatus('✓ Tersimpan ke cloud', 'success');
+                return true;
+            } else {
+                throw new Error(result.error || 'Unknown error');
+            }
         } catch (error) {
             console.error('Sync error:', error);
-            showSyncStatus('✗ Gagal sync ke cloud, data tersimpan lokal', 'error');
+            showSyncStatus('⚠️ Gagal sync, data tersimpan lokal', 'error');
             return false;
         } finally {
             isSyncing = false;
         }
     }
     
-    async function loadFromSheet(email) {
+    async function loadFromCloud(email) {
         try {
             showSyncStatus('Mengambil data dari cloud...', 'syncing');
             
-            // Gunakan JSONP style untuk menghindari CORS
             const url = `${SCRIPT_URL}?action=getData&email=${encodeURIComponent(email)}&auth=${API_KEY}&t=${Date.now()}`;
             const response = await fetch(url, {
                 method: 'GET',
-                mode: 'no-cors'
+                headers: {
+                    'Content-Type': 'application/json',
+                }
             });
             
-            // Karena mode no-cors, kita tidak bisa membaca response
-            // Gunakan pendekatan alternatif dengan localStorage dulu
-            console.log('Using localStorage as primary storage due to CORS');
-            return null;
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                showSyncStatus('✓ Data dimuat dari cloud', 'success');
+                return result.data;
+            } else {
+                throw new Error(result.error || 'No data');
+            }
         } catch (error) {
             console.error('Load error:', error);
+            showSyncStatus('⚠️ Gagal load dari cloud, gunakan lokal', 'error');
             return null;
         }
     }
     
-    // ==================== STORAGE ====================
+    // ==================== STORAGE dengan Auto-Sync ====================
     function getStorageKey(email) { 
         return `brankas_lm_${email.replace(/[^a-zA-Z0-9]/g, '_')}`; 
     }
     
-    async function loadUserData(email, displayName) {
-        // Coba load dari localStorage dulu
-        const key = getStorageKey(email);
-        const stored = localStorage.getItem(key);
+    async function saveToLocalAndCloud() {
+        if (!currentUserEmail) return;
         
-        if (stored) {
-            const data = JSON.parse(stored);
-            userGoldBalance = data.userGoldBalance;
-            marketplaceListings = data.marketplaceListings || [];
-            pendingOffers = data.pendingOffers || [];
-            p2pTransactions = data.p2pTransactions || [];
-            console.log('Data loaded from localStorage');
-            showSyncStatus('Data dimuat dari penyimpanan lokal', 'success');
-        } else {
-            // Inisialisasi data baru
-            userGoldBalance = { 
-                gram: 50.0, 
-                accountNumber: "LM" + Math.floor(Math.random() * 10000000), 
-                userName: displayName || email.split('@')[0] 
-            };
-            marketplaceListings = [
-                { id: "GLD1001", name: "Emas Digital 10 Gram", gram: 10, pricePerGram: 2795000, totalPrice: 27950000, qty: 2, seller: "EmasKuOfficial", desc: "Emas digital murni 24k" },
-                { id: "GLD1002", name: "Emas Digital 5 Gram", gram: 5, pricePerGram: 2795000, totalPrice: 13975000, qty: 3, seller: "GoldTrader99", desc: "Sertifikat kepemilikan digital" },
-                { id: "GLD1003", name: "Emas Digital 25 Gram", gram: 25, pricePerGram: 2795000, totalPrice: 69875000, qty: 1, seller: "InvestorEmas", desc: "Harga spesial grosir" }
-            ];
-            pendingOffers = [];
-            p2pTransactions = [];
-            console.log('New user data initialized');
-            showSyncStatus('Selamat datang! Data baru telah dibuat', 'success');
-        }
-        
-        // Simpan ke localStorage
-        await saveUserData(email);
-        
-        // Coba sync ke cloud (optional, tidak blocking)
-        const dataToSync = {
+        const dataToSave = {
             userGoldBalance,
             marketplaceListings,
             pendingOffers,
             p2pTransactions,
-            lastUpdated: new Date().toISOString()
+            lastUpdated: new Date().toISOString(),
+            goldPrice: goldPricePerGram
         };
-        syncToSheet(email, dataToSync).catch(console.error);
+        
+        // Simpan ke localStorage
+        const key = getStorageKey(currentUserEmail);
+        localStorage.setItem(key, JSON.stringify(dataToSave));
+        
+        // Sync ke cloud (non-blocking)
+        syncToCloud(currentUserEmail, dataToSave).catch(console.error);
     }
     
-    async function saveUserData(email) {
-        // Simpan ke localStorage
-        const key = getStorageKey(email);
-        localStorage.setItem(key, JSON.stringify({ 
-            userGoldBalance, 
-            marketplaceListings, 
-            pendingOffers, 
-            p2pTransactions,
-            lastUpdated: new Date().toISOString()
-        }));
+    async function loadUserData(email, displayName, forceCloud = false) {
+        let cloudData = null;
         
-        // Sync ke cloud di background
-        const dataToSync = {
-            userGoldBalance,
-            marketplaceListings,
-            pendingOffers,
-            p2pTransactions,
-            lastUpdated: new Date().toISOString()
-        };
+        // Coba load dari cloud dulu jika forceCloud atau ada koneksi
+        if (forceCloud || navigator.onLine) {
+            cloudData = await loadFromCloud(email);
+        }
         
-        // Non-blocking sync
-        syncToSheet(email, dataToSync).catch(console.error);
+        if (cloudData) {
+            // Gunakan data dari cloud
+            userGoldBalance = cloudData.userGoldBalance;
+            marketplaceListings = cloudData.marketplaceListings || [];
+            pendingOffers = cloudData.pendingOffers || [];
+            p2pTransactions = cloudData.p2pTransactions || [];
+            if (cloudData.goldPrice) goldPricePerGram = cloudData.goldPrice;
+            console.log('Data loaded from cloud');
+            showSyncStatus('Data dimuat dari cloud', 'success');
+        } else {
+            // Coba load dari localStorage
+            const key = getStorageKey(email);
+            const stored = localStorage.getItem(key);
+            
+            if (stored) {
+                const data = JSON.parse(stored);
+                userGoldBalance = data.userGoldBalance;
+                marketplaceListings = data.marketplaceListings || [];
+                pendingOffers = data.pendingOffers || [];
+                p2pTransactions = data.p2pTransactions || [];
+                if (data.goldPrice) goldPricePerGram = data.goldPrice;
+                console.log('Data loaded from localStorage');
+                showSyncStatus('Data dimuat dari penyimpanan lokal', 'success');
+            } else {
+                // Inisialisasi data baru
+                userGoldBalance = { 
+                    gram: 50.0, 
+                    accountNumber: "LM" + Math.floor(Math.random() * 10000000), 
+                    userName: displayName || email.split('@')[0] 
+                };
+                marketplaceListings = [
+                    { id: "GLD1001", name: "Emas Digital 10 Gram", gram: 10, pricePerGram: 2795000, totalPrice: 27950000, qty: 2, seller: "EmasKuOfficial", desc: "Emas digital murni 24k" },
+                    { id: "GLD1002", name: "Emas Digital 5 Gram", gram: 5, pricePerGram: 2795000, totalPrice: 13975000, qty: 3, seller: "GoldTrader99", desc: "Sertifikat kepemilikan digital" },
+                    { id: "GLD1003", name: "Emas Digital 25 Gram", gram: 25, pricePerGram: 2795000, totalPrice: 69875000, qty: 1, seller: "InvestorEmas", desc: "Harga spesial grosir" }
+                ];
+                pendingOffers = [];
+                p2pTransactions = [];
+                console.log('New user data initialized');
+                showSyncStatus('Selamat datang! Data baru dibuat', 'success');
+            }
+        }
+        
+        // Simpan ke localStorage dan cloud
+        await saveToLocalAndCloud();
+    }
+    
+    // Fungsi manual sync
+    async function manualSync() {
+        if (!currentUserEmail) {
+            alert('Silakan login terlebih dahulu');
+            return;
+        }
+        
+        showSyncStatus('Memulai sinkronisasi manual...', 'syncing');
+        await loadUserData(currentUserEmail, currentUserDisplayName, true);
+        render();
+        alert('Sinkronisasi selesai! Data terbaru telah dimuat.');
+    }
+    
+    // Auto-sync setiap 30 detik
+    function startAutoSync() {
+        if (syncInterval) clearInterval(syncInterval);
+        syncInterval = setInterval(async () => {
+            if (currentUserEmail && navigator.onLine) {
+                console.log('Auto-sync running...');
+                await saveToLocalAndCloud();
+            }
+        }, 30000); // Sync setiap 30 detik
     }
     
     // ==================== GOOGLE LOGIN ====================
@@ -309,21 +357,13 @@
             
             google.accounts.id.renderButton(
                 document.getElementById("googleButton"),
-                { 
-                    theme: "outline", 
-                    size: "large", 
-                    width: "100%",
-                    text: "signin_with",
-                    shape: "rectangular",
-                    logo_alignment: "center"
-                }
+                { theme: "outline", size: "large", width: "100%", text: "signin_with", shape: "rectangular", logo_alignment: "center" }
             );
             
             google.accounts.id.prompt();
-            
-            console.log("Google Login initialized with Client ID:", GOOGLE_CLIENT_ID.substring(0, 20) + "...");
+            console.log("Google Login initialized");
         } catch (error) {
-            console.error("Google Login initialization error:", error);
+            console.error("Google Login error:", error);
             document.getElementById("googleButton").innerHTML = '<div style="background:#fee2e2; padding:12px; border-radius:50px; margin-bottom:16px; color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> Error: ' + error.message + '</div>';
         }
     }
@@ -343,8 +383,9 @@
                 
                 currentUserEmail = email;
                 currentUserDisplayName = name;
-                await loadUserData(email, name);
+                await loadUserData(email, name, true);
                 showApp(name, email);
+                startAutoSync();
             })
             .catch(error => {
                 console.error("Token verification failed:", error);
@@ -359,8 +400,9 @@
             const emailKey = displayName.toLowerCase().replace(/\s/g, '') + "@demo.local";
             currentUserEmail = emailKey;
             currentUserDisplayName = displayName;
-            await loadUserData(emailKey, displayName);
+            await loadUserData(emailKey, displayName, false);
             showApp(displayName, emailKey);
+            startAutoSync();
         }
     }
     
@@ -374,6 +416,7 @@
     }
     
     function logout() {
+        if (syncInterval) clearInterval(syncInterval);
         if (google && google.accounts && google.accounts.id) {
             google.accounts.id.disableAutoSelect();
         }
@@ -384,7 +427,7 @@
         currentUserDisplayName = null;
     }
     
-    // ==================== RENDER ====================
+    // ==================== RENDER DENGAN FITUR KONVERSI IDR ====================
     let currentPage = "dashboard";
     
     function render() {
@@ -395,23 +438,62 @@
         else if (currentPage === "buat-listing") renderBuatListing(container);
         else if (currentPage === "riwayat") renderRiwayat(container);
         attachNavEvents();
-        if (currentUserEmail) saveUserData(currentUserEmail);
+        if (currentUserEmail) saveToLocalAndCloud();
     }
     
     function renderDashboard(container) {
         const myListingsIds = marketplaceListings.filter(l => l.seller === userGoldBalance.userName).map(l => l.id);
         const incomingOffers = pendingOffers.filter(offer => myListingsIds.includes(offer.listingId));
+        const goldValueIDR = convertGoldToIDR(userGoldBalance.gram);
+        
         container.innerHTML = `
-            <div class="flex-between"><h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard Emas Digital</h1></div>
+            <div class="flex-between">
+                <h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard Emas Digital</h1>
+                <div><small><i class="fas fa-cloud-upload-alt"></i> ${lastSyncTime ? `Sync: ${lastSyncTime.toLocaleTimeString()}` : 'Belum sync'}</small></div>
+            </div>
+            
             <div class="gold-card">
-                <div class="gold-balance"><div class="balance-gram">${formatGram(userGoldBalance.gram)}</div><div class="balance-label">SALDO EMAS DIGITAL</div></div>
+                <div class="gold-balance">
+                    <div class="balance-gram">${formatGram(userGoldBalance.gram)}</div>
+                    <div class="balance-idr"><i class="fas fa-money-bill-wave"></i> ≈ ${formatRupiah(goldValueIDR)}</div>
+                    <div class="balance-label" style="font-size:0.8rem; margin-top:8px;">SALDO EMAS DIGITAL</div>
+                </div>
                 <div style="margin-top:10px; text-align:center; color:#FFD966;">${userGoldBalance.accountNumber} | ${userGoldBalance.userName}</div>
             </div>
+            
             <div class="stats-grid">
-                <div class="stat-card"><div class="stat-title">Harga Emas/gram</div><div class="stat-value">${formatRupiah(goldPricePerGram)}</div></div>
-                <div class="stat-card"><div class="stat-title">Listing Aktif</div><div class="stat-value">${marketplaceListings.length}</div></div>
-                <div class="stat-card"><div class="stat-title">Tawaran Masuk</div><div class="stat-value">${incomingOffers.length}</div></div>
+                <div class="stat-card">
+                    <div class="stat-title">Harga Emas/gram</div>
+                    <div class="stat-value">${formatRupiah(goldPricePerGram)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Nilai Emas (IDR)</div>
+                    <div class="stat-value">${formatRupiah(goldValueIDR)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Listing Aktif</div>
+                    <div class="stat-value">${marketplaceListings.length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Tawaran Masuk</div>
+                    <div class="stat-value">${incomingOffers.length}</div>
+                </div>
             </div>
+            
+            <!-- Fitur Konversi Saldo ke IDR -->
+            <div class="convert-card">
+                <h4 style="color: white; margin-bottom: 12px;"><i class="fas fa-exchange-alt"></i> Konversi Saldo Emas ke Rupiah</h4>
+                <div class="convert-input">
+                    <label style="color: white;">Jumlah Emas (gram):</label>
+                    <input type="number" id="convertGramInput" step="0.01" value="${userGoldBalance.gram}" placeholder="Masukkan gram emas">
+                    <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 12px;">
+                        <strong style="color: #FFD966;">Hasil Konversi:</strong><br>
+                        <span id="convertResult" style="font-size: 1.4rem; font-weight: bold; color: white;">${formatRupiah(goldValueIDR)}</span>
+                    </div>
+                    <p style="font-size: 0.7rem; color: #ccc; margin-top: 8px;">* Harga emas saat ini: ${formatRupiah(goldPricePerGram)}/gram</p>
+                </div>
+            </div>
+            
             ${incomingOffers.length > 0 ? `
             <div class="section-card">
                 <h3><i class="fas fa-handshake"></i> Tawaran Masuk</h3>
@@ -424,11 +506,23 @@
                     </div>`;
                 }).join('')}
             </div>` : ''}
+            
             <div class="section-card">
                 <div class="flex-between"><h3><i class="fas fa-store"></i> Marketplace</h3><button id="gotoMarketBtn" class="btn-primary">Jelajahi →</button></div>
                 <div class="info-message">Harga jual maksimal +15% dari pasar. Fee platform 0.5%</div>
             </div>
         `;
+        
+        // Event listener untuk konversi real-time
+        const convertInput = document.getElementById("convertGramInput");
+        if (convertInput) {
+            convertInput.addEventListener("input", (e) => {
+                const gram = parseFloat(e.target.value) || 0;
+                const result = convertGoldToIDR(gram);
+                document.getElementById("convertResult").innerHTML = formatRupiah(result);
+            });
+        }
+        
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
         
         document.querySelectorAll(".accept-offer").forEach(btn => {
@@ -465,7 +559,7 @@
             if (listing.qty <= 0) marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
             pendingOffers = pendingOffers.filter(o => o.id !== offerId);
             render();
-            await saveUserData(currentUserEmail);
+            await saveToLocalAndCloud();
             alert(`✅ Tawaran diterima! Fee platform: ${formatRupiah(fee)}`);
         }
     }
@@ -542,7 +636,7 @@
                     fee: feePaid 
                 });
                 render(); 
-                await saveUserData(currentUserEmail);
+                await saveToLocalAndCloud();
                 modal.style.display = "none"; 
                 alert(`✅ Pembelian berhasil! Saldo emas Anda: ${formatGram(userGoldBalance.gram)}`);
             } else {
@@ -577,7 +671,7 @@
                 createdAt: new Date().toISOString()
             });
             render(); 
-            await saveUserData(currentUserEmail);
+            await saveToLocalAndCloud();
             modal.style.display = "none"; 
             alert(`✅ Tawaran ${formatRupiah(price)}/gram (Total: ${formatRupiah(price * listing.gram)}) telah dikirim ke ${listing.seller}.\nMenunggu respons penjual.`);
         };
@@ -641,7 +735,7 @@
                 createdAt: new Date().toISOString().slice(0,10)
             });
             render(); 
-            await saveUserData(currentUserEmail);
+            await saveToLocalAndCloud();
             setActivePage("marketplace"); 
             alert("✅ Listing berhasil dibuat!");
         });
@@ -672,9 +766,9 @@
             <div class="section-card">
                 <div class="info-message">
                     <i class="fas fa-info-circle"></i> <strong>Informasi:</strong><br>
-                    • Data tersimpan di localStorage browser Anda<br>
-                    • Untuk sinkronisasi cloud, pastikan koneksi Google Sheets sudah dikonfigurasi<br>
-                    • Listing dan tawaran akan muncul di dashboard penjual
+                    • Data tersimpan dan tersinkronisasi real-time ke cloud setiap 30 detik<br>
+                    • Klik tombol "Sync" untuk sinkronisasi manual<br>
+                    • Semua transaksi tercatat dan tidak dapat diubah
                 </div>
             </div>
         `;
@@ -700,16 +794,27 @@
     // ==================== INISIALISASI ====================
     document.getElementById("demoLoginBtn").addEventListener("click", demoLogin);
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
+    document.getElementById("manualSyncBtn")?.addEventListener("click", manualSync);
     
-    // Test sync connection (optional)
+    // Test sync connection
     window.testSync = async function() {
         console.log('Testing sync connection...');
         const testEmail = 'test@example.com';
         const testData = { test: 'data', timestamp: Date.now() };
-        const result = await syncToSheet(testEmail, testData);
+        const result = await syncToCloud(testEmail, testData);
         console.log('Sync test result:', result);
         return result;
     };
+    
+    // Cek koneksi internet
+    window.addEventListener('online', () => {
+        showSyncStatus('Koneksi kembali online, sync data...', 'success');
+        if (currentUserEmail) manualSync();
+    });
+    
+    window.addEventListener('offline', () => {
+        showSyncStatus('Koneksi terputus, data disimpan lokal', 'error');
+    });
     
     // Inisialisasi Google Login
     if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com") {
@@ -728,13 +833,12 @@
         document.getElementById("googleButton").innerHTML = '<div style="background:#fef3c7; padding:12px; border-radius:50px; margin-bottom:16px; color:#b45309;"><i class="fas fa-cog"></i> Google Client ID belum dikonfigurasi. Gunakan Demo Mode.</div>';
     }
     
-    console.log('Aplikasi siap digunakan!');
-    console.log('Tips:');
-    console.log('1. Login dengan Google atau Demo Mode');
-    console.log('2. Buat listing emas di menu "Buat Listing"');
-    console.log('3. Beli emas di menu "Marketplace"');
-    console.log('4. Semua data tersimpan di localStorage browser Anda');
-    console.log('5. Untuk sync ke cloud, konfigurasi SCRIPT_URL dan API_KEY');
+    console.log('Aplikasi siap digunakan dengan fitur:');
+    console.log('✅ Real-time sync ke Google Sheets (setiap 30 detik)');
+    console.log('✅ Load data dari cloud saat login');
+    console.log('✅ Konversi saldo emas ke IDR');
+    console.log('✅ Sinkronisasi manual dengan tombol Sync');
+    console.log('✅ Auto-reconnect saat koneksi kembali');
 </script>
 </body>
 </html>

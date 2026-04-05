@@ -114,7 +114,7 @@
     // ==================== KONFIGURASI ====================
     const GOOGLE_CLIENT_ID = "359149804614-u5fje7e1rb8m8a8p1hgcq9abj8mkh9e9.apps.googleusercontent.com";
     // ⚠️⚠️⚠️ GANTI URL INI DENGAN URL HASIL DEPLOY APPS SCRIPT ANDA ⚠️⚠️⚠️
-    const GOOGLE_SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby7Jxzccft6DrXaGOnql6lkrZqN8en6CFjjjiHjk4uhBNJU_3LX61S-1pXrZE2sICpG4w/exec";
+    const GOOGLE_SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyek0jYUTNaduvAnVvUR4hzTli-F5-h0B1m647_GvdeAFG4ltQlLwGAkQlW4_CG1VeF/exec";
     
     const PLATFORM_FEE_PERCENT = 0.5;
     const MAX_PRICE_MARKUP_PERCENT = 15;
@@ -143,24 +143,18 @@
     function getMaxPricePerGram() { return goldPricePerGram * (1 + MAX_PRICE_MARKUP_PERCENT / 100); }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
     
-    // ==================== GOOGLE SHEETS SYNC (MENGGUNAKAN GET) ====================
+    // ==================== GOOGLE SHEETS SYNC ====================
     async function loadFromGoogleSheets() {
         if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE")) {
             showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi! Ganti GOOGLE_SHEETS_WEBAPP_URL.", true);
             return false;
         }
-        
         showToast("🔄 Memuat data dari Google Sheets...", false);
-        
         try {
             const url = `${GOOGLE_SHEETS_WEBAPP_URL}?action=load`;
             const response = await fetch(url, { method: 'GET' });
-            
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
             const result = await response.json();
-            console.log("Load result:", result);
-            
             if (result && result.success && result.listings) {
                 if (result.listings.length > 0) {
                     marketplaceListings = result.listings;
@@ -182,20 +176,19 @@
     }
     
     async function syncToGoogleSheets() {
-        // Untuk sync (save), kita perlu POST karena mengirim data. Tapi karena GET terbatas, kita tetap pakai POST dengan fallback.
-        // Tapi untuk memudahkan, kita akan gunakan POST sederhana. Namun jika ingin benar-benar GET, kita perlu mengirim data via URL parameter (terbatas).
-        // Karena data listing bisa besar, lebih baik tetap POST. Kita akan buat fungsi POST yang sudah diperbaiki CORS-nya.
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE")) {
+            showToast("⚠️ URL belum dikonfigurasi!", true);
+            return false;
+        }
         showToast("🔄 Menyinkronkan data ke Google Sheets...", false);
-        
         try {
-            // Gunakan POST dengan mode cors
             const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'save', listings: marketplaceListings })
             });
-            
             const result = await response.json();
+            console.log("Sync response:", result);
             if (result && result.success) {
                 showToast(`✅ Berhasil menyimpan ${result.count || marketplaceListings.length} listing ke Google Sheets!`);
                 return true;

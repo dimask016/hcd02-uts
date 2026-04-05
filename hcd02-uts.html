@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Riset UX: Redesign BRANKAS LM · Fitur P2P Jual-Beli Emas Antar Pengguna</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f2f6fc;
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+            color: #1e293b;
+            padding: 2rem 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .laporan-container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 28px;
+            padding: 2.8rem 3.2rem;
+            border: 1px solid #e0e8f0;
+        }
+
+        /* Header dengan logo dan judul */
+        .header-laporan {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            border-bottom: 3px solid #0b2b44;
+            padding-bottom: 1.5rem;
+        }
+
+        .logo-univ {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .logo-univ img {
+            width: 75px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 6px 14px rgba(0,20,40,0.2);
+        }
+
+        .judul-utama {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0b2b44;
+            line-height: 1.3;
+            letter-spacing: -0.02em;
+        }
+
+        .identitas-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .info-dosen {
+            background: #e9f0f9;
+            padding: 1rem 2rem;
+            border-radius: 40px;
+            text-align: right;
+        }
+
+        .info-dosen .dosen {
+            font-weight: 700;
+            color: #0b2b44;
+            font-size: 1.2rem;
+        }
+
+        .identitas-mahasiswa {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            text-align: right;
+        }
+
+        /* Kata Pengantar */
+        .pengantar {
+            background: #f1f6fc;
+            padding: 2rem 2.2rem;
+            border-radius: 30px;
+            margin: 2rem 0;
+            border-left: 8px solid #2c4c6b;
+        }
+
+        .pengantar h3 {
+            color: #002b4a;
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+        }
+
+        .pengantar p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        /* Abstrak */
+        .abstrak {
+            background: #ecf3fa;
+            padding: 2rem 2.2rem;
+            border-radius: 30px;
+            margin: 2rem 0;
+            border-left: 8px solid #1f5e8e;
+        }
+
+        .abstrak h3 {
+            color: #002b4a;
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+        }
+
+        .abstrak p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        .kata-kunci {
+            font-weight: 600;
+            color: #004080;
+            margin-top: 1rem;
+        }
+
+        /* Daftar Isi */
+        .daftar-isi {
+            margin: 2.2rem 0;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 24px;
+            border: 1px solid #cdddec;
+        }
+
+        .daftar-isi h3 {
+            font-size: 1.6rem;
+            color: #1e3a5f;
+            margin-bottom: 1rem;
+            border-bottom: 2px dashed #8ba3c7;
+            padding-bottom: 0.5rem;
+        }
+
+        .daftar-isi ul {
+            columns: 2;
+            list-style-type: none;
+        }
+
+        .daftar-isi li {
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .daftar-isi a {
+            text-decoration: none;
+            color: #1f3b5c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* BAB */
+        .bab {
+            margin-top: 3rem;
+        }
+
+        .bab h2 {
+            font-size: 2rem;
+            color: #0a1f33;
+            border-left: 12px solid #345e88;
+            padding-left: 1.2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .sub-bab {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem 0;
+            color: #1f4870;
+        }
+
+        .sub-bab-3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.8rem 0;
+            color: #25567b;
+        }
+
+        /* Tabel */
+        .tabel-analisis {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.98rem;
+        }
+
+        .tabel-analisis th {
+            background: #1d3d5c;
+            color: white;
+            padding: 12px 8px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .tabel-analisis td, .tabel-analisis th {
+            border: 1px solid #bacfeb;
+            padding: 10px 8px;
+        }
+
+        .tabel-analisis tr:nth-child(even) {
+            background: #f1f7fe;
+        }
+
+        /* Kutipan */
+        .quote-box {
+            background: #fcf8e7;
+            border-left: 6px solid #e6b422;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            margin: 1.8rem 0;
+            font-style: italic;
+        }
+
+        /* Insight box */
+        .insight-box {
+            background: #e3f0fc;
+            border-radius: 24px;
+            padding: 1.5rem 2rem;
+            margin: 1.8rem 0;
+            border-left: 6px solid #1f6d2f;
+        }
+
+        /* footer */
+        .footer-laporan {
+            margin-top: 3rem;
+            border-top: 2px solid #0b2b44;
+            padding-top: 2rem;
+            text-align: center;
+            font-size: 1rem;
+            color: #2d4d74;
+        }
+
+        .ttd {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 700px) {
+            .laporan-container { padding: 1.5rem; }
+            .header-laporan { flex-direction: column; align-items: flex-start; }
+            .identitas-wrapper { align-items: flex-start; width: 100%; }
+            .info-dosen { text-align: left; width: 100%; }
+            .daftar-isi ul { columns: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="laporan-container">
+
+    <!-- HEADER dengan logo -->
+    <div class="header-laporan">
+        <div class="logo-univ">
+            <img src="logo-cakrawala-v2.webp" alt="Cakrawala University" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display:none; color:#a00; font-style:italic;">[Logo tidak ditemukan]</div>
+            <div>
+                <div class="judul-utama">REDESIGN APLIKASI BRANKAS LM:<br>FITUR PEER-TO-PEER JUAL-BELI EMAS ANTAR PENGGUNA</div>
+                <div style="font-size:1rem; color:#2f5575;">Studi Kasus: Penambahan Marketplace P2P untuk Mengatasi Pain Point Harga Buyback Rendah & Likuiditas Terbatas</div>
+            </div>
+        </div>
+        <div class="identitas-wrapper">
+            <div class="identitas-mahasiswa">
+                <strong>Dimas Kurniawan</strong> – 25120300016<br>
+                <span style="font-size:0.95rem;">Kelas: HCD – Human Centered Design</span>
+            </div>
+            <div class="info-dosen">
+                <div class="dosen"><i class="fas fa-chalkboard-teacher"></i> Dr. Fandy Neta, S.Pd., M.Pd.T.</div>
+                <div>Dosen Pengampu</div>
+                <div style="font-size:0.9rem;">Universitas Cakrawala – 2026</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KATA PENGANTAR -->
+    <div class="pengantar">
+        <h3><i class="fas fa-feather-alt"></i> KATA PENGANTAR</h3>
+        <p>Puji syukur kami panjatkan ke hadirat Allah SWT, karena berkat rahmat dan karunia-Nya, laporan tugas UTS mata kuliah Human Centered Design (IKR2130) dengan judul "Redesign Aplikasi BRANKAS LM: Penambahan Fitur Peer-to-Peer Jual-Beli Emas Antar Pengguna" ini dapat diselesaikan dengan baik. Laporan ini disusun sebagai bentuk implementasi dari materi perkuliahan Pertemuan 1 (HCD), Pertemuan 2 (Riset Pengguna), dan Pertemuan 3 (User Persona & Customer Journey Map).</p>
+        <p>Aplikasi BRANKAS LM sebagai platform emas digital milik PT Aneka Tambang Tbk (Antam) memiliki potensi besar namun masih menyisakan masalah bagi pengguna, terutama terkait harga buyback yang rendah dan ketergantungan penuh pada Antam sebagai satu-satunya liquidity provider. Berdasarkan hasil riset awal, 73.3% pengguna menginginkan adanya fitur jual-beli antar sesama pengguna (peer-to-peer) agar mereka bisa mendapatkan harga yang lebih baik dan bertransaksi 24/7.</p>
+        <p>Melalui pendekatan Human-Centered Design (ISO 9241-210), penelitian ini melakukan riset pengguna (wawancara + survei dengan total 20 responden), menyusun user persona dan customer journey map, membuat wireframe high-fidelity di Figma, serta melakukan user testing dan iterasi desain berdasarkan feedback. Hasil akhirnya adalah prototype fitur P2P marketplace yang memungkinkan pengguna saling jual-beli emas digital dengan sistem escrow yang diamankan oleh Antam.</p>
+        <p>Kami mengucapkan terima kasih kepada Dosen Pengampu, Dr. Fandy Neta, S.Pd., M.Pd.T., yang telah memberikan bimbingan, masukan, dan ilmu selama proses pembelajaran. Terima kasih juga kepada 20 responden yang telah bersedia meluangkan waktu untuk berbagi pengalaman menggunakan BRANKAS LM.</p>
+        <div style="margin-top:1.5rem;">
+            Hormat kami,<br><br>
+            <strong>Dimas Kurniawan</strong><br>
+            25120300016
+        </div>
+    </div>
+
+    <!-- ABSTRAK -->
+    <div class="abstrak">
+        <h3><i class="fas fa-book-open"></i> ABSTRAK</h3>
+        <p>Laporan ini menyajikan analisis pengalaman pengguna aplikasi emas digital BRANKAS LM dengan fokus pada penambahan fitur peer-to-peer (P2P) jual-beli emas antar pengguna. Riset dilakukan terhadap 20 responden (5 wawancara mendalam + 15 survei) dengan target pengguna aktif BRANKAS LM. Temuan utama menunjukkan bahwa 80% responden mengeluhkan harga buyback yang terlalu rendah, dan 73.3% menginginkan fitur jual-beli antar sesama pengguna. Pengguna mengalami frustrasi karena spread harga beli-buyback yang lebar dan tidak bisa bertransaksi di luar jam operasional Antam. Berdasarkan data riset, disusun 3 user persona (Investor Aktif, Nabung Emas, Trader) dan customer journey map yang menunjukkan peningkatan emotional curve dari -1 menjadi +2 setelah fitur P2P ditambahkan. Prototype high-fidelity dibuat di Figma mencakup 5 halaman utama: Dashboard, Marketplace, Buat Listing, Detail Listing, dan Riwayat Transaksi P2P. User testing dengan 3 responden menunjukkan tingkat keberhasilan 88.9% dengan 3 iterasi perbaikan (tombol marketplace diperbesar, rating + jumlah transaksi, tooltip informatif). Rekomendasi utama adalah implementasi fitur P2P marketplace dengan sistem escrow oleh Antam, rating & review system, dan fitur notifikasi harga.</p>
+        <p class="kata-kunci"><i class="fas fa-tags"></i> Kata Kunci: Human-Centered Design, BRANKAS LM, peer-to-peer, emas digital, user research, user persona, customer journey map, wireframe high-fidelity, Figma, user testing, iterasi desain</p>
+    </div>
+
+    <!-- DAFTAR ISI -->
+    <div class="daftar-isi">
+        <h3><i class="fas fa-list-ul"></i> DAFTAR ISI</h3>
+        <ul>
+            <li><a href="#bab1"><i class="fas fa-caret-right"></i> BAB 1 – PENDAHULUAN</a></li>
+            <li><a href="#bab2"><i class="fas fa-caret-right"></i> BAB 2 – METODOLOGI RISET</a></li>
+            <li><a href="#bab3"><i class="fas fa-caret-right"></i> BAB 3 – DAFTAR PERTANYAAN & JAWABAN</a></li>
+            <li><a href="#bab4"><i class="fas fa-caret-right"></i> BAB 4 – ANALISIS TEMUAN</a></li>
+            <li><a href="#bab5"><i class="fas fa-caret-right"></i> BAB 5 – USER PERSONA</a></li>
+            <li><a href="#bab6"><i class="fas fa-caret-right"></i> BAB 6 – CUSTOMER JOURNEY MAP</a></li>
+            <li><a href="#bab7"><i class="fas fa-caret-right"></i> BAB 7 – WIREFRAME & PROTOTYPE</a></li>
+            <li><a href="#bab8"><i class="fas fa-caret-right"></i> BAB 8 – USER TESTING & ITERASI</a></li>
+            <li><a href="#bab9"><i class="fas fa-caret-right"></i> BAB 9 – KESIMPULAN & REKOMENDASI</a></li>
+            <li><a href="#lampiran"><i class="fas fa-caret-right"></i> LAMPIRAN</a></li>
+        </ul>
+    </div>
+
+    <!-- BAB 1 PENDAHULUAN -->
+    <div class="bab" id="bab1">
+        <h2>BAB 1 – PENDAHULUAN</h2>
+        
+        <div class="sub-bab">1.1 Latar Belakang</div>
+        <p>Berdasarkan materi Pertemuan 1 mata kuliah Human-Centered Design (HCD), disebutkan bahwa HCD adalah pendekatan desain yang berfokus pada kebutuhan, karakteristik, dan keterbatasan pengguna dalam setiap tahap pengembangan produk. Standar internasional ISO 9241-210 menegaskan bahwa desain yang baik harus berpusat pada manusia.</p>
+        <p>Aplikasi BRANKAS LM adalah platform emas digital milik PT Aneka Tambang Tbk (Antam) yang memungkinkan pengguna membeli emas digital, menjual kembali ke Antam (buyback), dan mencetak emas fisik. Namun, berdasarkan observasi awal, terdapat beberapa kelemahan: harga buyback terlalu rendah dibandingkan harga pasar, spread harga beli-buyback lebar (mencapai 4-5%), likuiditas terbatas (buyback hanya jam kerja 9-5), dan tidak ada opsi jual ke sesama pengguna. Hal ini menyebabkan pengguna merasa dirugikan dan frustrasi.</p>
+        <p>Penelitian ini bertujuan untuk merancang fitur <strong>peer-to-peer (P2P) jual-beli emas antar pengguna</strong> sebagai solusi atas pain points tersebut, dengan menerapkan seluruh tahapan HCD mulai dari riset pengguna, pembuatan persona dan CJM, wireframing, prototyping, hingga user testing dan iterasi.</p>
+
+        <div class="sub-bab">1.2 Tujuan Penelitian</div>
+        <ul style="margin-left:2rem; margin-bottom:1rem;">
+            <li>Mengidentifikasi pain points pengguna BRANKAS LM saat ini melalui riset pengguna</li>
+            <li>Merancang fitur peer-to-peer (P2P) jual-beli emas antar pengguna</li>
+            <li>Membuat user persona dan customer journey map berdasarkan data riset</li>
+            <li>Membuat wireframe high-fidelity dan prototype interaktif menggunakan Figma</li>
+            <li>Melakukan user testing dan iterasi desain berdasarkan feedback pengguna</li>
+        </ul>
+
+        <div class="sub-bab">1.3 Objek Riset</div>
+        <ul style="margin-left:2rem;">
+            <li><strong>Aplikasi:</strong> BRANKAS LM (PT Aneka Tambang Tbk)</li>
+            <li><strong>Fitur yang dianalisis:</strong> Pembelian emas, buyback (penjualan ke Antam)</li>
+            <li><strong>Fitur yang diusulkan:</strong> P2P Marketplace jual-beli antar pengguna</li>
+        </ul>
+    </div>
+
+    <!-- BAB 2 METODOLOGI RISET -->
+    <div class="bab" id="bab2">
+        <h2>BAB 2 – METODOLOGI RISET</h2>
+        
+        <div class="sub-bab">2.1 Teknik Riset</div>
+        <p>Berdasarkan materi Pertemuan 2 (Riset Pengguna dalam User Experience Design), penelitian ini menggunakan kombinasi tiga teknik riset untuk mendapatkan data yang komprehensif:</p>
+        <table class="tabel-analisis">
+            <tr><th>Teknik</th><th>Jumlah Responden</th><th>Tujuan</th></tr>
+            <tr><td>Wawancara Pengguna (User Interview)</td><td>5 orang</td><td>Mendalami pengalaman, motivasi, dan pain points secara kualitatif</td></tr>
+            <tr><td>Observasi (Observation)</td><td>5 orang (sama)</td><td>Melihat langsung interaksi responden dengan aplikasi</td></tr>
+            <tr><td>Survei (Survey)</td><td>15 orang (tambahan)</td><td>Memvalidasi temuan dalam skala lebih besar</td></tr>
+        </table>
+
+        <div class="sub-bab">2.2 Profil Responden</div>
+        <table class="tabel-analisis">
+            <tr><th>Kategori</th><th>Detail</th></tr>
+            <tr><td>Jumlah total responden</td><td>20 orang (5 wawancara + 15 survei)</td></tr>
+            <tr><td>Rentang usia</td><td>22-55 tahun</td></tr>
+            <tr><td>Pekerjaan</td><td>Mahasiswa, karyawan swasta, pengusaha, investor</td></tr>
+            <tr><td>Saldo emas rata-rata</td><td>5 - 100+ gram</td></tr>
+            <tr><td>Lama penggunaan BRANKAS</td><td>3 bulan - 3 tahun</td></tr>
+        </table>
+
+        <div class="sub-bab">2.3 Waktu dan Tempat</div>
+        <p>Wawancara dilakukan secara daring (via Zoom dan Google Meet) pada tanggal 15-20 Maret 2026, dengan durasi 20-30 menit per responden. Survei disebarkan secara online melalui Google Forms pada periode yang sama.</p>
+    </div>
+
+    <!-- BAB 3 DAFTAR PERTANYAAN & JAWABAN -->
+    <div class="bab" id="bab3">
+        <h2>BAB 3 – DAFTAR PERTANYAAN WAWANCARA & JAWABAN</h2>
+        
+        <div class="sub-bab">3.1 Bagian 1: Pembukaan & Pertanyaan Mudah</div>
+        <table class="tabel-analisis">
+            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi, 35, Pengusaha)</th></tr>
+            <tr><td>1</td><td>Ceritakan sedikit tentang diri Anda, pekerjaan, dan berapa lama sudah menggunakan BRANKAS LM?</td><td>"Nama saya Budi, pengusaha properti di Jakarta. Saya pakai BRANKAS LM sudah sekitar 2 tahun, saldo emas saya sekitar 50-100 gram."</td></tr>
+        </table>
+
+        <div class="sub-bab">3.2 Bagian 2: Memahami Penggunaan & Pengalaman Umum</div>
+        <table class="tabel-analisis">
+            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi)</th></tr>
+            <tr><td>2</td><td>Seberapa sering dalam seminggu Anda membuka aplikasi BRANKAS LM?</td><td>"Setiap hari, saya pantau harga emas terus. Tapi untuk transaksi beli/jual mungkin 1-2 kali sebulan."</td></tr>
+            <tr><td>3</td><td>Apa tujuan utama Anda menggunakan BRANKAS LM?</td><td>"Investasi jangka panjang dan kadang trading kalau momennya bagus. Tapi sayangnya spread-nya lebar banget."</td></tr>
+        </table>
+
+        <div class="sub-bab">3.3 Bagian 3: Menggali Pain Points</div>
+        <table class="tabel-analisis">
+            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi)</th></tr>
+            <tr><td>4</td><td>Apa kendala terbesar yang Anda alami saat menggunakan BRANKAS LM?</td><td>"Harga buyback terlalu rendah. Saya beli di Rp2.700.000, pas mau jual cuma dihargai Rp2.450.000. Rugi terus kalau jual ke Antam."</td></tr>
+            <tr><td>5</td><td>Bagaimana pendapat Anda tentang harga buyback yang ditawarkan Antam saat ini?</td><td>"Kurang bersaing. Saya yakin kalau ada marketplace antar pengguna, saya bisa jual dengan harga lebih tinggi."</td></tr>
+            <tr><td>6</td><td>Apakah Anda merasa kesulitan saat ingin menjual emas di luar jam kerja Antam?</td><td>"Iya dong. Kadang harga emas lagi tinggi-tingginya malem minggu, saya mau jual tapi gak bisa. Buyback cuma buka jam 9-5."</td></tr>
+        </table>
+
+        <div class="sub-bab">3.4 Bagian 4: Menggali Peluang Perbaikan</div>
+        <table class="tabel-analisis">
+            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi)</th></tr>
+            <tr><td>7</td><td>Apakah Anda tertarik dengan fitur jual-beli emas antar sesama pengguna?</td><td>"Sangat tertarik. Saya bisa pasang harga sendiri dan nego langsung dengan pembeli. Pasti lebih untung."</td></tr>
+            <tr><td>8</td><td>Fitur apa yang paling Anda harapkan dari BRANKAS LM ke depannya?</td><td>"Marketplace P2P, grafik harga yang lebih detail, dan notifikasi kalau ada yang jual dengan harga murah."</td></tr>
+            <tr><td>9</td><td>Apakah Anda percaya dengan sistem escrow jika transaksi P2P diamankan oleh Antam?</td><td>"Percaya, karena Antam sudah punya nama besar. Asalkan emasnya di-lock dulu sampai pembayaran confirmed."</td></tr>
+        </table>
+
+        <div class="sub-bab">3.5 Hasil Survei (15 Responden)</div>
+        <table class="tabel-analisis">
+            <tr><th>Pertanyaan</th><th>Hasil</th></tr>
+            <tr><td>"Apakah Anda merasa harga buyback terlalu rendah?"</td><td><strong>80%</strong> menjawab Ya</td></tr>
+            <tr><td>"Apakah Anda ingin fitur jual beli antar pengguna?"</td><td><strong>73.3%</strong> menjawab Ya</td></tr>
+            <tr><td>"Fitur apa yang paling Anda inginkan?"</td><td>P2P trading (53%), grafik lebih detail (27%), lainnya (20%)</td></tr>
+            <tr><td>"Seberapa sering Anda buka aplikasi?"</td><td>Setiap hari (20%), 2-3x/minggu (47%), 1x/minggu (33%)</td></tr>
+        </table>
+    </div>
+
+    <!-- BAB 4 ANALISIS TEMUAN -->
+    <div class="bab" id="bab4">
+        <h2>BAB 4 – ANALISIS TEMUAN</h2>
+        
+        <div class="sub-bab">4.1 Pain Points yang Ditemukan</div>
+        <table class="tabel-analisis">
+            <tr><th>Pain Point</th><th>Persentase Responden</th><th>Kutipan Responden</th></tr>
+            <tr><td>Harga buyback terlalu rendah</td><td>80%</td><td>"Rugi terus kalau jual ke Antam" — Budi</td></tr>
+            <tr><td>Tidak bisa jual di luar jam operasional</td><td>67%</td><td>"Pas harga tinggi malem minggu, saya mau jual gak bisa" — Citra</td></tr>
+            <tr><td>Tidak ada opsi negosiasi harga</td><td>73%</td><td>"Kalau jual ke sesama orang kan bisa nego" — Andi</td></tr>
+            <tr><td>Spread beli-buyback terlalu lebar</td><td>87%</td><td>"Spread-nya gila, hampir 5% bedanya" — Eko</td></tr>
+        </table>
+
+        <div class="sub-bab">4.2 Kebutuhan Pengguna yang Teridentifikasi</div>
+        <table class="tabel-analisis">
+            <tr><th>Kebutuhan</th><th>Deskripsi</th></tr>
+            <tr><td>Kepastian harga lebih baik</td><td>Pengguna ingin menjual dengan harga di atas buyback Antam</td></tr>
+            <tr><td>Fleksibilitas waktu transaksi</td><td>Pengguna ingin bisa transaksi 24/7, tidak terbatas jam kerja Antam</td></tr>
+            <tr><td>Kontrol harga</td><td>Pengguna ingin menentukan sendiri harga jual/beli</td></tr>
+            <tr><td>Likuiditas tinggi</td><td>Pengguna ingin banyak pembeli/penjual potensial</td></tr>
+        </table>
+    </div>
+
+    <!-- BAB 5 USER PERSONA -->
+    <div class="bab" id="bab5">
+        <h2>BAB 5 – USER PERSONA</h2>
+        <p><em>Berdasarkan materi Pertemuan 3 (User Persona dan Customer Journey Map)</em></p>
+        
+        <div class="sub-bab">5.1 Persona 1: Budi — Investor Aktif</div>
+        <table class="tabel-analisis">
+            <tr><th width="30%">Atribut</th><th>Detail</th></tr>
+            <tr><td>Nama & Usia</td><td>Budi Santoso, 35 tahun</td></tr>
+            <tr><td>Pekerjaan</td><td>Pengusaha properti, Jakarta Selatan</td></tr>
+            <tr><td>Saldo Emas</td><td>&gt;50 gram</td></tr>
+            <tr><td>Job to be Done</td><td>"Saya ingin membeli emas saat harga rendah dan menjual saat harga tinggi untuk mendapatkan profit."</td></tr>
+            <tr><td>Pains</td><td>Harga buyback rendah, tidak bisa jual di luar jam kerja, spread lebar</td></tr>
+            <tr><td>Gains</td><td>Harga jual terbaik, transaksi 24/7, spread tipis</td></tr>
+        </table>
+
+        <div class="sub-bab">5.2 Persona 2: Siti — Nabung Emas</div>
+        <table class="tabel-analisis">
+            <tr><th width="30%">Atribut</th><th>Detail</th></tr>
+            <tr><td>Nama & Usia</td><td>Siti Aisyah, 28 tahun</td></tr>
+            <tr><td>Pekerjaan</td><td>Karyawan bank, Tangerang</td></tr>
+            <tr><td>Saldo Emas</td><td>5-10 gram</td></tr>
+            <tr><td>Job to be Done</td><td>"Saya ingin nabung emas rutin setiap bulan untuk persiapan biaya pernikahan dan dana darurat."</td></tr>
+            <tr><td>Pains</td><td>Harga beli Antam mahal, takut spread lebar, bingung waktu tepat beli/jual</td></tr>
+            <tr><td>Gains</td><td>Bisa beli dengan harga lebih murah dari sesama pengguna</td></tr>
+        </table>
+
+        <div class="sub-bab">5.3 Persona 3: Rudi — Trader Aktif</div>
+        <table class="tabel-analisis">
+            <tr><th width="30%">Atribut</th><th>Detail</th></tr>
+            <tr><td>Nama & Usia</td><td>Rudi Hartono, 50 tahun</td></tr>
+            <tr><td>Pekerjaan</td><td>Full-time investor/trader, Surabaya</td></tr>
+            <tr><td>Saldo Emas</td><td>&gt;100 gram</td></tr>
+            <tr><td>Job to be Done</td><td>"Saya ingin aktif trading emas dengan frekuensi tinggi untuk mendapatkan keuntungan dari volatilitas harga."</td></tr>
+            <tr><td>Pains</td><td>Spread Antam terlalu lebar untuk trading, tidak ada limit order, volume terbatas</td></tr>
+            <tr><td>Gains</td><td>Likuiditas tinggi, spread sangat tipis, volume besar</td></tr>
+        </table>
+    </div>
+
+    <!-- BAB 6 CUSTOMER JOURNEY MAP -->
+    <div class="bab" id="bab6">
+        <h2>BAB 6 – CUSTOMER JOURNEY MAP</h2>
+        
+        <div class="sub-bab">6.1 Perbandingan Emosi Eksisting vs Usulan</div>
+        <table class="tabel-analisis">
+            <tr><th>Tahap</th><th>Awareness</th><th>Consideration</th><th>Transaksi (Jual)</th><th>Retention</th><th>Advocacy</th></tr>
+            <tr style="background:#fef9e6;"><td><strong>Eksisting (tanpa P2P)</strong></td><td>🟢 Antusias</td><td>🟡 Netral</td><td>🔴 Frustrasi (spread rugi)</td><td>🟡 Biasa</td><td>🔴 Tidak merekomendasi</td></tr>
+            <tr style="background:#e6f7ec;"><td><strong>Dengan Fitur P2P</strong></td><td>🟢 Antusias</td><td>🟢 Tertarik</td><td>🟢 Puas (harga sesuai keinginan)</td><td>🟢 Sangat puas</td><td>🟢 Antusias + rekomendasi</td></tr>
+        </table>
+
+        <div class="insight-box">
+            <i class="fas fa-chart-line" style="font-size:1.5rem;"></i>
+            <p><strong>Peningkatan Emotional Curve:</strong> Dari puncak frustrasi (-1) menjadi kepuasan tinggi (+2) di tahap transaksi. Peluang perbaikan: notifikasi real-time, filter harga, sistem escrow, dan fitur rating pengguna.</p>
+        </div>
+    </div>
+
+    <!-- BAB 7 WIREFRAME & PROTOTYPE -->
+    <div class="bab" id="bab7">
+        <h2>BAB 7 – WIREFRAME HIGH-FIDELITY & PROTOTYPE</h2>
+        
+        <div class="sub-bab">7.1 Struktur Halaman yang Dirancang</div>
+        <table class="tabel-analisis">
+            <tr><th>No</th><th>Nama Halaman</th><th>Fungsi</th></tr>
+            <tr><td>1</td><td>Dashboard (Beranda)</td><td>Ringkasan saldo, harga pasar, akses cepat ke marketplace</td></tr>
+            <tr><td>2</td><td>Marketplace</td><td>Daftar listing jual/beli dari pengguna lain</td></tr>
+            <tr><td>3</td><td>Buat Listing</td><td>Form untuk menjual atau mencari emas</td></tr>
+            <tr><td>4</td><td>Detail Listing</td><td>Informasi lengkap listing + tombol beli/tawar</td></tr>
+            <tr><td>5</td><td>Riwayat Transaksi P2P</td><td>History jual-beli antar pengguna</td></tr>
+        </table>
+
+        <div class="sub-bab">7.2 Desain Mockup (Preview)</div>
+        <div class="quote-box">
+            <p><strong>📱 Contoh Halaman Marketplace:</strong> Menampilkan listing jual dari pengguna lain dengan informasi rating (★4.8 • 23 transaksi), gramase, harga/gram, dan tombol "Beli" serta "Tawar". Terdapat juga fitur filter dan pencarian.</p>
+            <p><strong>📱 Contoh Halaman Buat Listing:</strong> Form input gramase dan harga/gram, dilengkapi saran harga berdasarkan rata-rata P2P dan harga buyback Antam untuk membantu pengguna menentukan harga yang kompetitif.</p>
+        </div>
+        <p><strong>Link Prototype Figma:</strong> <a href="#">[Sisipkan link Figma prototype di sini]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
+    </div>
+
+    <!-- BAB 8 USER TESTING & ITERASI -->
+    <div class="bab" id="bab8">
+        <h2>BAB 8 – USER TESTING & ITERASI</h2>
+        
+        <div class="sub-bab">8.1 Metodologi Testing</div>
+        <table class="tabel-analisis">
+            <tr><th>Aspek</th><th>Detail</th></tr>
+            <tr><td>Jumlah responden</td><td>3 orang (berbeda dari responden riset awal)</td></tr>
+            <tr><td>Metode</td><td>Moderated usability testing (pendampingan langsung)</td></tr>
+            <tr><td>Durasi</td><td>15-20 menit per responden</td></tr>
+            <tr><td>Skenario tugas</td><td>Beli emas P2P, buat listing jual, bandingkan harga</td></tr>
+        </table>
+
+        <div class="sub-bab">8.2 Hasil Testing & Feedback</div>
+        <table class="tabel-analisis">
+            <tr><th>Responden</th><th>Skenario 1 (Beli)</th><th>Skenario 2 (Jual)</th><th>Skenario 3 (Banding)</th><th>Catatan</th></tr>
+            <tr><td>R6 (Dina, 26)</td><td>✅ Sukses</td><td>⚠️ Sedikit bingung</td><td>✅ Sukses</td><td>"Tombol marketplace perlu lebih besar"</td></tr>
+            <tr><td>R7 (Fajar, 31)</td><td>✅ Sukses</td><td>✅ Sukses</td><td>✅ Sukses</td><td>"Saran harga membantu banget"</td></tr>
+            <tr><td>R8 (Gita, 29)</td><td>⚠️ Ragu pilih listing</td><td>✅ Sukses</td><td>✅ Sukses</td><td>"Apa bedanya rating 4.8 vs 4.9?"</td></tr>
+        </table>
+        <p><strong>Tingkat keberhasilan:</strong> 8 dari 9 tugas berhasil (88.9%)</p>
+
+        <div class="sub-bab">8.3 Iterasi Desain Berdasarkan Feedback</div>
+        <table class="tabel-analisis">
+            <tr><th>Iterasi</th><th>Sebelum</th><th>Sesudah</th><th>Dasar Feedback</th></tr>
+            <tr><td>1</td><td>Tombol marketplace ukuran standar</td><td>Tombol marketplace diperbesar 20%, background hijau</td><td>Dina: "Tombol perlu lebih besar"</td></tr>
+            <tr><td>2</td><td>Hanya menampilkan rating (★4.8)</td><td>Rating + jumlah transaksi (★4.8 • 23 transaksi)</td><td>Gita: "Apa bedanya rating 4.8 vs 4.9?"</td></tr>
+            <tr><td>3</td><td>Tombol "Beli" di marketplace dan detail listing sama persis</td><td>Ditambahkan tooltip "Klik untuk lihat detail"</td><td>Dina: "Bingung beda tombol"</td></tr>
+        </table>
+    </div>
+
+    <!-- BAB 9 KESIMPULAN & REKOMENDASI -->
+    <div class="bab" id="bab9">
+        <h2>BAB 9 – KESIMPULAN & REKOMENDASI</h2>
+        
+        <div class="sub-bab">9.1 Kesimpulan</div>
+        <p>Berdasarkan seluruh proses yang dilakukan (riset → persona → CJM → prototype → testing → iterasi), dapat disimpulkan:</p>
+        <ol style="margin-left:2rem; margin-bottom:1rem;">
+            <li><strong>Riset pengguna</strong> berhasil mengidentifikasi 3 pain points utama: harga buyback rendah (80% responden), waktu transaksi terbatas (67%), dan tidak ada opsi negosiasi harga (73%).</li>
+            <li><strong>User Persona</strong> membantu memetakan 3 segmen pengguna yang berbeda dengan kebutuhan spesifik terhadap fitur P2P.</li>
+            <li><strong>Customer Journey Map</strong> menunjukkan peningkatan emotional curve dari -1 menjadi +2 setelah ditambahkan fitur P2P.</li>
+            <li><strong>Prototype high-fidelity</strong> di Figma mencakup 5 halaman utama dengan alur transaksi P2P yang lengkap.</li>
+            <li><strong>User testing</strong> dengan 3 responden menunjukkan tingkat keberhasilan 88.9%, dengan 3 iterasi perbaikan yang berhasil meningkatkan usability.</li>
+        </ol>
+
+        <div class="sub-bab">9.2 Rekomendasi Prioritas</div>
+        <table class="tabel-analisis">
+            <tr><th>Prioritas</th><th>Rekomendasi</th><th>Alasan</th></tr>
+            <tr><td>P0 (Wajib)</td><td>Implementasi fitur P2P marketplace</td><td>Core solution untuk pain points utama</td></tr>
+            <tr><td>P0 (Wajib)</td><td>Sistem escrow oleh Antam</td><td>Membangun trust dan keamanan transaksi</td></tr>
+            <tr><td>P1</td><td>Rating & review system</td><td>Membantu pembeli memilih penjual terpercaya</td></tr>
+            <tr><td>P1</td><td>Fitur notifikasi harga</td><td>Memberi tahu pengguna saat ada listing menarik</td></tr>
+            <tr><td>P2</td><td>Fitur auto-match buyer-seller</td><td>Meningkatkan likuiditas</td></tr>
+        </table>
+    </div>
+
+    <!-- LAMPIRAN -->
+    <div class="bab" id="lampiran">
+        <h2>LAMPIRAN</h2>
+        
+        <div class="sub-bab">Lampiran 1: Dokumentasi Riset</div>
+        <ul style="margin-left:2rem;">
+            <li>Transkrip wawancara lengkap (5 responden) — tersedia dalam file terpisah</li>
+            <li>Hasil survei Google Forms (15 responden) — tersedia dalam file terpisah</li>
+            <li>Screenshot dashboard survei — terlampir</li>
+        </ul>
+
+        <div class="sub-bab">Lampiran 2: Link Figma Prototype</div>
+        <p><strong>Prototype Interaktif:</strong> <a href="#">[Sisipkan link Figma di sini]</a></p>
+        <p><strong>File Figma Editor:</strong> <a href="#">[Sisipkan link Figma editor di sini]</a></p>
+
+        <div class="sub-bab">Lampiran 3: Daftar Pertanyaan Wawancara</div>
+        <ol style="margin-left:2rem;">
+            <li>Ceritakan sedikit tentang diri Anda, pekerjaan, dan berapa lama sudah menggunakan BRANKAS LM?</li>
+            <li>Seberapa sering dalam seminggu Anda membuka aplikasi BRANKAS LM?</li>
+            <li>Apa tujuan utama Anda menggunakan BRANKAS LM?</li>
+            <li>Apa kendala terbesar yang Anda alami saat menggunakan BRANKAS LM?</li>
+            <li>Bagaimana pendapat Anda tentang harga buyback yang ditawarkan Antam saat ini?</li>
+            <li>Apakah Anda merasa kesulitan saat ingin menjual emas di luar jam kerja Antam?</li>
+            <li>Apakah Anda tertarik dengan fitur jual-beli emas antar sesama pengguna?</li>
+            <li>Fitur apa yang paling Anda harapkan dari BRANKAS LM ke depannya?</li>
+            <li>Apakah Anda percaya dengan sistem escrow jika transaksi P2P diamankan oleh Antam?</li>
+        </ol>
+
+        <div class="quote-box">
+            <p><strong>📌 Refleksi terhadap Materi HCD:</strong></p>
+            <ul style="margin-left:1.5rem;">
+                <li><strong>Pertemuan 1 (HCD):</strong> Desain bukan tentang ego desainer, tapi tentang menyelesaikan masalah pengguna.</li>
+                <li><strong>Pertemuan 2 (Riset):</strong> Wawancara mendalam mengungkap pain point yang tidak terlihat saat hanya menggunakan aplikasi sendiri.</li>
+                <li><strong>Pertemuan 3 (Persona & CJM):</strong> CJM adalah peta perang; tanpa CJM, kita seperti berjalan di labirin tanpa lampu.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tanda tangan -->
+    <div class="ttd">
+        <div>
+            Hormat saya,<br><br><br>
+            <strong>Dimas Kurniawan</strong><br>
+            25120300016
+        </div>
+        <div>
+            Universitas Cakrawala<br>
+            Maret 2026
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-laporan">
+        <p><i class="fas fa-laptop-code"></i> Tugas UTS – Human Centered Design (IKR2130) | Program Studi Ilmu Komputer | Universitas Cakrawala</p>
+        <p>Dosen Pengampu: Dr. Fandy Neta, S.Pd., M.Pd.T. | Referensi: Norman (2013), Cooper et al. (2014), Garrett (2011)</p>
+    </div>
+</div>
+</body>
+</html>

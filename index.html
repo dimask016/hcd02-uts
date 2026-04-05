@@ -240,7 +240,9 @@ async function loadFromCloud(email) {
         showSyncStatus('⚠️ Gagal load dari cloud, pakai data lokal', 'error');
         return null;
     }
-}    function getStorageKey(email) { return `brankas_lm_${email.replace(/[^a-zA-Z0-9]/g, '_')}`; }
+}   
+    
+    function getStorageKey(email) { return `brankas_lm_${email.replace(/[^a-zA-Z0-9]/g, '_')}`; }
     
     async function saveToLocalAndCloud() {
         if (!currentUserEmail) return;

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v12</title>
+    <title>Brankas LM - P2P Emas Digital v13</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -48,6 +48,8 @@
         .btn-info { background: #3498db; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
         .btn-qris { background: linear-gradient(135deg, #00B4D8, #0077B6); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: 600; }
         .btn-qris:hover { transform: scale(0.97); }
+        .btn-pay { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: 600; }
+        .btn-pay:hover { transform: scale(0.97); }
         .listing-grid { display: flex; flex-direction: column; gap: 16px; }
         .listing-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: #fefefe; border-radius: 24px; border: 1px solid #eef2f6; flex-wrap: wrap; gap: 12px; }
         .form-group { margin-bottom: 20px; }
@@ -72,6 +74,7 @@
         .sync-status.syncing { background: #f39c12; }
         .badge-beli { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
         .badge-jual { background: #fff3e0; color: #e65100; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-pay { background: #fee2e2; color: #c0392b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
         .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 0.6s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
@@ -97,7 +100,8 @@
         .qr-reader { width: 100%; max-width: 400px; margin: 0 auto; }
         #qr-reader { width: 100%; }
         #qr-reader video { width: 100%; border-radius: 20px; }
-        .qris-amount { font-size: 28px; font-weight: bold; color: #1e577a; }
+        .feature-card { background: #f8f9fa; border-radius: 20px; padding: 16px; margin-top: 16px; }
+        .feature-title { font-weight: bold; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -111,9 +115,9 @@
         <div id="googleErrorMsg" style="display:none; background:#fee2e2; color:#b91c1c; padding:10px; border-radius:16px; margin-top:12px; font-size:12px;"></div>
         <div class="demo-note">
             <i class="fas fa-globe"></i> <strong>Sistem Marketplace P2P Global + QRIS:</strong><br>
-            • Penjual: menjual emas → saldo BERKURANG<br>
-            • Pembeli: membeli emas → saldo BERTAMBAH<br>
-            • QRIS: Bayar dengan scan QRIS → otomatis konversi Rupiah ke Gram Emas
+            • 🔵 TOP UP: Scan QRIS → Bayar Rupiah → Dapat Emas (saldo BERTAMBAH)<br>
+            • 🔴 BAYAR: Scan QRIS Merchant → Bayar Pakai Emas (saldo BERKURANG)<br>
+            • 🟢 JUAL/BELI: Transaksi P2P antar user
         </div>
     </div>
 </div>
@@ -125,8 +129,9 @@
             <div class="nav-item active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div>
             <div class="nav-item" data-page="marketplace"><i class="fas fa-store"></i> <span>Marketplace</span></div>
             <div class="nav-item" data-page="buat-listing"><i class="fas fa-plus-circle"></i> <span>Buat Listing</span></div>
-            <div class="nav-item" data-page="qris"><i class="fas fa-qrcode"></i> <span>QRIS Top Up</span></div>
-            <div class="nav-item" data-page="riwayat"><i class="fas fa-history"></i> <span>Riwayat P2P</span></div>
+            <div class="nav-item" data-page="qris-topup"><i class="fas fa-arrow-down"></i> <span>Top Up QRIS</span></div>
+            <div class="nav-item" data-page="qris-pay"><i class="fas fa-arrow-up"></i> <span>Bayar QRIS</span></div>
+            <div class="nav-item" data-page="riwayat"><i class="fas fa-history"></i> <span>Riwayat</span></div>
         </div>
     </div>
     <div class="main-content">
@@ -137,8 +142,8 @@
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button id="manualSyncBtn" class="btn-info" style="padding: 8px 16px;"><i class="fas fa-sync-alt"></i> Sync ke Cloud</button>
-                <button id="loadCloudBtn" class="btn-primary" style="background: #27ae60;"><i class="fas fa-cloud-download-alt"></i> Load Data Global</button>
-                <button id="refreshMyDataBtn" class="btn-refresh"><i class="fas fa-refresh"></i> Refresh Data Saya</button>
+                <button id="loadCloudBtn" class="btn-primary" style="background: #27ae60;"><i class="fas fa-cloud-download-alt"></i> Load Data</button>
+                <button id="refreshMyDataBtn" class="btn-refresh"><i class="fas fa-refresh"></i> Refresh</button>
                 <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
@@ -278,7 +283,7 @@
                 if (result.globalOffers) pendingOffers = result.globalOffers;
                 if (result.goldPrice) goldPricePerGram = result.goldPrice;
                 
-                if (!silent) showSyncStatus(`✓ ${marketplaceListings.length} listings, ${p2pTransactions.filter(t=>t.type==="Jual").length} Jual`, 'success');
+                if (!silent) showSyncStatus(`✓ ${marketplaceListings.length} listings`, 'success');
                 
                 const key = getStorageKey(currentUserEmail);
                 localStorage.setItem(key, JSON.stringify({ userGoldBalance, marketplaceListings, p2pTransactions, pendingOffers, goldPrice: goldPricePerGram }));
@@ -322,8 +327,8 @@
         await syncToCloud();
     }
     
-    // ========== FUNGSI QRIS TOP UP ==========
-    async function processQRISPayment(amount) {
+    // ========== FUNGSI QRIS TOP UP (ISI SALDO) ==========
+    async function processTopUp(amount) {
         if (!currentUserEmail) return false;
         if (amount <= 0) {
             showNotification("Masukkan nominal yang valid!", "error");
@@ -332,29 +337,25 @@
         
         const goldAmount = convertIDRToGold(amount);
         
-        const confirmMsg = `💳 KONFIRMASI PEMBAYARAN QRIS\n\n` +
+        const confirmMsg = `💳 TOP UP VIA QRIS\n\n` +
             `Nominal: ${formatRupiah(amount)}\n` +
             `💰 Harga Emas/Gram: ${formatRupiah(goldPricePerGram)}\n` +
             `⚖️ Anda akan mendapatkan: ${formatGram(goldAmount)}\n\n` +
             `Saldo emas Anda akan BERTAMBAH +${formatGram(goldAmount)}\n\n` +
-            `Lanjutkan pembayaran?`;
+            `Lanjutkan top up?`;
         
         if (!confirm(confirmMsg)) return false;
         
-        // Simulasi pembayaran QRIS
-        showNotification("🔄 Memproses pembayaran QRIS...", "info");
-        
+        showNotification("🔄 Memproses top up...", "info");
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Tambah saldo emas
         const oldBalance = userGoldBalance.gram;
         userGoldBalance.gram += goldAmount;
         
-        // Catat transaksi
-        const transactionId = "QRIS" + Date.now() + Math.random().toString(36).substr(2, 4);
+        const transactionId = "TOPUP" + Date.now() + Math.random().toString(36).substr(2, 4);
         const currentDate = new Date().toISOString().slice(0, 10);
         
-        const qrisTransaction = {
+        const topUpTransaction = {
             id: transactionId,
             asset: "Top Up QRIS",
             gram: goldAmount,
@@ -367,14 +368,14 @@
             fee: 0,
             userEmail: currentUserEmail,
             userName: userGoldBalance.userName,
-            userRole: "pembeli",
+            userRole: "topup",
             yourBalance: userGoldBalance.gram
         };
         
-        p2pTransactions.unshift(qrisTransaction);
+        p2pTransactions.unshift(topUpTransaction);
         await saveToLocalAndCloud();
         
-        showNotification(`✅ Pembayaran berhasil! +${formatGram(goldAmount)} emas`, "success");
+        showNotification(`✅ Top up berhasil! +${formatGram(goldAmount)} emas`, "success");
         alert(`✅ TOP UP BERHASIL!\n\n` +
             `💳 Nominal: ${formatRupiah(amount)}\n` +
             `⚖️ Emas didapat: ${formatGram(goldAmount)}\n` +
@@ -384,13 +385,91 @@
         return true;
     }
     
-    async function scanQRIS() {
+    // ========== FUNGSI QRIS PAY (BAYAR PAKAI EMAS) ==========
+    async function processPayment(amount, merchantName = "Merchant") {
+        if (!currentUserEmail) return false;
+        if (amount <= 0) {
+            showNotification("Nominal tidak valid!", "error");
+            return false;
+        }
+        
+        const goldNeeded = convertIDRToGold(amount);
+        
+        if (userGoldBalance.gram < goldNeeded) {
+            showNotification(`❌ Saldo tidak cukup! Butuh ${formatGram(goldNeeded)}`, "error");
+            alert(`❌ SALDO TIDAK CUKUP!\n\n` +
+                `Tagihan: ${formatRupiah(amount)}\n` +
+                `Butuh emas: ${formatGram(goldNeeded)}\n` +
+                `Saldo Anda: ${formatGram(userGoldBalance.gram)}\n\n` +
+                `Silakan top up terlebih dahulu.`);
+            return false;
+        }
+        
+        const confirmMsg = `💸 PEMBAYARAN DENGAN EMAS\n\n` +
+            `🏪 Merchant: ${merchantName}\n` +
+            `💳 Tagihan: ${formatRupiah(amount)}\n` +
+            `⚖️ Emas yang akan terpotong: ${formatGram(goldNeeded)}\n` +
+            `💰 Sisa saldo setelah bayar: ${formatGram(userGoldBalance.gram - goldNeeded)}\n\n` +
+            `Lanjutkan pembayaran?`;
+        
+        if (!confirm(confirmMsg)) return false;
+        
+        showNotification("🔄 Memproses pembayaran...", "info");
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const oldBalance = userGoldBalance.gram;
+        userGoldBalance.gram -= goldNeeded;
+        
+        const transactionId = "PAY" + Date.now() + Math.random().toString(36).substr(2, 4);
+        const currentDate = new Date().toISOString().slice(0, 10);
+        
+        const paymentTransaction = {
+            id: transactionId,
+            asset: `Pembayaran ke ${merchantName}`,
+            gram: goldNeeded,
+            counterparty: merchantName,
+            counterpartyEmail: "merchant@qris.id",
+            type: "Jual",
+            totalPrice: amount,
+            date: currentDate,
+            status: "Selesai",
+            fee: 0,
+            userEmail: currentUserEmail,
+            userName: userGoldBalance.userName,
+            userRole: "pembayar",
+            yourBalance: userGoldBalance.gram
+        };
+        
+        p2pTransactions.unshift(paymentTransaction);
+        await saveToLocalAndCloud();
+        
+        showNotification(`✅ Pembayaran berhasil! -${formatGram(goldNeeded)} emas`, "success");
+        alert(`✅ PEMBAYARAN BERHASIL!\n\n` +
+            `🏪 Merchant: ${merchantName}\n` +
+            `💳 Tagihan: ${formatRupiah(amount)}\n` +
+            `⚖️ Emas terpotong: ${formatGram(goldNeeded)}\n` +
+            `💰 Saldo emas Anda: ${formatGram(oldBalance)} → ${formatGram(userGoldBalance.gram)}`);
+        
+        render();
+        return true;
+    }
+    
+    // ========== FUNGSI SCAN QRIS (UNIFIED) ==========
+    async function scanQRIS(mode) {
+        // mode: 'topup' atau 'pay'
         return new Promise((resolve) => {
             const modal = document.getElementById("detailModal");
             const modalContent = document.getElementById("modalDynamicContent");
             
+            const title = mode === 'topup' ? 'Top Up via QRIS' : 'Bayar dengan QRIS';
+            const subtitle = mode === 'topup' ? 
+                'Scan QRIS untuk top up saldo emas (saldo akan bertambah)' : 
+                'Scan QRIS Merchant untuk membayar tagihan (saldo akan berkurang)';
+            const btnText = mode === 'topup' ? 'Top Up Sekarang' : 'Bayar Sekarang';
+            
             modalContent.innerHTML = `
-                <h3><i class="fas fa-qrcode"></i> Scan QRIS</h3>
+                <h3><i class="fas fa-qrcode"></i> ${title}</h3>
+                <p style="color: #666; margin-bottom: 16px;">${subtitle}</p>
                 <div style="text-align: center; margin: 20px 0;">
                     <div id="qr-reader" style="width: 100%;"></div>
                     <div id="qr-reader-results" style="margin-top: 16px;"></div>
@@ -399,21 +478,24 @@
                     <label>Atau Masukkan Nominal Manual</label>
                     <input type="number" id="manualAmount" placeholder="Masukkan nominal Rupiah" step="1000">
                 </div>
+                <div class="form-group">
+                    <label>Nama Merchant (untuk pembayaran)</label>
+                    <input type="text" id="merchantName" placeholder="Contoh: Warung Kopi, Toko Buku, dll" value="Merchant">
+                </div>
                 <div class="info-message">
                     <i class="fas fa-info-circle"></i> Harga Emas saat ini: ${formatRupiah(goldPricePerGram)}/gram<br>
-                    1 gram = ${formatRupiah(goldPricePerGram)}
+                    ${mode === 'topup' ? '💰 Top up: Bayar Rupiah → Dapat Emas' : '💸 Bayar: Potong Emas → Bayar Tagihan'}
                 </div>
                 <div style="display: flex; gap: 12px; margin-top: 16px;">
-                    <button id="manualPayBtn" class="btn-primary">Bayar Manual</button>
-                    <button id="closeQrModal" class="btn-outline">Tutup</button>
+                    <button id="actionBtn" class="btn-qris">${btnText}</button>
+                    <button id="closeModalBtn" class="btn-outline">Tutup</button>
                 </div>
             `;
             
             modal.style.display = "flex";
             
             // Inisialisasi QR scanner
-            const qrReaderElement = document.getElementById("qr-reader");
-            if (qrReaderElement && html5QrCode) {
+            if (html5QrCode) {
                 html5QrCode.stop().catch(() => {});
             }
             
@@ -421,7 +503,6 @@
             const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
             
             html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText, decodedResult) => {
-                // Parse QR code result - cari nominal dalam Rupiah
                 let nominal = null;
                 const match = decodedText.match(/(\d{1,3}(?:\.\d{3})*|\d+)/g);
                 if (match) {
@@ -435,30 +516,35 @@
                 }
                 
                 if (nominal) {
-                    html5QrCode.stop();
                     document.getElementById("qr-reader-results").innerHTML = `<div class="success-text">✅ QRIS Terdeteksi! Nominal: ${formatRupiah(nominal)}</div>`;
-                    processQRISPayment(nominal).then(() => {
-                        modal.style.display = "none";
-                        resolve(true);
-                    });
+                    document.getElementById("manualAmount").value = nominal;
+                    html5QrCode.stop();
                 } else {
                     document.getElementById("qr-reader-results").innerHTML = `<div class="warning-text">⚠️ QR tidak mengandung nominal yang valid. Silakan input manual.</div>`;
                 }
             }, (errorMessage) => {});
             
-            document.getElementById("manualPayBtn")?.addEventListener("click", async () => {
+            document.getElementById("actionBtn")?.addEventListener("click", async () => {
                 const amount = parseInt(document.getElementById("manualAmount")?.value);
-                if (amount && amount > 0) {
-                    if (html5QrCode) await html5QrCode.stop().catch(() => {});
-                    modal.style.display = "none";
-                    await processQRISPayment(amount);
-                    resolve(true);
-                } else {
+                const merchantName = document.getElementById("merchantName")?.value || "Merchant";
+                
+                if (!amount || amount <= 0) {
                     showNotification("Masukkan nominal yang valid!", "error");
+                    return;
                 }
+                
+                if (html5QrCode) await html5QrCode.stop().catch(() => {});
+                modal.style.display = "none";
+                
+                if (mode === 'topup') {
+                    await processTopUp(amount);
+                } else {
+                    await processPayment(amount, merchantName);
+                }
+                resolve(true);
             });
             
-            document.getElementById("closeQrModal")?.addEventListener("click", async () => {
+            document.getElementById("closeModalBtn")?.addEventListener("click", async () => {
                 if (html5QrCode) await html5QrCode.stop().catch(() => {});
                 modal.style.display = "none";
                 resolve(false);
@@ -554,6 +640,22 @@
         return true;
     }
     
+    function showDetailModal(listing) {
+        const modal = document.getElementById("detailModal");
+        const modalContent = document.getElementById("modalDynamicContent");
+        const isOwnListing = (listing.sellerEmail === currentUserEmail);
+        
+        modalContent.innerHTML = `<h3>${listing.name}</h3><div style="background:#f8fafc; border-radius:20px; padding:16px; margin:16px 0;">
+            <p>Penjual: ${listing.sellerName}</p><p>Berat: ${listing.gram} gram</p><p>Harga/gram: ${formatRupiah(listing.pricePerGram)}</p>
+            <p><strong>Total: ${formatRupiah(listing.totalPrice)}</strong></p>${listing.desc ? `<p>${listing.desc}</p>` : ''}</div>
+            ${!isOwnListing ? `<div style="display:flex; gap:12px;"><button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button></div>` : 
+            `<div class="info-message">Ini listing Anda sendiri. Listing akan hilang saat dibeli.</div>`}`;
+        
+        modal.style.display = "flex";
+        document.getElementById("closeDetailModal").onclick = () => modal.style.display = "none";
+        if (!isOwnListing) document.getElementById("buyNowBtn").onclick = async () => { modal.style.display = "none"; await buyListing(listing); };
+    }
+    
     // ========== RENDER FUNCTIONS ==========
     function renderDashboard(container) {
         const myListings = marketplaceListings.filter(l => l.sellerEmail === currentUserEmail);
@@ -563,7 +665,7 @@
         
         container.innerHTML = `
             <div class="flex-between"><h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard</h1>
-            <span style="background:#eef2fa; padding:4px 12px; border-radius:50px;"><i class="fas fa-globe"></i> QRIS Ready</span></div>
+            <span style="background:#eef2fa; padding:4px 12px; border-radius:50px;"><i class="fas fa-qrcode"></i> QRIS Ready</span></div>
             <div class="gold-card"><div class="gold-balance">
                 <div class="balance-gram">${formatGram(userGoldBalance.gram)}</div>
                 <div class="balance-idr">≈ ${formatRupiah(goldValueIDR)}</div>
@@ -583,14 +685,17 @@
                     <div>${formatRupiah(item.pricePerGram)}/gram</div>
                     <div><button class="btn-outline detail-quick-btn" data-id="${item.id}">Detail</button></div></div>`).join('')}</div>` : '<p style="text-align:center;">Belum ada listing</p>'}
             </div>
-            <div class="section-card">
-                <div class="flex-between"><h3><i class="fas fa-qrcode"></i> Top Up via QRIS</h3>
-                <button id="qrisTopUpBtn" class="btn-qris"><i class="fas fa-qrcode"></i> Scan QRIS</button></div>
-                <p>Scan QRIS untuk top up saldo emas digital</p>
+            <div class="feature-card">
+                <div class="feature-title"><i class="fas fa-qrcode"></i> Fitur QRIS</div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button id="topUpQuickBtn" class="btn-qris"><i class="fas fa-arrow-down"></i> Top Up Saldo</button>
+                    <button id="payQuickBtn" class="btn-pay"><i class="fas fa-arrow-up"></i> Bayar Tagihan</button>
+                </div>
             </div>`;
         
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
-        document.getElementById("qrisTopUpBtn")?.addEventListener("click", () => scanQRIS());
+        document.getElementById("topUpQuickBtn")?.addEventListener("click", () => scanQRIS('topup'));
+        document.getElementById("payQuickBtn")?.addEventListener("click", () => scanQRIS('pay'));
         document.querySelectorAll(".detail-quick-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 const listing = marketplaceListings.find(l => l.id === btn.dataset.id);
@@ -656,36 +761,65 @@
         });
     }
     
-    function renderQRIS(container) {
-        const goldAmountPerRupiah = 1 / goldPricePerGram;
+    function renderQRISTopUp(container) {
         container.innerHTML = `
-            <div class="flex-between"><h1 class="page-title"><i class="fas fa-qrcode"></i> Top Up via QRIS</h1></div>
-            <div class="section-card">
-                <div style="text-align: center; padding: 20px;">
-                    <i class="fas fa-qrcode" style="font-size: 80px; color: #0077B6;"></i>
-                    <h3 style="margin: 16px 0;">Scan QRIS untuk Top Up</h3>
-                    <p>Scan QRIS menggunakan aplikasi mobile banking atau e-wallet</p>
-                    <div class="info-message" style="margin: 20px 0;">
-                        <strong>💰 Harga Emas Saat Ini:</strong><br>
-                        ${formatRupiah(goldPricePerGram)} / gram<br>
-                        1 Rupiah = ${goldAmountPerRupiah.toFixed(6)} gram
-                    </div>
-                    <button id="scanQrisBtn" class="btn-qris" style="font-size: 18px; padding: 14px 32px;">
-                        <i class="fas fa-camera"></i> Scan QRIS Sekarang
-                    </button>
-                    <div class="form-group" style="margin-top: 24px;">
-                        <label>Atau Masukkan Nominal Top Up</label>
-                        <input type="number" id="topupAmount" placeholder="Masukkan nominal Rupiah" step="1000" style="text-align: center; font-size: 18px;">
-                        <small>Contoh: 100000 = ${formatGram(convertIDRToGold(100000))}</small>
-                    </div>
-                    <button id="manualTopUpBtn" class="btn-primary" style="margin-top: 12px;">Top Up Manual</button>
+            <div class="flex-between"><h1 class="page-title"><i class="fas fa-arrow-down"></i> Top Up via QRIS</h1></div>
+            <div class="section-card" style="text-align: center;">
+                <i class="fas fa-qrcode" style="font-size: 80px; color: #00B4D8;"></i>
+                <h3 style="margin: 16px 0;">Top Up Saldo Emas</h3>
+                <p>Scan QRIS untuk membeli emas digital</p>
+                <div class="info-message" style="margin: 20px 0;">
+                    💰 Harga Emas: ${formatRupiah(goldPricePerGram)}/gram<br>
+                    1 Rupiah = ${(1/goldPricePerGram).toFixed(6)} gram
                 </div>
+                <button id="scanTopUpBtn" class="btn-qris" style="font-size: 18px; padding: 14px 32px;">
+                    <i class="fas fa-camera"></i> Scan QRIS untuk Top Up
+                </button>
+                <div class="form-group" style="margin-top: 24px;">
+                    <label>Atau Masukkan Nominal Top Up</label>
+                    <input type="number" id="topupAmount" placeholder="Masukkan nominal Rupiah" step="1000">
+                </div>
+                <button id="manualTopUpBtn" class="btn-primary">Top Up Manual</button>
             </div>`;
         
-        document.getElementById("scanQrisBtn")?.addEventListener("click", () => scanQRIS());
+        document.getElementById("scanTopUpBtn")?.addEventListener("click", () => scanQRIS('topup'));
         document.getElementById("manualTopUpBtn")?.addEventListener("click", async () => {
             const amount = parseInt(document.getElementById("topupAmount")?.value);
-            if (amount && amount > 0) await processQRISPayment(amount);
+            if (amount && amount > 0) await processTopUp(amount);
+            else showNotification("Masukkan nominal yang valid!", "error");
+        });
+    }
+    
+    function renderQRISPay(container) {
+        container.innerHTML = `
+            <div class="flex-between"><h1 class="page-title"><i class="fas fa-arrow-up"></i> Bayar dengan QRIS</h1></div>
+            <div class="section-card" style="text-align: center;">
+                <i class="fas fa-qrcode" style="font-size: 80px; color: #e74c3c;"></i>
+                <h3 style="margin: 16px 0;">Bayar Tagihan dengan Emas</h3>
+                <p>Scan QRIS Merchant untuk membayar menggunakan emas digital</p>
+                <div class="info-message" style="margin: 20px 0; background: #fff3e0;">
+                    ⚠️ <strong>Perhatian:</strong> Saldo emas Anda akan BERKURANG<br>
+                    💰 Harga Emas: ${formatRupiah(goldPricePerGram)}/gram
+                </div>
+                <button id="scanPayBtn" class="btn-pay" style="font-size: 18px; padding: 14px 32px;">
+                    <i class="fas fa-camera"></i> Scan QRIS Merchant
+                </button>
+                <div class="form-group" style="margin-top: 24px;">
+                    <label>Atau Masukkan Nominal Tagihan</label>
+                    <input type="number" id="payAmount" placeholder="Masukkan nominal tagihan" step="1000">
+                </div>
+                <div class="form-group">
+                    <label>Nama Merchant</label>
+                    <input type="text" id="merchantNamePay" placeholder="Contoh: Warung Kopi" value="Merchant">
+                </div>
+                <button id="manualPayBtn" class="btn-pay">Bayar Manual</button>
+            </div>`;
+        
+        document.getElementById("scanPayBtn")?.addEventListener("click", () => scanQRIS('pay'));
+        document.getElementById("manualPayBtn")?.addEventListener("click", async () => {
+            const amount = parseInt(document.getElementById("payAmount")?.value);
+            const merchantName = document.getElementById("merchantNamePay")?.value || "Merchant";
+            if (amount && amount > 0) await processPayment(amount, merchantName);
             else showNotification("Masukkan nominal yang valid!", "error");
         });
     }
@@ -699,25 +833,9 @@
             <div><span class="badge-beli">Beli: ${totalBeli.toFixed(3)}g</span> <span class="badge-jual">Jual: ${totalJual.toFixed(3)}g</span></div></div>
             <div class="section-card">${sortedTransactions.length === 0 ? '<p style="text-align:center;">Belum ada transaksi</p>' :
             `<table class="history-table"><thead><tr><th>Tipe</th><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Tanggal</th></tr></thead>
-            <tbody>${sortedTransactions.map(t => `<tr><td><span class="${t.type === 'Beli' ? 'badge-beli' : 'badge-jual'}">${t.type}</span></td>
+            <tbody>${sortedTransactions.map(t => `<tr><td><span class="${t.type === 'Beli' ? 'badge-beli' : t.type === 'Jual' ? 'badge-jual' : 'badge-pay'}">${t.type}</span></td>
             <td>${t.asset}</td><td>${t.type === 'Beli' ? '+' : '-'}${t.gram.toFixed(3)}g</td>
             <td>${t.counterparty}</td><td>${formatRupiah(t.totalPrice)}</td><td>${t.date}</td></tr>`).join('')}</tbody></table>`}</div>`;
-    }
-    
-    function showDetailModal(listing) {
-        const modal = document.getElementById("detailModal");
-        const modalContent = document.getElementById("modalDynamicContent");
-        const isOwnListing = (listing.sellerEmail === currentUserEmail);
-        
-        modalContent.innerHTML = `<h3>${listing.name}</h3><div style="background:#f8fafc; border-radius:20px; padding:16px; margin:16px 0;">
-            <p>Penjual: ${listing.sellerName}</p><p>Berat: ${listing.gram} gram</p><p>Harga/gram: ${formatRupiah(listing.pricePerGram)}</p>
-            <p><strong>Total: ${formatRupiah(listing.totalPrice)}</strong></p>${listing.desc ? `<p>${listing.desc}</p>` : ''}</div>
-            ${!isOwnListing ? `<div style="display:flex; gap:12px;"><button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button></div>` : 
-            `<div class="info-message">Ini listing Anda sendiri. Listing akan hilang saat dibeli.</div>`}`;
-        
-        modal.style.display = "flex";
-        document.getElementById("closeDetailModal").onclick = () => modal.style.display = "none";
-        if (!isOwnListing) document.getElementById("buyNowBtn").onclick = async () => { modal.style.display = "none"; await buyListing(listing); };
     }
     
     function render() {
@@ -726,7 +844,8 @@
         if (currentPage === "dashboard") renderDashboard(container);
         else if (currentPage === "marketplace") renderMarketplace(container);
         else if (currentPage === "buat-listing") renderBuatListing(container);
-        else if (currentPage === "qris") renderQRIS(container);
+        else if (currentPage === "qris-topup") renderQRISTopUp(container);
+        else if (currentPage === "qris-pay") renderQRISPay(container);
         else if (currentPage === "riwayat") renderRiwayat(container);
         attachNavEvents();
     }
@@ -812,7 +931,7 @@
     document.getElementById("refreshMyDataBtn")?.addEventListener("click", async () => { if(currentUserEmail) { await loadGlobalData(false); render(); showNotification("✅ Data direfresh!", "success"); } });
     
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
-    console.log('🚀 P2P Marketplace v12 - Saldo desimal 3 digit + QRIS Top Up');
+    console.log('🚀 P2P Marketplace v13 - QRIS: Top Up (saldo +) dan Bayar (saldo -)');
 </script>
 </body>
 </html>

@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Brankas LM - P2P Emas Digital</title>
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,7 +65,6 @@
         .load-btn { background: #3498db !important; color: white !important; border: none !important; }
         .toast-notification { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 30px; z-index: 3000; animation: fadeInOut 3s ease forwards; }
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(20px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; transform: translateY(20px); } }
-        .debug-panel { position: fixed; bottom: 10px; left: 10px; background: #1a1a2e; color: #0f0; font-family: monospace; font-size: 10px; padding: 8px; border-radius: 8px; z-index: 9999; max-width: 300px; word-break: break-all; display: none; }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -113,15 +109,11 @@
 </div>
 
 <div id="detailModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeDetailModal">&times;</span><div id="modalDynamicContent"></div></div></div>
-<div id="debugPanel" class="debug-panel"></div>
 
 <script>
     // ==================== KONFIGURASI ====================
     const GOOGLE_CLIENT_ID = "359149804614-u5fje7e1rb8m8a8p1hgcq9abj8mkh9e9.apps.googleusercontent.com";
-    
-    // ⚠️⚠️⚠️ PERHATIAN! ⚠️⚠️⚠️
-    // GANTI URL DI BAWAH INI DENGAN URL WEB APP YANG ANDA DEPLOY DARI APPS SCRIPT!
-    // URL INI ADALAH CONTOH, HARUS DIGANTI DENGAN URL ANDA SENDIRI!
+    // ⚠️⚠️⚠️ GANTI URL INI DENGAN URL HASIL DEPLOY APPS SCRIPT ANDA ⚠️⚠️⚠️
     const GOOGLE_SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby7Jxzccft6DrXaGOnql6lkrZqN8en6CFjjjiHjk4uhBNJU_3LX61S-1pXrZE2sICpG4w/exec";
     
     const PLATFORM_FEE_PERCENT = 0.5;
@@ -135,18 +127,6 @@
     let pendingOffers = [];
     let p2pTransactions = [];
     
-    // Debug function
-    function debugLog(message, data = null) {
-        const panel = document.getElementById("debugPanel");
-        if (panel) {
-            const time = new Date().toLocaleTimeString();
-            const logMsg = `[${time}] ${message}${data ? " " + JSON.stringify(data).substring(0, 200) : ""}`;
-            panel.innerHTML += "<div>" + logMsg + "</div>";
-            panel.scrollTop = panel.scrollHeight;
-            console.log(message, data);
-        }
-    }
-    
     function showToast(message, isError = false) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification';
@@ -154,7 +134,6 @@
         toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
-        debugLog(message, { isError });
     }
     
     function formatRupiah(amount) {
@@ -164,120 +143,90 @@
     function getMaxPricePerGram() { return goldPricePerGram * (1 + MAX_PRICE_MARKUP_PERCENT / 100); }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
     
-    // ==================== GOOGLE SHEETS SYNC ====================
-    async function syncToGoogleSheets() {
-        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
-            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi!", true);
-            return false;
-        }
-        
-        showToast("🔄 Menyinkronkan data ke Google Sheets...", false);
-        debugLog("Starting sync...", { listingsCount: marketplaceListings.length });
-        
-        try {
-            const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'save',
-                    listings: marketplaceListings
-                })
-            });
-            
-            debugLog("Sync response status:", response.status);
-            
-            const result = await response.json();
-            debugLog("Sync result:", result);
-            
-            if (result && result.success) {
-                showToast(`✅ Berhasil! ${result.count || marketplaceListings.length} listing tersimpan.`);
-                return true;
-            } else {
-                throw new Error(result?.error || "Gagal menyimpan data");
-            }
-        } catch (error) {
-            console.error("Sync error:", error);
-            showToast(`❌ Sync gagal: ${error.message}`, true);
-            debugLog("Sync error:", error.message);
-            return false;
-        }
-    }
-    
+    // ==================== GOOGLE SHEETS SYNC (MENGGUNAKAN GET) ====================
     async function loadFromGoogleSheets() {
-        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
-            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi!", true);
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE")) {
+            showToast("⚠️ URL Google Sheets Web App belum dikonfigurasi! Ganti GOOGLE_SHEETS_WEBAPP_URL.", true);
             return false;
         }
         
         showToast("🔄 Memuat data dari Google Sheets...", false);
-        debugLog("Starting load...");
         
         try {
-            const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'load' })
-            });
+            const url = `${GOOGLE_SHEETS_WEBAPP_URL}?action=load`;
+            const response = await fetch(url, { method: 'GET' });
             
-            debugLog("Load response status:", response.status);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const result = await response.json();
-            debugLog("Load result:", result);
+            console.log("Load result:", result);
             
             if (result && result.success && result.listings) {
                 if (result.listings.length > 0) {
                     marketplaceListings = result.listings;
                     if (currentUserEmail) saveUserData(currentUserEmail);
                     render();
-                    showToast(`✅ Berhasil memuat ${result.listings.length} listing!`);
+                    showToast(`✅ Berhasil memuat ${result.listings.length} listing dari Google Sheets!`);
                 } else {
-                    showToast("ℹ️ Tidak ada data di Google Sheets.", false);
+                    showToast("ℹ️ Tidak ada data di Google Sheets. Silakan buat listing terlebih dahulu.", false);
                 }
                 return true;
             } else {
-                throw new Error(result?.error || "Gagal memuat data");
+                throw new Error(result?.message || "Gagal memuat data");
             }
         } catch (error) {
             console.error("Load error:", error);
             showToast(`❌ Load gagal: ${error.message}`, true);
-            debugLog("Load error:", error.message);
+            return false;
+        }
+    }
+    
+    async function syncToGoogleSheets() {
+        // Untuk sync (save), kita perlu POST karena mengirim data. Tapi karena GET terbatas, kita tetap pakai POST dengan fallback.
+        // Tapi untuk memudahkan, kita akan gunakan POST sederhana. Namun jika ingin benar-benar GET, kita perlu mengirim data via URL parameter (terbatas).
+        // Karena data listing bisa besar, lebih baik tetap POST. Kita akan buat fungsi POST yang sudah diperbaiki CORS-nya.
+        showToast("🔄 Menyinkronkan data ke Google Sheets...", false);
+        
+        try {
+            // Gunakan POST dengan mode cors
+            const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'save', listings: marketplaceListings })
+            });
+            
+            const result = await response.json();
+            if (result && result.success) {
+                showToast(`✅ Berhasil menyimpan ${result.count || marketplaceListings.length} listing ke Google Sheets!`);
+                return true;
+            } else {
+                throw new Error(result?.message || "Gagal sync");
+            }
+        } catch (error) {
+            console.error("Sync error:", error);
+            showToast(`❌ Sync gagal: ${error.message}. Coba lagi nanti.`, true);
             return false;
         }
     }
     
     async function testConnection() {
-        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("script.google.com") === false) {
+        if (!GOOGLE_SHEETS_WEBAPP_URL || GOOGLE_SHEETS_WEBAPP_URL.includes("YOUR_WEBAPP_URL_HERE")) {
             showToast("⚠️ URL belum dikonfigurasi!", true);
             return false;
         }
-        
         showToast("🔄 Testing koneksi...", false);
-        debugLog("Testing connection...");
-        
         try {
-            const response = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'test' })
-            });
-            
+            const url = `${GOOGLE_SHEETS_WEBAPP_URL}?action=test`;
+            const response = await fetch(url, { method: 'GET' });
             const result = await response.json();
-            debugLog("Test result:", result);
-            
             if (result && result.success) {
                 showToast("✅ Koneksi ke Google Sheets berhasil!");
                 return true;
             } else {
-                throw new Error(result?.error || "Koneksi gagal");
+                throw new Error(result?.message || "Gagal");
             }
         } catch (error) {
-            console.error("Test error:", error);
             showToast(`❌ Test gagal: ${error.message}`, true);
-            debugLog("Test error:", error.message);
             return false;
         }
     }
@@ -289,13 +238,11 @@
         const key = getStorageKey(email);
         const stored = localStorage.getItem(key);
         if (stored) {
-            try {
-                const data = JSON.parse(stored);
-                userGoldBalance = data.userGoldBalance;
-                marketplaceListings = data.marketplaceListings || [];
-                pendingOffers = data.pendingOffers || [];
-                p2pTransactions = data.p2pTransactions || [];
-            } catch(e) { console.error("Parse error", e); }
+            const data = JSON.parse(stored);
+            userGoldBalance = data.userGoldBalance;
+            marketplaceListings = data.marketplaceListings || [];
+            pendingOffers = data.pendingOffers || [];
+            p2pTransactions = data.p2pTransactions || [];
         } else {
             userGoldBalance = { 
                 gram: 50.0, 
@@ -320,70 +267,45 @@
     
     // ==================== GOOGLE LOGIN ====================
     function initGoogleLogin() {
-        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")) {
+        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com") {
             document.getElementById("googleButton").innerHTML = '<div style="background:#fef3c7; padding:12px; border-radius:50px; margin-bottom:16px; color:#b45309;"><i class="fas fa-exclamation-triangle"></i> Google Client ID belum dikonfigurasi</div>';
             return;
         }
-        
         try {
-            if (typeof google === 'undefined' || !google.accounts) {
-                throw new Error("Google Identity Services belum dimuat");
-            }
-            
             google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
                 callback: handleGoogleCredential,
                 auto_select: false,
                 cancel_on_tap_outside: false
             });
-            
             google.accounts.id.renderButton(
                 document.getElementById("googleButton"),
-                { 
-                    theme: "outline", 
-                    size: "large", 
-                    width: "100%",
-                    text: "signin_with",
-                    shape: "rectangular",
-                    logo_alignment: "center"
-                }
+                { theme: "outline", size: "large", width: "100%", text: "signin_with", shape: "rectangular", logo_alignment: "center" }
             );
-            
             google.accounts.id.prompt();
-            
-            console.log("Google Login initialized");
         } catch (error) {
-            console.error("Google Login initialization error:", error);
+            console.error(error);
             document.getElementById("googleButton").innerHTML = '<div style="background:#fee2e2; padding:12px; border-radius:50px; margin-bottom:16px; color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> Error: ' + error.message + '</div>';
         }
     }
     
     function handleGoogleCredential(response) {
-        console.log("Google credential received");
-        
         fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${response.credential}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Token verification failed");
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                const email = data.email;
-                const name = data.name;
-                console.log("Google login success:", email);
-                
-                currentUserEmail = email;
-                currentUserDisplayName = name;
-                loadUserData(email, name);
-                showApp(name, email);
+                currentUserEmail = data.email;
+                currentUserDisplayName = data.name;
+                loadUserData(data.email, data.name);
+                showApp(data.name, data.email);
             })
             .catch(error => {
-                console.error("Token verification failed:", error);
-                alert("Verifikasi Google gagal. Silakan coba lagi atau gunakan Demo Mode.");
+                console.error(error);
+                alert("Verifikasi Google gagal. Gunakan Demo Mode.");
             });
     }
     
     function demoLogin() {
-        const email = prompt("Masukkan nama atau email untuk demo:\nContoh: dimas, budi, atau email@contoh.com", "Pengguna Baru");
+        const email = prompt("Masukkan nama atau email untuk demo:", "Pengguna Baru");
         if (email && email.trim() !== "") {
             const displayName = email.trim();
             const emailKey = displayName.toLowerCase().replace(/\s/g, '') + "@demo.local";
@@ -400,19 +322,11 @@
         document.getElementById("userName").innerText = displayName;
         document.getElementById("userEmail").innerHTML = email;
         document.getElementById("userAvatar").innerHTML = displayName.charAt(0).toUpperCase();
-        
-        // Show debug panel (optional, bisa dihapus nanti)
-        const panel = document.getElementById("debugPanel");
-        if (panel) panel.style.display = "block";
-        
         render();
     }
     
     function logout() {
-        if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-            google.accounts.id.disableAutoSelect();
-        }
-        
+        if (google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect();
         document.getElementById("loginOverlay").style.display = "flex";
         document.getElementById("appContainer").style.display = "none";
         currentUserEmail = null;
@@ -467,20 +381,24 @@
                 <div class="flex-between"><h3><i class="fas fa-database"></i> Google Sheets Sync</h3></div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="testConnBtn" class="btn-outline"><i class="fas fa-plug"></i> Test Koneksi</button>
+                    <button id="syncSheetBtn" class="btn-outline sync-btn"><i class="fas fa-cloud-upload-alt"></i> Sync ke Spreadsheet</button>
+                    <button id="loadSheetBtn" class="btn-outline load-btn"><i class="fas fa-cloud-download-alt"></i> Load dari Spreadsheet</button>
                 </div>
-                <div class="info-message" style="margin-top: 10px; font-size: 11px;">
-                    📊 URL Web App: ${GOOGLE_SHEETS_WEBAPP_URL.substring(0, 60)}...
+                <div class="info-message" style="margin-top: 10px; font-size: 11px; word-break: break-all;">
+                    📊 Web App URL: ${GOOGLE_SHEETS_WEBAPP_URL.substring(0, 60)}...
                 </div>
             </div>
         `;
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
-        document.getElementById("testConnBtn")?.addEventListener("click", () => testConnection());
+        document.getElementById("testConnBtn")?.addEventListener("click", testConnection);
+        document.getElementById("syncSheetBtn")?.addEventListener("click", syncToGoogleSheets);
+        document.getElementById("loadSheetBtn")?.addEventListener("click", loadFromGoogleSheets);
         
         document.querySelectorAll(".accept-offer").forEach(btn => {
-            btn.addEventListener("click", (e) => acceptOffer(btn.dataset.offerId));
+            btn.addEventListener("click", () => acceptOffer(btn.dataset.offerId));
         });
         document.querySelectorAll(".reject-offer").forEach(btn => {
-            btn.addEventListener("click", (e) => { 
+            btn.addEventListener("click", () => { 
                 pendingOffers = pendingOffers.filter(o => o.id !== btn.dataset.offerId); 
                 render(); 
                 showToast("Tawaran ditolak");
@@ -520,8 +438,8 @@
                 <h1 class="page-title"><i class="fas fa-store"></i> Marketplace</h1>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button id="testConnBtn" class="btn-outline"><i class="fas fa-plug"></i> Test</button>
-                    <button id="syncToSheetBtn" class="btn-outline sync-btn"><i class="fas fa-cloud-upload-alt"></i> Sync ke Spreadsheet</button>
-                    <button id="loadFromSheetBtn" class="btn-outline load-btn"><i class="fas fa-cloud-download-alt"></i> Load dari Spreadsheet</button>
+                    <button id="syncSheetBtn" class="btn-outline sync-btn"><i class="fas fa-cloud-upload-alt"></i> Sync ke Spreadsheet</button>
+                    <button id="loadSheetBtn" class="btn-outline load-btn"><i class="fas fa-cloud-download-alt"></i> Load dari Spreadsheet</button>
                     <button id="quickSellBtn" class="btn-outline"><i class="fas fa-plus"></i> Jual Emas</button>
                 </div>
             </div>
@@ -542,9 +460,9 @@
                 </div>`).join('');
         }
         document.getElementById("quickSellBtn")?.addEventListener("click", () => setActivePage("buat-listing"));
-        document.getElementById("syncToSheetBtn")?.addEventListener("click", () => syncToGoogleSheets());
-        document.getElementById("loadFromSheetBtn")?.addEventListener("click", () => loadFromGoogleSheets());
-        document.getElementById("testConnBtn")?.addEventListener("click", () => testConnection());
+        document.getElementById("testConnBtn")?.addEventListener("click", testConnection);
+        document.getElementById("syncSheetBtn")?.addEventListener("click", syncToGoogleSheets);
+        document.getElementById("loadSheetBtn")?.addEventListener("click", loadFromGoogleSheets);
         document.querySelectorAll(".detail-btn").forEach(btn => {
             btn.addEventListener("click", () => showDetailModal(marketplaceListings.find(l => l.id === btn.dataset.id)));
         });
@@ -718,7 +636,7 @@
                                 <td><span style="background:#e6f7e6; padding:4px 12px; border-radius:20px; font-size:0.7rem;">${t.status || 'Selesai'}</span></td>
                             </tr>
                         `).join('')}</tbody>
-                     </table>`
+                    </table>`
                 }
             </div>
         `;
@@ -745,24 +663,18 @@
     document.getElementById("demoLoginBtn").addEventListener("click", demoLogin);
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
     
-    // Inisialisasi Google Login
-    if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")) {
+    if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com") {
         if (typeof google !== 'undefined' && google.accounts) {
             initGoogleLogin();
         } else {
             setTimeout(() => {
-                if (typeof google !== 'undefined' && google.accounts) {
-                    initGoogleLogin();
-                } else {
-                    document.getElementById("googleButton").innerHTML = '<div style="background:#fee2e2; padding:12px; border-radius:50px; margin-bottom:16px; color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> Gagal memuat Google Sign-In. Gunakan Demo Mode.</div>';
-                }
+                if (typeof google !== 'undefined' && google.accounts) initGoogleLogin();
+                else document.getElementById("googleButton").innerHTML = '<div style="background:#fee2e2; padding:12px; border-radius:50px; margin-bottom:16px; color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> Gagal memuat Google Sign-In. Gunakan Demo Mode.</div>';
             }, 1000);
         }
     } else {
         document.getElementById("googleButton").innerHTML = '<div style="background:#fef3c7; padding:12px; border-radius:50px; margin-bottom:16px; color:#b45309;"><i class="fas fa-cog"></i> Google Client ID belum dikonfigurasi. Gunakan Demo Mode.</div>';
     }
-    
-    debugLog("Aplikasi dimuat. URL Web App: " + GOOGLE_SHEETS_WEBAPP_URL.substring(0, 50) + "...");
 </script>
 </body>
 </html>

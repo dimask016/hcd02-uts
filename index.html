@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v8</title>
+    <title>Brankas LM - P2P Emas Digital v9</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -86,6 +86,7 @@
         .text-warning { color: #f39c12; }
         .flow-diagram { background: #f8f9fa; border-radius: 16px; padding: 16px; margin-top: 16px; text-align: center; font-size: 13px; }
         .badge-own { background: #e3f2fd; color: #1565c0; }
+        .mitra-label { font-size: 10px; color: #6c757d; display: block; }
     </style>
 </head>
 <body>
@@ -835,39 +836,66 @@
         // Urutkan transaksi dari yang terbaru
         const sortedTransactions = [...p2pTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
         
+        // Hitung statistik
+        const totalBeli = sortedTransactions.filter(t => t.type === "Beli").reduce((sum, t) => sum + t.gram, 0);
+        const totalJual = sortedTransactions.filter(t => t.type === "Jual").reduce((sum, t) => sum + t.gram, 0);
+        
         container.innerHTML = `
             <div class="flex-between">
                 <h1 class="page-title"><i class="fas fa-history"></i> Riwayat Transaksi</h1>
-                <span style="background:#eef2fa; padding:4px 12px; border-radius:50px; font-size:12px;">
-                    <i class="fas fa-chart-line"></i> Total: ${sortedTransactions.length} transaksi
-                </span>
+                <div style="display: flex; gap: 8px;">
+                    <span style="background:#e8f5e9; padding:4px 12px; border-radius:50px; font-size:12px;">
+                        <i class="fas fa-arrow-down text-success"></i> Beli: ${totalBeli}g
+                    </span>
+                    <span style="background:#fff3e0; padding:4px 12px; border-radius:50px; font-size:12px;">
+                        <i class="fas fa-arrow-up text-danger"></i> Jual: ${totalJual}g
+                    </span>
+                </div>
             </div>
-            <div class="info-message" style="margin-bottom:16px;">
+            <div class="info-message" style="margin-bottom:16px; background:#e8f5e9;">
                 <i class="fas fa-info-circle"></i> <strong>Keterangan:</strong><br>
-                <span class="badge-beli" style="margin-left:0; margin-right:8px;">BELI</span> = Anda membeli emas (saldo BERTAMBAH) → Mitra = Penjual<br>
-                <span class="badge-jual" style="margin-left:8px;">JUAL</span> = Anda menjual emas (saldo BERKURANG) → Mitra = Pembeli
+                🟢 <span class="badge-beli" style="margin-left:0; margin-right:8px;">BELI</span> = Anda <strong>MEMBELI</strong> emas (saldo <span class="text-success">BERTAMBAH</span>) → <strong>Mitra = Penjual</strong><br>
+                🟠 <span class="badge-jual" style="margin-left:8px;">JUAL</span> = Anda <strong>MENJUAL</strong> emas (saldo <span class="text-danger">BERKURANG</span>) → <strong>Mitra = Pembeli</strong>
             </div>
             <div class="section-card">
                 ${sortedTransactions.length === 0 ? 
                     '<p style="text-align:center;padding:40px;">Belum ada transaksi. Mulai beli/jual emas!</p>' : 
-                    `<table class="history-table">
-                        <thead>
-                            <tr><th>Tipe</th><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Fee</th><th>Tanggal</th></tr>
-                        </thead>
-                        <tbody>
-                            ${sortedTransactions.map(t => `
-                                <tr>
-                                    <td><span class="${t.type === 'Beli' ? 'badge-beli' : 'badge-jual'}">${t.type}</span></td>
-                                    <td>${t.asset}</td>
-                                    <td><span class="${t.type === 'Beli' ? 'text-success' : 'text-danger'}">${t.type === 'Beli' ? '+' : '-'}${t.gram}g</span></td>
-                                    <td><strong>${t.counterparty}</strong><br><small style="font-size:10px;color:#888;">${t.type === 'Beli' ? 'Penjual' : 'Pembeli'}</small></td>
-                                    <td>${formatRupiah(t.totalPrice)}</td>
-                                    <td>${formatRupiah(t.fee || 0)}</td>
-                                    <td>${t.date}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>`
+                    `<div style="overflow-x: auto;">
+                        <table class="history-table" style="width:100%; min-width:600px;">
+                            <thead>
+                                <tr><th>Tipe</th><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Fee</th><th>Tanggal</th></tr>
+                            </thead>
+                            <tbody>
+                                ${sortedTransactions.map(t => {
+                                    // Tentukan ikon berdasarkan tipe
+                                    const icon = t.type === "Beli" ? "📥" : "📤";
+                                    const mitraLabel = t.type === "Beli" ? "Penjual" : "Pembeli";
+                                    return `
+                                        <tr style="border-bottom: 1px solid #ecf3f8;">
+                                            <td>
+                                                <span class="${t.type === 'Beli' ? 'badge-beli' : 'badge-jual'}" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    ${icon} ${t.type}
+                                                </span>
+                                            </td>
+                                            <td><strong>${t.asset}</strong></td>
+                                            <td>
+                                                <span class="${t.type === 'Beli' ? 'text-success' : 'text-danger'}" style="font-weight: 600;">
+                                                    ${t.type === 'Beli' ? '+' : '-'}${t.gram}g
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong>${t.counterparty}</strong>
+                                                <div class="mitra-label">(${mitraLabel})</div>
+                                            </td>
+                                            <td>${formatRupiah(t.totalPrice)}</td>
+                                            <td style="font-size:12px; color:#6c757d;">${formatRupiah(t.fee || 0)}</td>
+                                            <td style="font-size:12px;">${t.date}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>`
                 }
             </div>
         `;

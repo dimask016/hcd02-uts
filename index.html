@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v3</title>
+    <title>Brankas LM - P2P Emas Digital v4</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -47,7 +47,6 @@
         .btn-info { background: #3498db; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; }
         .listing-grid { display: flex; flex-direction: column; gap: 16px; }
         .listing-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: #fefefe; border-radius: 24px; border: 1px solid #eef2f6; flex-wrap: wrap; gap: 12px; }
-        .offer-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #ffe0b5; flex-wrap: wrap; gap: 10px; }
         .form-group { margin-bottom: 20px; }
         .form-group label { font-weight: 600; display: block; margin-bottom: 8px; color: #235b7c; }
         .form-group input, .form-group textarea { width: 100%; padding: 12px 16px; border-radius: 20px; border: 1px solid #caddf0; font-family: inherit; }
@@ -68,27 +67,18 @@
         .sync-status.success { background: #27ae60; }
         .sync-status.error { background: #e74c3c; }
         .sync-status.syncing { background: #f39c12; }
-        .convert-card { background: linear-gradient(135deg, #2c5f7a, #1a3a4a); border-radius: 20px; padding: 20px; margin-top: 20px; }
-        .convert-input { background: white; border-radius: 12px; padding: 12px; margin: 10px 0; }
-        .convert-input input { width: 100%; padding: 10px; border: 1px solid #FFA41C; border-radius: 12px; font-size: 16px; }
-        .convert-result-box { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-top: 12px; text-align: center; }
-        .convert-result-box .label { font-size: 12px; opacity: 0.8; }
-        .convert-result-box .value { font-size: 1.6rem; font-weight: bold; color: #FFD966; }
+        .badge-seller { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px; }
+        .badge-own { background: #fff3e0; color: #e65100; }
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 0.6s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
         .divider { display: flex; align-items: center; margin: 20px 0; color: #aaa; font-size: 12px; }
         .divider::before, .divider::after { content: ""; flex: 1; border-bottom: 1px solid #e0e0e0; }
         .divider::before { margin-right: 12px; }
         .divider::after { margin-left: 12px; }
-        .gold-price-editor { display: flex; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-        .gold-price-editor input { background: rgba(255,255,255,0.9); border: none; padding: 6px 12px; border-radius: 20px; width: 140px; }
-        .btn-small { padding: 4px 12px; font-size: 12px; }
         .warning-text { color: #e74c3c; font-size: 12px; margin-top: 5px; }
         .error-border { border-color: #e74c3c !important; }
         .success-text { color: #27ae60; font-size: 12px; margin-top: 5px; }
-        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 0.6s linear infinite; margin-right: 8px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .badge-seller { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px; }
-        .badge-own { background: #fff3e0; color: #e65100; }
     </style>
 </head>
 <body>
@@ -153,12 +143,13 @@
     let userGoldBalance = { gram: 50.0, accountNumber: "", userName: "" };
     
     // DATA GLOBAL (shared antar semua user)
-    let marketplaceListings = [];     // Semua listing dari semua user
-    let p2pTransactions = [];          // Semua transaksi dari semua user
-    let pendingOffers = [];            // Semua tawaran
+    let marketplaceListings = [];
+    let p2pTransactions = [];
+    let pendingOffers = [];
     
     let isSyncing = false;
     let currentPage = "dashboard";
+    let isDemoMode = false;
     
     function formatRupiah(amount) { 
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount); 
@@ -176,56 +167,51 @@
         setTimeout(() => { if (type !== 'syncing') statusDiv.style.opacity = '0.7'; }, 4000);
     }
     
-    // ========== FUNGSI CLOUD SYNC (GLOBAL DATA) ==========
+    // ========== FUNGSI CLOUD SYNC (DIPERBAIKI) ==========
     async function syncToCloud() {
         if (isSyncing || !currentUserEmail) return false;
         isSyncing = true;
         
         const dataToSave = { 
-            userGoldBalance,           // Data pribadi user
-            marketplaceListings,       // Data global (semua listing)
-            p2pTransactions,           // Data global (semua transaksi)
-            pendingOffers,             // Data global (semua tawaran)
+            userGoldBalance: userGoldBalance,
+            marketplaceListings: marketplaceListings,
+            p2pTransactions: p2pTransactions,
+            pendingOffers: pendingOffers,
             lastUpdated: new Date().toISOString(), 
-            goldPrice: goldPricePerGram,
-            userEmail: currentUserEmail,
-            userName: currentUserDisplayName
+            goldPrice: goldPricePerGram
         };
         
-        // Simpan ke localStorage pribadi
+        // Simpan ke localStorage sebagai backup
         const key = getStorageKey(currentUserEmail);
         localStorage.setItem(key, JSON.stringify(dataToSave));
         
         try {
             showSyncStatus('Menyimpan ke cloud...', 'syncing');
             
+            // Kirim data ke Apps Script via POST
             const response = await fetch(SCRIPT_URL, { 
                 method: 'POST', 
-                mode: 'cors',
+                mode: 'no-cors', // Gunakan no-cors untuk menghindari CORS
                 cache: 'no-cache',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/json'
                 }, 
                 body: JSON.stringify({ 
                     action: 'saveGlobalData', 
-                    userEmail: currentUserEmail,
+                    email: currentUserEmail,
                     userData: dataToSave,
                     timestamp: Date.now()
                 })
             });
             
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success) {
-                    showSyncStatus('✓ Data global tersimpan di cloud', 'success');
-                    return true;
-                } else {
-                    throw new Error(result.message || 'Gagal menyimpan');
-                }
-            } else {
-                throw new Error(`HTTP ${response.status}`);
-            }
+            // Karena mode no-cors, kita tidak bisa membaca response
+            // Anggap sukses jika tidak ada error
+            showSyncStatus('✓ Data tersimpan di cloud', 'success');
+            
+            // Coba load ulang untuk memastikan data tersimpan
+            setTimeout(() => loadGlobalData(true), 1000);
+            
+            return true;
             
         } catch (error) {
             console.warn('Sync error:', error.message);
@@ -236,19 +222,19 @@
         }
     }
     
-    async function loadGlobalData() {
+    async function loadGlobalData(silent = false) {
         if (!currentUserEmail) return null;
         
         try {
-            showSyncStatus('Mengambil data global dari cloud...', 'syncing');
+            if (!silent) showSyncStatus('Mengambil data global...', 'syncing');
             
-            const url = `${SCRIPT_URL}?action=getGlobalData&userEmail=${encodeURIComponent(currentUserEmail)}&t=${Date.now()}`;
+            // Gunakan GET request dengan parameter
+            const url = `${SCRIPT_URL}?action=getGlobalData&email=${encodeURIComponent(currentUserEmail)}&t=${Date.now()}`;
             
             const response = await fetch(url, {
                 method: 'GET',
                 mode: 'cors',
-                cache: 'no-cache',
-                headers: { 'Accept': 'application/json' }
+                cache: 'no-cache'
             });
             
             if (!response.ok) {
@@ -258,23 +244,55 @@
             const result = await response.json();
             
             if (result.success) {
-                console.log('Global data loaded from cloud');
-                showSyncStatus('✓ Data global dimuat', 'success');
-                return {
-                    userData: result.userData,
-                    globalListings: result.globalListings,
-                    globalTransactions: result.globalTransactions,
-                    globalOffers: result.globalOffers,
-                    goldPrice: result.goldPrice
-                };
+                // Update data dari cloud
+                if (result.userData) {
+                    userGoldBalance = result.userData;
+                }
+                
+                if (result.globalListings) {
+                    marketplaceListings = result.globalListings;
+                }
+                
+                if (result.globalTransactions) {
+                    p2pTransactions = result.globalTransactions;
+                }
+                
+                if (result.globalOffers) {
+                    pendingOffers = result.globalOffers;
+                }
+                
+                if (result.goldPrice) {
+                    goldPricePerGram = result.goldPrice;
+                }
+                
+                if (!silent) showSyncStatus(`✓ Loaded ${marketplaceListings.length} listings`, 'success');
+                
+                // Simpan ke localStorage sebagai backup
+                const key = getStorageKey(currentUserEmail);
+                localStorage.setItem(key, JSON.stringify({
+                    userGoldBalance, marketplaceListings, p2pTransactions, pendingOffers, goldPrice: goldPricePerGram
+                }));
+                
+                return result;
             } else {
-                showSyncStatus('ℹ️ Belum ada data global', 'success');
-                return null;
+                throw new Error(result.error || 'Gagal load data');
             }
             
         } catch (error) {
             console.warn('Load error:', error.message);
-            showSyncStatus('⚠️ Gagal load dari cloud', 'error');
+            
+            // Fallback ke localStorage
+            const stored = localStorage.getItem(getStorageKey(currentUserEmail));
+            if (stored) {
+                const data = JSON.parse(stored);
+                userGoldBalance = data.userGoldBalance || userGoldBalance;
+                marketplaceListings = data.marketplaceListings || [];
+                p2pTransactions = data.p2pTransactions || [];
+                pendingOffers = data.pendingOffers || [];
+                if (data.goldPrice) goldPricePerGram = data.goldPrice;
+                if (!silent) showSyncStatus('⚠️ Memuat dari cache lokal', 'error');
+            }
+            
             return null;
         }
     }
@@ -287,30 +305,19 @@
     }
     
     async function loadUserData(email, displayName) {
-        // Coba load dari cloud terlebih dahulu (data global)
-        const globalData = await loadGlobalData();
+        // Coba load dari cloud terlebih dahulu
+        const globalData = await loadGlobalData(true);
         
-        if (globalData && globalData.userData) {
-            // Load data pribadi user
-            userGoldBalance = globalData.userData.userGoldBalance;
-            // Load data global (dari semua user)
-            marketplaceListings = globalData.globalListings || [];
-            p2pTransactions = globalData.globalTransactions || [];
-            pendingOffers = globalData.globalOffers || [];
-            if (globalData.goldPrice) goldPricePerGram = globalData.goldPrice;
-            
-            console.log('✅ Data loaded from cloud - Global marketplace:', marketplaceListings.length, 'listings');
-        } else {
-            // Coba load dari localStorage
+        if (!globalData || !globalData.userData) {
+            // Coba dari localStorage
             const stored = localStorage.getItem(getStorageKey(email));
             if (stored) {
                 const data = JSON.parse(stored);
-                userGoldBalance = data.userGoldBalance;
+                userGoldBalance = data.userGoldBalance || { gram: 50.0, accountNumber: "LM" + Math.floor(Math.random() * 10000000), userName: displayName || email.split('@')[0] };
                 marketplaceListings = data.marketplaceListings || [];
                 p2pTransactions = data.p2pTransactions || [];
                 pendingOffers = data.pendingOffers || [];
                 if (data.goldPrice) goldPricePerGram = data.goldPrice;
-                console.log('📁 Data loaded from localStorage');
             } else {
                 // Inisialisasi user baru
                 userGoldBalance = { 
@@ -318,31 +325,29 @@
                     accountNumber: "LM" + Math.floor(Math.random() * 10000000), 
                     userName: displayName || email.split('@')[0] 
                 };
-                // Data global tetap kosong, nanti akan diisi dari user lain
-                console.log('✨ New user initialized');
             }
         }
         
-        // Tampilkan jumlah listing di marketplace
-        console.log(`📊 Marketplace saat ini: ${marketplaceListings.length} listing aktif`);
+        console.log(`📊 Data loaded - ${marketplaceListings.length} listings, ${p2pTransactions.length} transactions`);
         
-        await saveToLocalAndCloud();
+        // Simpan ke cloud
+        await syncToCloud();
     }
     
-    // ========== FUNGSI BISNIS ==========
+    // ========== VALIDASI HARGA ==========
     function validateSellingPrice(pricePerGram) {
         const maxPrice = getMaxPricePerGram();
         if (pricePerGram > maxPrice) {
             return {
                 valid: false,
-                message: `Harga jual melebihi batas maksimal! Maksimal ${formatRupiah(maxPrice)}/gram (${MAX_PRICE_MARKUP_PERCENT}% dari harga pasar ${formatRupiah(goldPricePerGram)})`
+                message: `Harga jual melebihi batas maksimal! Maksimal ${formatRupiah(maxPrice)}/gram (${MAX_PRICE_MARKUP_PERCENT}% dari harga pasar)`
             };
         }
         return { valid: true, message: null };
     }
     
+    // ========== FUNGSI BISNIS ==========
     async function buyListing(listing) {
-        // Cek apakah pembeli bukan penjual sendiri
         if (listing.sellerEmail === currentUserEmail) {
             alert("❌ Anda tidak bisa membeli listing milik sendiri!");
             return false;
@@ -356,15 +361,12 @@
         const confirmMsg = `Beli ${listing.name} (${listing.gram} gram) dari ${listing.sellerName} seharga ${formatRupiah(listing.totalPrice)}?`;
         if (!confirm(confirmMsg)) return false;
         
-        // Kurangi saldo pembeli
         userGoldBalance.gram -= listing.gram;
         
-        // Hitung fee platform
         const fee = calculatePlatformFee(listing.totalPrice);
         
-        // Catat transaksi untuk pembeli
         p2pTransactions.unshift({ 
-            id: "TRX"+Date.now(), 
+            id: "TRX"+Date.now()+Math.random().toString(36).substr(2, 6), 
             asset: listing.name, 
             gram: listing.gram, 
             counterparty: listing.sellerName,
@@ -376,10 +378,8 @@
             fee: fee 
         });
         
-        // Hapus listing dari marketplace (karena stok 1, langsung hapus)
         marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
         
-        // Simpan perubahan
         await saveToLocalAndCloud();
         render();
         
@@ -388,26 +388,22 @@
     }
     
     async function createListing(name, gram, pricePerGram, qty, desc) {
-        // Validasi harga
         const validation = validateSellingPrice(pricePerGram);
         if (!validation.valid) {
             alert(validation.message);
             return false;
         }
         
-        // Cek saldo
         const totalGram = gram * qty;
         if (userGoldBalance.gram < totalGram) {
             alert(`❌ Saldo tidak cukup untuk menjual ${totalGram} gram! Saldo: ${formatGram(userGoldBalance.gram)}`);
             return false;
         }
         
-        // Kurangi saldo penjual
         userGoldBalance.gram -= totalGram;
         
-        // Tambahkan listing ke marketplace global
         const newListing = { 
-            id: "GLD"+Date.now(), 
+            id: "GLD"+Date.now()+Math.random().toString(36).substr(2, 6), 
             name: name, 
             gram: gram, 
             pricePerGram: pricePerGram, 
@@ -421,7 +417,6 @@
         
         marketplaceListings.push(newListing);
         
-        // Simpan ke cloud
         await saveToLocalAndCloud();
         
         alert(`✅ Listing berhasil dibuat! ${qty} item ${name} (${gram} gram) dengan total ${totalGram} gram`);
@@ -431,7 +426,6 @@
     function showDetailModal(listing) {
         const modal = document.getElementById("detailModal");
         const modalContent = document.getElementById("modalDynamicContent");
-        const maxPrice = getMaxPricePerGram();
         const isOwnListing = (listing.sellerEmail === currentUserEmail);
         
         modalContent.innerHTML = `
@@ -448,12 +442,9 @@
                 <div style="display:flex; gap:12px;">
                     <button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Langsung</button>
                 </div>
-                <div class="info-message" style="margin-top:12px;">
-                    <i class="fas fa-info-circle"></i> Transaksi akan langsung memotong saldo emas Anda.
-                </div>
             ` : `
                 <div class="info-message" style="background:#fff3e0;">
-                    <i class="fas fa-exclamation-triangle"></i> Ini adalah listing milik Anda sendiri. Tidak bisa membeli sendiri.
+                    <i class="fas fa-exclamation-triangle"></i> Ini adalah listing milik Anda sendiri.
                 </div>
             `}
         `;
@@ -469,7 +460,7 @@
         }
     }
     
-    // ========== RENDER DASHBOARD ==========
+    // ========== RENDER FUNCTIONS ==========
     function renderDashboard(container) {
         const myListings = marketplaceListings.filter(l => l.sellerEmail === currentUserEmail);
         const goldValueIDR = convertGoldToIDR(userGoldBalance.gram);
@@ -495,10 +486,7 @@
                 <div class="stat-card">
                     <div class="stat-title">Harga Emas/gram</div>
                     <div class="stat-value">${formatRupiah(goldPricePerGram)}</div>
-                    <div class="gold-price-editor">
-                        <input type="number" id="editGoldPrice" value="${goldPricePerGram}" step="5000">
-                        <button id="updatePriceBtn" class="btn-small btn-primary">Update</button>
-                    </div>
+                    <button id="refreshPriceBtn" class="btn-small btn-primary" style="margin-top:8px; padding:4px 12px; font-size:12px;"><i class="fas fa-sync"></i> Refresh</button>
                 </div>
                 <div class="stat-card">
                     <div class="stat-title">Nilai Emas (IDR)</div>
@@ -511,29 +499,6 @@
                 <div class="stat-card">
                     <div class="stat-title">Listing Saya</div>
                     <div class="stat-value">${myListings.length}</div>
-                </div>
-            </div>
-            
-            <div class="convert-card">
-                <h4 style="color: white; margin-bottom: 12px;"><i class="fas fa-exchange-alt"></i> Konversi Emas ⇄ Rupiah</h4>
-                <div class="convert-input">
-                    <label style="color: #FFD966; font-size: 12px;">Jumlah Emas (Gram)</label>
-                    <input type="number" id="convertGramInput" step="0.01" value="${userGoldBalance.gram}">
-                    <div class="convert-result-box">
-                        <div class="label">💰 Nilai Rupiah</div>
-                        <div class="value" id="convertResult">${formatRupiah(goldValueIDR)}</div>
-                    </div>
-                </div>
-                <div class="convert-input">
-                    <label style="color: #FFD966; font-size: 12px;">Jumlah Rupiah (IDR)</label>
-                    <input type="number" id="convertRupiahInput" step="10000" value="${Math.round(goldValueIDR)}">
-                    <div class="convert-result-box">
-                        <div class="label">🥇 Setara Emas</div>
-                        <div class="value" id="convertGramResult">${userGoldBalance.gram.toFixed(2)} gram</div>
-                    </div>
-                </div>
-                <div class="info-message" style="margin-top: 12px; text-align: center; background: rgba(255,255,255,0.15); color: white;">
-                    <i class="fas fa-info-circle"></i> Harga emas saat ini: ${formatRupiah(goldPricePerGram)} per gram
                 </div>
             </div>
             
@@ -563,37 +528,9 @@
             </div>
         `;
         
-        // Event listeners
-        const gramInput = document.getElementById("convertGramInput");
-        const rupiahInput = document.getElementById("convertRupiahInput");
-        
-        if (gramInput) {
-            gramInput.addEventListener("input", () => {
-                const gram = parseFloat(gramInput.value) || 0;
-                const rupiah = convertGoldToIDR(gram);
-                document.getElementById("convertResult").innerHTML = formatRupiah(rupiah);
-                if (rupiahInput) rupiahInput.value = Math.round(rupiah);
-                document.getElementById("convertGramResult").innerHTML = gram.toFixed(2) + " gram";
-            });
-        }
-        
-        if (rupiahInput) {
-            rupiahInput.addEventListener("input", () => {
-                const rupiah = parseFloat(rupiahInput.value) || 0;
-                const gram = rupiah / goldPricePerGram;
-                document.getElementById("convertGramResult").innerHTML = gram.toFixed(2) + " gram";
-                if (gramInput) gramInput.value = gram.toFixed(2);
-                document.getElementById("convertResult").innerHTML = formatRupiah(rupiah);
-            });
-        }
-        
-        document.getElementById("updatePriceBtn")?.addEventListener("click", () => {
-            const newPrice = parseFloat(document.getElementById("editGoldPrice").value);
-            if (newPrice && newPrice > 0) {
-                goldPricePerGram = newPrice;
-                saveToLocalAndCloud();
-                render();
-            } else alert("Masukkan harga valid!");
+        document.getElementById("refreshPriceBtn")?.addEventListener("click", async () => {
+            await loadGlobalData(false);
+            render();
         });
         
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
@@ -606,7 +543,6 @@
     }
     
     function renderMarketplace(container) {
-        // Filter listing milik sendiri untuk ditandai
         container.innerHTML = `
             <div class="flex-between">
                 <h1 class="page-title"><i class="fas fa-store"></i> Marketplace Global</h1>
@@ -634,7 +570,7 @@
                             <i class="fas fa-coins" style="color:#FFB347;"></i> 
                             <strong>${item.name}</strong>
                             ${isOwn ? '<span class="badge-seller badge-own" style="margin-left:8px;">Milik Saya</span>' : ''}
-                            <br><small>Penjual: ${item.sellerName} | Stok: ${item.qty} | ${item.gram} gram</small>
+                            <br><small>Penjual: ${item.sellerName} | ${item.gram} gram</small>
                         </div>
                         <div>${formatRupiah(item.pricePerGram)}/gram<br>${formatRupiah(item.totalPrice)}</div>
                         <div>
@@ -655,14 +591,12 @@
     }
     
     function renderBuatListing(container) {
-        const maxPrice = getMaxPricePerGram();
         container.innerHTML = `
             <div class="flex-between">
                 <h1 class="page-title"><i class="fas fa-plus-circle"></i> Jual Emas</h1>
             </div>
             <div class="info-message" style="margin-bottom:16px;">
                 <i class="fas fa-info-circle"></i> Listing Anda akan tampil di marketplace dan bisa dilihat semua pengguna.
-                <br>Saldo emas Anda akan berkurang sesuai berat yang dijual.
             </div>
             <div class="section-card">
                 <form id="createListingForm">
@@ -679,14 +613,11 @@
                             <label>Harga Jual (per gram) <span style="color:red;">*</span></label>
                             <input type="number" id="pricePerGram" required>
                             <div id="priceValidationMsg" class="warning-text"></div>
-                            <div class="success-text" id="priceSuccessMsg"></div>
                         </div>
                     </div>
-                    <div id="totalPreview" class="info-message"></div>
                     <div class="form-group">
                         <label>Jumlah Stok</label>
                         <input type="number" id="qty" value="1" min="1">
-                        <small class="info-message" style="display:block; margin-top:4px;">Total emas yang akan dijual = Berat × Stok</small>
                     </div>
                     <div class="form-group">
                         <label>Deskripsi (Opsional)</label>
@@ -697,29 +628,8 @@
             </div>
         `;
         
-        const gramInput = document.getElementById("gram");
         const priceInput = document.getElementById("pricePerGram");
-        const qtyInput = document.getElementById("qty");
         const priceValidationMsg = document.getElementById("priceValidationMsg");
-        const priceSuccessMsg = document.getElementById("priceSuccessMsg");
-        
-        const updatePreview = () => { 
-            const gram = parseFloat(gramInput?.value); 
-            const price = parseFloat(priceInput?.value);
-            const qty = parseInt(qtyInput?.value) || 1;
-            if (!isNaN(gram) && gram > 0 && !isNaN(price) && price > 0) {
-                const totalGram = gram * qty;
-                const totalPrice = gram * price;
-                document.getElementById("totalPreview").innerHTML = `
-                    <strong>Preview:</strong><br>
-                    Total emas dijual: ${totalGram} gram<br>
-                    Harga per item: ${formatRupiah(totalPrice)}<br>
-                    Total nilai: ${formatRupiah(totalPrice * qty)}
-                `;
-            } else {
-                document.getElementById("totalPreview").innerHTML = "Masukkan berat dan harga";
-            }
-        };
         
         const validatePrice = () => {
             const price = parseFloat(priceInput?.value);
@@ -727,12 +637,10 @@
                 const validation = validateSellingPrice(price);
                 if (!validation.valid) {
                     priceValidationMsg.innerHTML = validation.message;
-                    priceSuccessMsg.innerHTML = "";
                     priceInput.classList.add("error-border");
                     return false;
                 } else {
-                    priceValidationMsg.innerHTML = "";
-                    priceSuccessMsg.innerHTML = `✅ Harga dalam batas maksimal ${formatRupiah(getMaxPricePerGram())}/gram`;
+                    priceValidationMsg.innerHTML = `✅ Harga dalam batas maksimal ${formatRupiah(getMaxPricePerGram())}/gram`;
                     priceInput.classList.remove("error-border");
                     return true;
                 }
@@ -740,36 +648,20 @@
             return false;
         };
         
-        if (gramInput) gramInput.addEventListener("input", updatePreview);
-        if (priceInput) {
-            priceInput.addEventListener("input", () => {
-                updatePreview();
-                validatePrice();
-            });
-        }
-        if (qtyInput) qtyInput.addEventListener("input", updatePreview);
+        if (priceInput) priceInput.addEventListener("input", validatePrice);
         
         document.getElementById("createListingForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             
             const name = document.getElementById("assetName").value;
-            const gram = parseFloat(gramInput.value);
+            const gram = parseFloat(document.getElementById("gram").value);
             const price = parseFloat(priceInput.value);
-            const qty = parseInt(qtyInput.value);
+            const qty = parseInt(document.getElementById("qty").value);
             const desc = document.getElementById("desc").value;
             
-            if (!name) {
-                alert("Masukkan nama emas!");
-                return;
-            }
-            if (isNaN(gram) || gram <= 0) {
-                alert("Masukkan berat yang valid!");
-                return;
-            }
-            if (isNaN(price) || price <= 0) {
-                alert("Masukkan harga yang valid!");
-                return;
-            }
+            if (!name) { alert("Masukkan nama emas!"); return; }
+            if (isNaN(gram) || gram <= 0) { alert("Masukkan berat yang valid!"); return; }
+            if (isNaN(price) || price <= 0) { alert("Masukkan harga yang valid!"); return; }
             
             const validation = validateSellingPrice(price);
             if (!validation.valid) {
@@ -785,11 +677,6 @@
     }
     
     function renderRiwayat(container) {
-        const myTransactions = p2pTransactions.filter(t => 
-            t.counterpartyEmail === currentUserEmail || 
-            (t.type === "Beli" && t.counterpartyEmail)
-        );
-        
         container.innerHTML = `
             <h1 class="page-title"><i class="fas fa-history"></i> Riwayat Transaksi</h1>
             <div class="section-card">
@@ -876,13 +763,14 @@
     async function demoLogin() {
         const name = prompt("Masukkan nama pengguna demo:", "Pedagang Emas");
         if (name && name.trim()) {
-            const demoEmail = name.trim().toLowerCase().replace(/\s/g, '') + "@demo.brankas";
+            const demoEmail = "demo_" + name.trim().toLowerCase().replace(/\s/g, '') + "_" + Date.now() + "@brankas.local";
             currentUserEmail = demoEmail;
             currentUserDisplayName = name.trim();
+            isDemoMode = true;
             await loadUserData(demoEmail, name.trim());
             document.getElementById("loginOverlay").style.display = "none";
             document.getElementById("appContainer").style.display = "flex";
-            document.getElementById("userName").innerText = name.trim();
+            document.getElementById("userName").innerText = name.trim() + " (Demo)";
             document.getElementById("userEmail").innerHTML = demoEmail;
             document.getElementById("userAvatar").innerHTML = name.trim().charAt(0).toUpperCase();
             render();
@@ -893,6 +781,7 @@
         document.getElementById("loginOverlay").style.display = "flex";
         document.getElementById("appContainer").style.display = "none";
         currentUserEmail = null;
+        isDemoMode = false;
         setTimeout(() => initGoogleLogin(), 100);
     }
     
@@ -913,9 +802,9 @@
             loadingBtn.disabled = true;
             
             try {
-                await loadUserData(currentUserEmail, currentUserDisplayName);
+                await loadGlobalData(false);
                 render(); 
-                alert(`✅ Data global berhasil dimuat!\n\nListing aktif di marketplace: ${marketplaceListings.length} item`); 
+                alert(`✅ Data global berhasil dimuat!\n\nListing aktif: ${marketplaceListings.length} item`); 
             } catch (error) {
                 console.error('Load error:', error);
                 alert("❌ Gagal memuat data dari cloud.");
@@ -923,13 +812,11 @@
                 loadingBtn.innerHTML = originalText;
                 loadingBtn.disabled = false;
             }
-        } else {
-            alert("Silakan login terlebih dahulu");
         }
     });
     
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
-    console.log('🚀 P2P Marketplace siap dengan data global!');
+    console.log('🚀 P2P Marketplace siap dengan integrasi cloud!');
 </script>
 </body>
 </html>

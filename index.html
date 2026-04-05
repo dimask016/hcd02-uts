@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v6</title>
+    <title>Brankas LM - P2P Emas Digital v7</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -67,8 +67,8 @@
         .sync-status.success { background: #27ae60; }
         .sync-status.error { background: #e74c3c; }
         .sync-status.syncing { background: #f39c12; }
-        .badge-seller { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px; }
-        .badge-own { background: #fff3e0; color: #e65100; }
+        .badge-beli { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-jual { background: #fff3e0; color: #e65100; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
         .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 0.6s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
@@ -85,7 +85,6 @@
         .text-danger { color: #e74c3c; }
         .text-warning { color: #f39c12; }
         .flow-diagram { background: #f8f9fa; border-radius: 16px; padding: 16px; margin-top: 16px; text-align: center; font-size: 13px; }
-        .flow-diagram i { margin: 0 8px; }
     </style>
 </head>
 <body>
@@ -99,8 +98,8 @@
         <div id="googleErrorMsg" style="display:none; background:#fee2e2; color:#b91c1c; padding:10px; border-radius:16px; margin-top:12px; font-size:12px;"></div>
         <div class="demo-note">
             <i class="fas fa-globe"></i> <strong>Sistem Marketplace P2P Global:</strong><br>
-            • Penjual: menjual emas → saldo BERKURANG<br>
-            • Pembeli: membeli emas → saldo BERTAMBAH<br>
+            • Penjual: menjual emas → saldo BERKURANG, tercatat sebagai "Jual"<br>
+            • Pembeli: membeli emas → saldo BERTAMBAH, tercatat sebagai "Beli"<br>
             • Data tersimpan di cloud dan bisa diakses semua akun
         </div>
     </div>
@@ -346,8 +345,8 @@
     
     // ========== FUNGSI BISNIS YANG DIPERBAIKI ==========
     // LOGIKA YANG BENAR:
-    // Penjual (menjual emas) → Saldo BERKURANG
-    // Pembeli (membeli emas) → Saldo BERTAMBAH
+    // Penjual (menjual emas) → Saldo BERKURANG, transaksi type "Jual"
+    // Pembeli (membeli emas) → Saldo BERTAMBAH, transaksi type "Beli"
     
     async function buyListing(listing) {
         // Cek apakah pembeli bukan penjual sendiri
@@ -371,27 +370,43 @@
         
         // === PROSES TRANSAKSI ===
         
+        const transactionId = "TRX"+Date.now()+Math.random().toString(36).substr(2, 6);
+        const currentDate = new Date().toISOString().slice(0,10);
+        const fee = calculatePlatformFee(listing.totalPrice);
+        
         // 1. PEMBELI: Saldo BERTAMBAH (menerima emas dari penjual)
         const oldBuyerBalance = userGoldBalance.gram;
         userGoldBalance.gram += listing.gram;
         
-        // 2. Hitung fee platform (dari nilai rupiah transaksi)
-        const fee = calculatePlatformFee(listing.totalPrice);
-        
-        // 3. Catat transaksi untuk PEMBELI
-        const transactionId = "TRX"+Date.now()+Math.random().toString(36).substr(2, 6);
-        p2pTransactions.unshift({ 
-            id: transactionId, 
+        // 2. Catat transaksi untuk PEMBELI (type: "Beli")
+        const buyerTransaction = { 
+            id: transactionId + "_buyer", 
             asset: listing.name, 
             gram: listing.gram, 
             counterparty: listing.sellerName,
             counterpartyEmail: listing.sellerEmail,
             type: "Beli", 
             totalPrice: listing.totalPrice, 
-            date: new Date().toISOString().slice(0,10), 
+            date: currentDate, 
             status: "Selesai", 
-            fee: fee 
-        });
+            fee: fee,
+            yourBalance: userGoldBalance.gram
+        };
+        p2pTransactions.unshift(buyerTransaction);
+        
+        // 3. Catat transaksi untuk PENJUAL (type: "Jual") - akan disimpan ke cloud untuk akun penjual
+        const sellerTransaction = { 
+            id: transactionId + "_seller", 
+            asset: listing.name, 
+            gram: listing.gram, 
+            counterparty: userGoldBalance.userName,
+            counterpartyEmail: currentUserEmail,
+            type: "Jual", 
+            totalPrice: listing.totalPrice, 
+            date: currentDate, 
+            status: "Selesai", 
+            fee: fee
+        };
         
         // 4. Hapus listing dari marketplace (karena sudah dibeli)
         marketplaceListings = marketplaceListings.filter(l => l.id !== listing.id);
@@ -399,7 +414,26 @@
         // 5. SIMPAN PERUBAHAN UNTUK PEMBELI
         await saveToLocalAndCloud();
         
-        // 6. TAMPILKAN NOTIFIKASI
+        // 6. KIRIM transaksi penjual ke cloud (update untuk akun penjual)
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'addSellerTransaction',
+                    email: listing.sellerEmail,
+                    transaction: sellerTransaction,
+                    gramToReduce: listing.gram,
+                    timestamp: Date.now()
+                })
+            });
+        } catch(e) {
+            console.warn('Gagal mengirim transaksi ke penjual:', e);
+        }
+        
+        // 7. TAMPILKAN NOTIFIKASI
         showNotification(
             `✅ Pembelian Berhasil!\n\n` +
             `Anda membeli ${listing.gram} gram dari ${listing.sellerName}\n` +
@@ -408,19 +442,19 @@
             'success'
         );
         
-        // 7. INFORMASIKAN bahwa penjual perlu melakukan sync
+        // 8. INFORMASIKAN
         alert(`✅ TRANSAKSI BERHASIL!\n\n` +
             `📋 Detail Transaksi:\n` +
-            `• Pembeli (Anda): +${listing.gram} gram\n` +
-            `• Penjual (${listing.sellerName}): -${listing.gram} gram\n` +
+            `• Pembeli (Anda): +${listing.gram} gram (type: Beli)\n` +
+            `• Penjual (${listing.sellerName}): -${listing.gram} gram (type: Jual)\n` +
             `• Harga: ${formatRupiah(listing.totalPrice)}\n` +
             `• Fee platform: ${formatRupiah(fee)}\n\n` +
             `💰 Saldo emas Anda SEKARANG: ${formatGram(userGoldBalance.gram)}\n\n` +
-            `📌 Catatan Penting:\n` +
+            `📌 Catatan:\n` +
             `Penjual (${listing.sellerName}) HARUS melakukan "Load Data Global" ` +
-            `untuk melihat saldo emasnya berkurang sesuai penjualan.`);
+            `untuk melihat transaksi "Jual" dan saldo berkurang.`);
         
-        // 8. Refresh tampilan
+        // 9. Refresh tampilan
         render();
         return true;
     }
@@ -515,14 +549,15 @@
                 <i class="fas fa-arrow-right"></i> menjual ${listing.gram} gram 
                 <i class="fas fa-arrow-right"></i> 
                 <span class="text-success">Pembeli (Anda)</span><br>
-                <small>Penjual: <span class="text-danger">BERKURANG</span> | Pembeli: <span class="text-success">BERTAMBAH</span></small>
+                <small>Penjual: <span class="text-danger">BERKURANG</span> (type: Jual) | Pembeli: <span class="text-success">BERTAMBAH</span> (type: Beli)</small>
             </div>
             
             ${!isOwnListing ? `
                 <div style="background:#e8f5e9; padding:12px; border-radius:12px; margin:16px 0;">
                     <small><i class="fas fa-info-circle"></i> <strong>Setelah membeli:</strong><br>
                     • Saldo emas Anda akan <span class="text-success">BERTAMBAH +${listing.gram} gram</span><br>
-                    • Saldo penjual akan <span class="text-danger">BERKURANG -${listing.gram} gram</span></small>
+                    • Saldo penjual akan <span class="text-danger">BERKURANG -${listing.gram} gram</span><br>
+                    • Transaksi Anda: <strong class="text-success">"Beli"</strong> | Transaksi penjual: <strong class="text-danger">"Jual"</strong></small>
                 </div>
                 <div style="display:flex; gap:12px;">
                     <button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button>
@@ -685,6 +720,7 @@
                 <i class="fas fa-info-circle"></i> <strong>Perhatian:</strong> Saat Anda membuat listing, emas akan langsung 
                 <span class="text-danger">BERKURANG</span> dari saldo Anda dan dititipkan ke platform.
                 <br>Setelah dibeli, pembeli akan <span class="text-success">MENERIMA</span> emas tersebut.
+                <br>Transaksi Anda akan tercatat sebagai <strong class="text-danger">"Jual"</strong> di riwayat.
             </div>
             <div class="section-card">
                 <form id="createListingForm">
@@ -766,27 +802,39 @@
     }
     
     function renderRiwayat(container) {
+        // Urutkan transaksi dari yang terbaru
+        const sortedTransactions = [...p2pTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
         container.innerHTML = `
-            <h1 class="page-title"><i class="fas fa-history"></i> Riwayat Transaksi</h1>
+            <div class="flex-between">
+                <h1 class="page-title"><i class="fas fa-history"></i> Riwayat Transaksi</h1>
+                <span style="background:#eef2fa; padding:4px 12px; border-radius:50px; font-size:12px;">
+                    <i class="fas fa-chart-line"></i> Total: ${sortedTransactions.length} transaksi
+                </span>
+            </div>
+            <div class="info-message" style="margin-bottom:16px;">
+                <i class="fas fa-info-circle"></i> <strong>Keterangan:</strong>
+                <span class="badge-beli" style="margin-left:8px;">Beli</span> = Anda membeli emas (saldo BERTAMBAH)
+                <span class="badge-jual" style="margin-left:8px;">Jual</span> = Anda menjual emas (saldo BERKURANG)
+            </div>
             <div class="section-card">
-                ${p2pTransactions.length === 0 ? 
+                ${sortedTransactions.length === 0 ? 
                     '<p style="text-align:center;padding:40px;">Belum ada transaksi. Mulai beli/jual emas!</p>' : 
                     `<table class="history-table">
                         <thead>
                             <tr><th>Tipe</th><th>Aset</th><th>Berat</th><th>Mitra</th><th>Total</th><th>Fee</th><th>Tanggal</th></tr>
                         </thead>
                         <tbody>
-                            ${p2pTransactions.map(t => `
+                            ${sortedTransactions.map(t => `
                                 <tr>
-                                    <td><span class="${t.type === 'Beli' ? 'badge-seller' : 'badge-own'}" style="padding:4px 8px;">${t.type}</span></td>
+                                    <td><span class="${t.type === 'Beli' ? 'badge-beli' : 'badge-jual'}">${t.type}</span></td>
                                     <td>${t.asset}</td>
-                                    <td>${t.type === 'Beli' ? '+' : '-'}${t.gram}g</td>
+                                    <td><span class="${t.type === 'Beli' ? 'text-success' : 'text-danger'}">${t.type === 'Beli' ? '+' : '-'}${t.gram}g</span></td>
                                     <td>${t.counterparty}</td>
                                     <td>${formatRupiah(t.totalPrice)}</td>
-                                    <td>${formatRupiah(t.fee)}</td>
+                                    <td>${formatRupiah(t.fee || 0)}</td>
                                     <td>${t.date}</td>
-                                
-
+                                </tr>
                             `).join('')}
                         </tbody>
                     </table>`
@@ -908,7 +956,7 @@
     });
     
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
-    console.log('🚀 P2P Marketplace v6 - Logika Jual Beli yang BENAR: Penjual (-) | Pembeli (+)');
+    console.log('🚀 P2P Marketplace v7 - Riwayat lengkap: Pembeli (Beli) & Penjual (Jual)');
 </script>
 </body>
 </html>

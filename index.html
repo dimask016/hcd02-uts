@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital | Google Login v2</title>
+    <title>Brankas LM - P2P Emas Digital | Google Login v3</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -71,11 +71,17 @@
         .convert-card { background: linear-gradient(135deg, #2c5f7a, #1a3a4a); border-radius: 20px; padding: 20px; margin-top: 20px; }
         .convert-input { background: white; border-radius: 12px; padding: 12px; margin: 10px 0; }
         .convert-input input { width: 100%; padding: 10px; border: 1px solid #FFA41C; border-radius: 12px; font-size: 16px; }
+        .convert-result-box { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-top: 12px; text-align: center; }
+        .convert-result-box .label { font-size: 12px; opacity: 0.8; }
+        .convert-result-box .value { font-size: 1.6rem; font-weight: bold; color: #FFD966; }
         @media (max-width: 750px) { .sidebar { width: 85px; } .sidebar .logo-area span, .sidebar .nav-item span { display: none; } .main-content { padding: 16px; } .row-2cols { grid-template-columns: 1fr; } }
         .divider { display: flex; align-items: center; margin: 20px 0; color: #aaa; font-size: 12px; }
         .divider::before, .divider::after { content: ""; flex: 1; border-bottom: 1px solid #e0e0e0; }
         .divider::before { margin-right: 12px; }
         .divider::after { margin-left: 12px; }
+        .gold-price-editor { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+        .gold-price-editor input { background: rgba(255,255,255,0.9); border: none; padding: 6px 12px; border-radius: 20px; width: 140px; }
+        .btn-small { padding: 4px 12px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -121,10 +127,12 @@
 <div id="syncStatus" class="sync-status"><i class="fas fa-cloud-upload-alt"></i> Siap</div>
 
 <script>
-    // KONFIGURASI
+    // ==================== KONFIGURASI ====================
     const GOOGLE_CLIENT_ID = "359149804614-vnhcg76muilk77homh9dlkj2qg3lol5u.apps.googleusercontent.com";
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyek0jYUTNaduvAnVvUR4hzTli-F5-h0B1m647_GvdeAFG4ltQlLwGAkQlW4_CG1VeF/exec";
     const PLATFORM_FEE_PERCENT = 0.5;
+    
+    // Harga emas default (dapat diupdate user)
     let goldPricePerGram = 2795000;
     
     let currentUserEmail = null;
@@ -136,7 +144,9 @@
     let isSyncing = false;
     let currentPage = "dashboard";
     
-    function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount); }
+    function formatRupiah(amount) { 
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount); 
+    }
     function formatGram(gram) { return gram.toFixed(2) + " gr"; }
     function calculatePlatformFee(totalPrice) { return totalPrice * (PLATFORM_FEE_PERCENT / 100); }
     function convertGoldToIDR(gram) { return gram * goldPricePerGram; }
@@ -149,17 +159,32 @@
         setTimeout(() => { if (type !== 'syncing') statusDiv.style.opacity = '0.7'; }, 3000);
     }
     
+    // ========== CLOUD SYNC (dengan error handling yang lebih baik) ==========
     async function syncToCloud(email, data) {
         if (isSyncing) return false;
         isSyncing = true;
         try {
             showSyncStatus('Menyimpan ke Google Sheets...', 'syncing');
-            const response = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'saveData', email, data }) });
+            const response = await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ action: 'saveData', email, data })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const result = await response.json();
-            if (result.success) { showSyncStatus('✓ Tersimpan ke Google Sheets', 'success'); return true; }
-            else throw new Error(result.error || 'Gagal menyimpan');
-        } catch (error) { showSyncStatus('⚠️ Gagal sync: ' + error.message, 'error'); return false; }
-        finally { isSyncing = false; }
+            if (result.success) { 
+                showSyncStatus('✓ Tersimpan ke Google Sheets', 'success'); 
+                return true; 
+            } else {
+                throw new Error(result.error || 'Gagal menyimpan');
+            }
+        } catch (error) {
+            console.warn('Sync error (non-critical):', error.message);
+            showSyncStatus('⚠️ Sync gagal, tersimpan di lokal', 'error');
+            return false;
+        } finally {
+            isSyncing = false;
+        }
     }
     
     async function loadFromCloud(email) {
@@ -167,10 +192,19 @@
             showSyncStatus('Mengambil data dari cloud...', 'syncing');
             const url = `${SCRIPT_URL}?action=getData&email=${encodeURIComponent(email)}&t=${Date.now()}`;
             const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const result = await response.json();
-            if (result.success && result.data) { showSyncStatus('✓ Data dimuat dari Google Sheets', 'success'); return result.data; }
-            else throw new Error(result.error || 'Data tidak ditemukan');
-        } catch (error) { showSyncStatus('⚠️ Gagal load dari cloud', 'error'); return null; }
+            if (result.success && result.data) { 
+                showSyncStatus('✓ Data dimuat dari Google Sheets', 'success'); 
+                return result.data; 
+            } else {
+                throw new Error(result.error || 'Data tidak ditemukan');
+            }
+        } catch (error) {
+            console.warn('Load from cloud error:', error.message);
+            showSyncStatus('⚠️ Gagal load dari cloud, pakai lokal', 'error');
+            return null;
+        }
     }
     
     function getStorageKey(email) { return `brankas_lm_${email.replace(/[^a-zA-Z0-9]/g, '_')}`; }
@@ -179,10 +213,12 @@
         if (!currentUserEmail) return;
         const dataToSave = { userGoldBalance, marketplaceListings, pendingOffers, p2pTransactions, lastUpdated: new Date().toISOString(), goldPrice: goldPricePerGram };
         localStorage.setItem(getStorageKey(currentUserEmail), JSON.stringify(dataToSave));
-        await syncToCloud(currentUserEmail, dataToSave);
+        // Non-blocking cloud sync
+        syncToCloud(currentUserEmail, dataToSave).catch(e => console.warn);
     }
     
     async function loadUserData(email, displayName) {
+        // Coba dari cloud dulu
         let cloudData = await loadFromCloud(email);
         if (cloudData) {
             userGoldBalance = cloudData.userGoldBalance;
@@ -190,7 +226,9 @@
             pendingOffers = cloudData.pendingOffers || [];
             p2pTransactions = cloudData.p2pTransactions || [];
             if (cloudData.goldPrice) goldPricePerGram = cloudData.goldPrice;
+            console.log('✅ Data loaded from cloud');
         } else {
+            // Fallback ke localStorage
             const stored = localStorage.getItem(getStorageKey(email));
             if (stored) {
                 const data = JSON.parse(stored);
@@ -199,16 +237,30 @@
                 pendingOffers = data.pendingOffers || [];
                 p2pTransactions = data.p2pTransactions || [];
                 if (data.goldPrice) goldPricePerGram = data.goldPrice;
+                console.log('📁 Data loaded from localStorage');
             } else {
+                // Inisialisasi user baru
                 userGoldBalance = { gram: 50.0, accountNumber: "LM" + Math.floor(Math.random() * 10000000), userName: displayName || email.split('@')[0] };
                 marketplaceListings = [];
                 pendingOffers = [];
                 p2pTransactions = [];
+                console.log('✨ New user initialized');
             }
         }
         await saveToLocalAndCloud();
     }
     
+    // ========== FUNGSI UPDATE HARGA EMAS ==========
+    function updateGoldPrice(newPrice) {
+        if (newPrice && newPrice > 0) {
+            goldPricePerGram = newPrice;
+            saveToLocalAndCloud();
+            render(); // Refresh tampilan
+            showSyncStatus('Harga emas diperbarui', 'success');
+        }
+    }
+    
+    // ========== FUNGSI BISNIS ==========
     async function acceptOffer(offerId) {
         const offer = pendingOffers.find(o => o.id === offerId);
         if (!offer) return;
@@ -251,19 +303,110 @@
         };
     }
     
+    // ========== RENDER DASHBOARD dengan FITUR KONVERSI LENGKAP ==========
     function renderDashboard(container) {
         const myListingsIds = marketplaceListings.filter(l => l.seller === userGoldBalance.userName).map(l => l.id);
         const incomingOffers = pendingOffers.filter(offer => myListingsIds.includes(offer.listingId));
         const goldValueIDR = convertGoldToIDR(userGoldBalance.gram);
+        
         container.innerHTML = `
-            <div class="flex-between"><h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard</h1><span class="cloud-badge" style="background:#eef2fa; padding:4px 12px; border-radius:50px;"><i class="fas fa-cloud-upload-alt"></i> Cloud Sync</span></div>
-            <div class="gold-card"><div class="gold-balance"><div class="balance-gram">${formatGram(userGoldBalance.gram)}</div><div class="balance-idr">≈ ${formatRupiah(goldValueIDR)}</div><div>SALDO EMAS DIGITAL</div></div><div style="margin-top:10px; text-align:center;">${userGoldBalance.accountNumber} | ${userGoldBalance.userName}</div></div>
-            <div class="stats-grid"><div class="stat-card"><div class="stat-title">Harga Emas/gram</div><div class="stat-value">${formatRupiah(goldPricePerGram)}</div></div><div class="stat-card"><div class="stat-title">Nilai Emas (IDR)</div><div class="stat-value">${formatRupiah(goldValueIDR)}</div></div><div class="stat-card"><div class="stat-title">Listing Aktif</div><div class="stat-value">${marketplaceListings.length}</div></div><div class="stat-card"><div class="stat-title">Tawaran Masuk</div><div class="stat-value">${incomingOffers.length}</div></div></div>
-            <div class="convert-card"><h4 style="color: white;"><i class="fas fa-exchange-alt"></i> Konversi Emas ke Rupiah</h4><div class="convert-input"><input type="number" id="convertGramInput" step="0.01" placeholder="Masukkan gram emas" value="${userGoldBalance.gram}"><div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 12px;"><strong style="color: #FFD966;">Nilai Rupiah:</strong><br><span id="convertResult" style="font-size: 1.4rem; font-weight: bold; color: white;">${formatRupiah(goldValueIDR)}</span></div></div></div>
+            <div class="flex-between">
+                <h1 class="page-title"><i class="fas fa-chart-line"></i> Dashboard</h1>
+                <span class="cloud-badge" style="background:#eef2fa; padding:4px 12px; border-radius:50px;"><i class="fas fa-cloud-upload-alt"></i> Cloud Sync</span>
+            </div>
+            
+            <!-- Kartu Saldo Emas -->
+            <div class="gold-card">
+                <div class="gold-balance">
+                    <div class="balance-gram">${formatGram(userGoldBalance.gram)}</div>
+                    <div class="balance-idr">≈ ${formatRupiah(goldValueIDR)}</div>
+                    <div>SALDO EMAS DIGITAL</div>
+                </div>
+                <div style="margin-top:10px; text-align:center;">${userGoldBalance.accountNumber} | ${userGoldBalance.userName}</div>
+            </div>
+            
+            <!-- Statistik -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Harga Emas/gram</div>
+                    <div class="stat-value">${formatRupiah(goldPricePerGram)}</div>
+                    <div class="gold-price-editor">
+                        <input type="number" id="editGoldPrice" value="${goldPricePerGram}" step="5000" placeholder="Update harga">
+                        <button id="updatePriceBtn" class="btn-small btn-primary" style="padding:4px 12px;">Update</button>
+                    </div>
+                </div>
+                <div class="stat-card"><div class="stat-title">Nilai Emas (IDR)</div><div class="stat-value">${formatRupiah(goldValueIDR)}</div></div>
+                <div class="stat-card"><div class="stat-title">Listing Aktif</div><div class="stat-value">${marketplaceListings.length}</div></div>
+                <div class="stat-card"><div class="stat-title">Tawaran Masuk</div><div class="stat-value">${incomingOffers.length}</div></div>
+            </div>
+            
+            <!-- FITUR KONVERSI EMAS KE RUPIAH (LENGKAP) -->
+            <div class="convert-card">
+                <h4 style="color: white; margin-bottom: 12px;"><i class="fas fa-exchange-alt"></i> Konversi Emas ⇄ Rupiah</h4>
+                <div class="convert-input">
+                    <label style="color: #FFD966; font-size: 12px;">Masukkan Jumlah Emas (Gram)</label>
+                    <input type="number" id="convertGramInput" step="0.01" placeholder="Masukkan gram emas" value="${userGoldBalance.gram}">
+                    <div class="convert-result-box">
+                        <div class="label">💰 Nilai dalam Rupiah</div>
+                        <div class="value" id="convertResult">${formatRupiah(goldValueIDR)}</div>
+                    </div>
+                </div>
+                <div class="convert-input" style="margin-top: 12px;">
+                    <label style="color: #FFD966; font-size: 12px;">Masukkan Jumlah Rupiah (IDR)</label>
+                    <input type="number" id="convertRupiahInput" step="10000" placeholder="Masukkan nominal Rupiah" value="${Math.round(goldValueIDR)}">
+                    <div class="convert-result-box">
+                        <div class="label">🥇 Setara dengan Emas</div>
+                        <div class="value" id="convertGramResult">${userGoldBalance.gram.toFixed(2)} gram</div>
+                    </div>
+                </div>
+                <div class="info-message" style="margin-top: 12px; text-align: center; background: rgba(255,255,255,0.15); color: white;">
+                    <i class="fas fa-info-circle"></i> Harga emas saat ini: ${formatRupiah(goldPricePerGram)} per gram
+                </div>
+            </div>
+            
             ${incomingOffers.length > 0 ? `<div class="section-card"><h3><i class="fas fa-handshake"></i> Tawaran Masuk</h3>${incomingOffers.map(offer => { const listing = marketplaceListings.find(l => l.id === offer.listingId); return `<div class="offer-item"><div><strong>${offer.buyerName}</strong> menawar <strong>${listing?.name}</strong> - ${formatRupiah(offer.offeredPricePerGram)}/gram<br><small>Total: ${formatRupiah(offer.offeredTotal)}</small></div><div><button class="btn-success accept-offer" data-offer-id="${offer.id}">Terima</button><button class="btn-danger reject-offer" data-offer-id="${offer.id}">Tolak</button></div></div>`; }).join('')}</div>` : ''}
+            
             <div class="section-card"><div class="flex-between"><h3><i class="fas fa-store"></i> Marketplace</h3><button id="gotoMarketBtn" class="btn-primary">Jelajahi →</button></div></div>
         `;
-        document.getElementById("convertGramInput")?.addEventListener("input", (e) => { const gram = parseFloat(e.target.value) || 0; document.getElementById("convertResult").innerHTML = formatRupiah(convertGoldToIDR(gram)); });
+        
+        // Event konversi Emas -> Rupiah
+        const gramInput = document.getElementById("convertGramInput");
+        const rupiahInput = document.getElementById("convertRupiahInput");
+        const convertResult = document.getElementById("convertResult");
+        const convertGramResult = document.getElementById("convertGramResult");
+        
+        const updateFromGram = () => {
+            const gram = parseFloat(gramInput.value) || 0;
+            const rupiahValue = convertGoldToIDR(gram);
+            convertResult.innerHTML = formatRupiah(rupiahValue);
+            if (rupiahInput) rupiahInput.value = Math.round(rupiahValue);
+        };
+        
+        const updateFromRupiah = () => {
+            const rupiah = parseFloat(rupiahInput.value) || 0;
+            const gramValue = rupiah / goldPricePerGram;
+            convertGramResult.innerHTML = gramValue.toFixed(2) + " gram";
+            if (gramInput) gramInput.value = gramValue.toFixed(2);
+            const rupiahDisplay = convertGoldToIDR(gramValue);
+            convertResult.innerHTML = formatRupiah(rupiahDisplay);
+        };
+        
+        if (gramInput) gramInput.addEventListener("input", updateFromGram);
+        if (rupiahInput) rupiahInput.addEventListener("input", updateFromRupiah);
+        
+        // Update harga emas
+        document.getElementById("updatePriceBtn")?.addEventListener("click", () => {
+            const newPrice = parseFloat(document.getElementById("editGoldPrice").value);
+            if (newPrice && newPrice > 0) {
+                goldPricePerGram = newPrice;
+                saveToLocalAndCloud();
+                render();
+                showSyncStatus('Harga emas diperbarui', 'success');
+            } else {
+                alert("Masukkan harga yang valid!");
+            }
+        });
+        
         document.getElementById("gotoMarketBtn")?.addEventListener("click", () => setActivePage("marketplace"));
         document.querySelectorAll(".accept-offer").forEach(btn => btn.addEventListener("click", () => acceptOffer(btn.dataset.offerId)));
         document.querySelectorAll(".reject-offer").forEach(btn => btn.addEventListener("click", () => { pendingOffers = pendingOffers.filter(o => o.id !== btn.dataset.offerId); render(); saveToLocalAndCloud(); alert("Tawaran ditolak"); }));
@@ -314,6 +457,7 @@
         document.querySelectorAll(".nav-item").forEach(nav => { nav.removeEventListener("click", nav._listener); nav.addEventListener("click", () => setActivePage(nav.dataset.page)); nav._listener = () => setActivePage(nav.dataset.page); });
     }
     
+    // ========== GOOGLE LOGIN ==========
     function initGoogleLogin() {
         if (typeof google === 'undefined' || !google.accounts) { setTimeout(initGoogleLogin, 500); return; }
         if (!GOOGLE_CLIENT_ID) { document.getElementById('googleErrorMsg').style.display = 'block'; document.getElementById('googleErrorMsg').innerHTML = 'Client ID tidak dikonfigurasi'; return; }
@@ -365,11 +509,29 @@
         setTimeout(() => initGoogleLogin(), 100);
     }
     
+    // Event listeners
     document.getElementById("demoLoginBtn")?.addEventListener("click", demoLogin);
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
-    document.getElementById("manualSyncBtn")?.addEventListener("click", async () => { if(currentUserEmail) await saveToLocalAndCloud(); alert("Data disimpan ke cloud!"); });
-    document.getElementById("loadCloudBtn")?.addEventListener("click", async () => { if(currentUserEmail) { const data = await loadFromCloud(currentUserEmail); if(data) { Object.assign(userGoldBalance, data.userGoldBalance); marketplaceListings = data.marketplaceListings || []; pendingOffers = data.pendingOffers || []; p2pTransactions = data.p2pTransactions || []; render(); alert("Data dimuat!"); } } });
+    document.getElementById("manualSyncBtn")?.addEventListener("click", async () => { if(currentUserEmail) { await saveToLocalAndCloud(); alert("✅ Data disimpan ke cloud!"); } });
+    document.getElementById("loadCloudBtn")?.addEventListener("click", async () => { 
+        if(currentUserEmail) { 
+            const data = await loadFromCloud(currentUserEmail); 
+            if(data) { 
+                userGoldBalance = data.userGoldBalance;
+                marketplaceListings = data.marketplaceListings || []; 
+                pendingOffers = data.pendingOffers || []; 
+                p2pTransactions = data.p2pTransactions || [];
+                if(data.goldPrice) goldPricePerGram = data.goldPrice;
+                render(); 
+                alert("✅ Data berhasil dimuat dari cloud!"); 
+            } else {
+                alert("⚠️ Gagal memuat data dari cloud. Pastikan URL Apps Script sudah benar.");
+            }
+        } 
+    });
+    
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
+    console.log('🚀 Aplikasi siap dengan fitur konversi emas dan cloud sync');
 </script>
 </body>
 </html>

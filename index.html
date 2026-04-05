@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Brankas LM - P2P Emas Digital v7</title>
+    <title>Brankas LM - P2P Emas Digital v8</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300,400,500,600,700,800&family=Poppins:wght@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -85,6 +85,7 @@
         .text-danger { color: #e74c3c; }
         .text-warning { color: #f39c12; }
         .flow-diagram { background: #f8f9fa; border-radius: 16px; padding: 16px; margin-top: 16px; text-align: center; font-size: 13px; }
+        .badge-own { background: #e3f2fd; color: #1565c0; }
     </style>
 </head>
 <body>
@@ -98,8 +99,8 @@
         <div id="googleErrorMsg" style="display:none; background:#fee2e2; color:#b91c1c; padding:10px; border-radius:16px; margin-top:12px; font-size:12px;"></div>
         <div class="demo-note">
             <i class="fas fa-globe"></i> <strong>Sistem Marketplace P2P Global:</strong><br>
-            • Penjual: menjual emas → saldo BERKURANG, tercatat sebagai "Jual"<br>
-            • Pembeli: membeli emas → saldo BERTAMBAH, tercatat sebagai "Beli"<br>
+            • Penjual: menjual emas → saldo BERKURANG, tercatat sebagai "Jual" dengan mitra = Pembeli<br>
+            • Pembeli: membeli emas → saldo BERTAMBAH, tercatat sebagai "Beli" dengan mitra = Penjual<br>
             • Data tersimpan di cloud dan bisa diakses semua akun
         </div>
     </div>
@@ -345,8 +346,8 @@
     
     // ========== FUNGSI BISNIS YANG DIPERBAIKI ==========
     // LOGIKA YANG BENAR:
-    // Penjual (menjual emas) → Saldo BERKURANG, transaksi type "Jual"
-    // Pembeli (membeli emas) → Saldo BERTAMBAH, transaksi type "Beli"
+    // Penjual (menjual emas) → Saldo BERKURANG, transaksi type "Jual" dengan mitra = Pembeli
+    // Pembeli (membeli emas) → Saldo BERTAMBAH, transaksi type "Beli" dengan mitra = Penjual
     
     async function buyListing(listing) {
         // Cek apakah pembeli bukan penjual sendiri
@@ -363,7 +364,9 @@
             `👤 Penjual: ${listing.sellerName}\n\n` +
             `📌 EFEK TRANSAKSI:\n` +
             `• Saldo Anda akan BERTAMBAH +${listing.gram} gram ✅\n` +
-            `• Saldo Penjual akan BERKURANG -${listing.gram} gram\n\n` +
+            `• Saldo Penjual akan BERKURANG -${listing.gram} gram\n` +
+            `• Transaksi Anda: Type "BELI" dengan mitra ${listing.sellerName}\n` +
+            `• Transaksi Penjual: Type "JUAL" dengan mitra ${userGoldBalance.userName}\n\n` +
             `Lanjutkan pembelian?`;
             
         if (!confirm(confirmMsg)) return false;
@@ -378,14 +381,14 @@
         const oldBuyerBalance = userGoldBalance.gram;
         userGoldBalance.gram += listing.gram;
         
-        // 2. Catat transaksi untuk PEMBELI (type: "Beli")
+        // 2. Catat transaksi untuk PEMBELI (type: "Beli") dengan mitra = nama penjual
         const buyerTransaction = { 
             id: transactionId + "_buyer", 
             asset: listing.name, 
             gram: listing.gram, 
-            counterparty: listing.sellerName,
+            counterparty: listing.sellerName,      // Mitra = Nama Penjual
             counterpartyEmail: listing.sellerEmail,
-            type: "Beli", 
+            type: "Beli",                          // Type = Beli
             totalPrice: listing.totalPrice, 
             date: currentDate, 
             status: "Selesai", 
@@ -394,18 +397,19 @@
         };
         p2pTransactions.unshift(buyerTransaction);
         
-        // 3. Catat transaksi untuk PENJUAL (type: "Jual") - akan disimpan ke cloud untuk akun penjual
+        // 3. Catat transaksi untuk PENJUAL (type: "Jual") dengan mitra = nama pembeli
         const sellerTransaction = { 
             id: transactionId + "_seller", 
             asset: listing.name, 
             gram: listing.gram, 
-            counterparty: userGoldBalance.userName,
+            counterparty: userGoldBalance.userName,  // Mitra = Nama Pembeli
             counterpartyEmail: currentUserEmail,
-            type: "Jual", 
+            type: "Jual",                            // Type = Jual
             totalPrice: listing.totalPrice, 
             date: currentDate, 
             status: "Selesai", 
-            fee: fee
+            fee: fee,
+            yourBalance: null  // Akan diisi saat disimpan ke penjual
         };
         
         // 4. Hapus listing dari marketplace (karena sudah dibeli)
@@ -414,7 +418,24 @@
         // 5. SIMPAN PERUBAHAN UNTUK PEMBELI
         await saveToLocalAndCloud();
         
-        // 6. KIRIM transaksi penjual ke cloud (update untuk akun penjual)
+        // 6. SIMPAN TRANSAKSI PENJUAL KE LOCALSTORAGE PENJUAL
+        const sellerKey = getStorageKey(listing.sellerEmail);
+        const sellerStored = localStorage.getItem(sellerKey);
+        if (sellerStored) {
+            const sellerData = JSON.parse(sellerStored);
+            sellerData.p2pTransactions = sellerData.p2pTransactions || [];
+            // Kurangi saldo penjual
+            const oldSellerBalance = sellerData.userGoldBalance?.gram || 0;
+            sellerData.userGoldBalance = sellerData.userGoldBalance || { gram: 0 };
+            sellerData.userGoldBalance.gram -= listing.gram;
+            sellerTransaction.yourBalance = sellerData.userGoldBalance.gram;
+            sellerData.p2pTransactions.unshift(sellerTransaction);
+            localStorage.setItem(sellerKey, JSON.stringify(sellerData));
+            
+            console.log(`✅ Transaksi penjual disimpan di localStorage:`, sellerTransaction);
+        }
+        
+        // 7. KIRIM transaksi penjual ke cloud (sinkronisasi silang)
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -422,39 +443,44 @@
                 cache: 'no-cache',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'addSellerTransaction',
+                    action: 'saveSellerTransaction',
                     email: listing.sellerEmail,
                     transaction: sellerTransaction,
                     gramToReduce: listing.gram,
                     timestamp: Date.now()
                 })
             });
+            console.log('✅ Transaksi penjual dikirim ke cloud');
         } catch(e) {
-            console.warn('Gagal mengirim transaksi ke penjual:', e);
+            console.warn('Gagal mengirim transaksi ke cloud penjual:', e);
         }
         
-        // 7. TAMPILKAN NOTIFIKASI
+        // 8. TAMPILKAN NOTIFIKASI
         showNotification(
-            `✅ Pembelian Berhasil!\n\n` +
+            `✅ Pembelian Berhasil!\n` +
             `Anda membeli ${listing.gram} gram dari ${listing.sellerName}\n` +
-            `Saldo Anda: ${formatGram(userGoldBalance.gram)} ` +
-            `(sebelumnya: ${formatGram(oldBuyerBalance)})`,
+            `Saldo Anda: ${formatGram(userGoldBalance.gram)}`,
             'success'
         );
         
-        // 8. INFORMASIKAN
+        // 9. INFORMASIKAN
         alert(`✅ TRANSAKSI BERHASIL!\n\n` +
-            `📋 Detail Transaksi:\n` +
-            `• Pembeli (Anda): +${listing.gram} gram (type: Beli)\n` +
-            `• Penjual (${listing.sellerName}): -${listing.gram} gram (type: Jual)\n` +
+            `📋 DETAIL TRANSAKSI ANDA (PEMBELI):\n` +
+            `• Type: BELI\n` +
+            `• Mitra: ${listing.sellerName}\n` +
+            `• +${listing.gram} gram\n` +
             `• Harga: ${formatRupiah(listing.totalPrice)}\n` +
             `• Fee platform: ${formatRupiah(fee)}\n\n` +
+            `📋 DETAIL TRANSAKSI PENJUAL (${listing.sellerName}):\n` +
+            `• Type: JUAL\n` +
+            `• Mitra: ${userGoldBalance.userName}\n` +
+            `• -${listing.gram} gram\n\n` +
             `💰 Saldo emas Anda SEKARANG: ${formatGram(userGoldBalance.gram)}\n\n` +
             `📌 Catatan:\n` +
             `Penjual (${listing.sellerName}) HARUS melakukan "Load Data Global" ` +
-            `untuk melihat transaksi "Jual" dan saldo berkurang.`);
+            `untuk melihat transaksi "JUAL" dan saldo berkurang.`);
         
-        // 9. Refresh tampilan
+        // 10. Refresh tampilan
         render();
         return true;
     }
@@ -484,7 +510,8 @@
             `💰 Harga/gram: ${formatRupiah(pricePerGram)}\n\n` +
             `📌 EFEK TRANSAKSI:\n` +
             `• Saldo Anda akan BERKURANG -${totalGram} gram\n` +
-            `• Pembeli akan BERTAMBAH sesuai berat yang dibeli\n\n` +
+            `• Pembeli akan BERTAMBAH sesuai berat yang dibeli\n` +
+            `• Transaksi Anda nanti: Type "JUAL" dengan mitra = nama pembeli\n\n` +
             `Lanjutkan membuat listing?`;
             
         if (!confirm(confirmMsg)) return false;
@@ -521,7 +548,8 @@
             `• Sebelum: ${formatGram(oldBalance)}\n` +
             `• Setelah: ${formatGram(userGoldBalance.gram)} ` +
             `(berkurang ${totalGram} gram)\n\n` +
-            `📌 Listing akan muncul di marketplace dan dapat dibeli oleh pengguna lain.`);
+            `📌 Listing akan muncul di marketplace dan dapat dibeli oleh pengguna lain.\n` +
+            `📌 Saat ada yang membeli, transaksi Anda akan tercatat sebagai "JUAL" dengan mitra = pembeli.`);
             
         return true;
     }
@@ -549,7 +577,7 @@
                 <i class="fas fa-arrow-right"></i> menjual ${listing.gram} gram 
                 <i class="fas fa-arrow-right"></i> 
                 <span class="text-success">Pembeli (Anda)</span><br>
-                <small>Penjual: <span class="text-danger">BERKURANG</span> (type: Jual) | Pembeli: <span class="text-success">BERTAMBAH</span> (type: Beli)</small>
+                <small>Penjual: <span class="text-danger">BERKURANG</span> (type: JUAL, mitra: pembeli) | Pembeli: <span class="text-success">BERTAMBAH</span> (type: BELI, mitra: penjual)</small>
             </div>
             
             ${!isOwnListing ? `
@@ -557,7 +585,8 @@
                     <small><i class="fas fa-info-circle"></i> <strong>Setelah membeli:</strong><br>
                     • Saldo emas Anda akan <span class="text-success">BERTAMBAH +${listing.gram} gram</span><br>
                     • Saldo penjual akan <span class="text-danger">BERKURANG -${listing.gram} gram</span><br>
-                    • Transaksi Anda: <strong class="text-success">"Beli"</strong> | Transaksi penjual: <strong class="text-danger">"Jual"</strong></small>
+                    • Transaksi Anda: <strong class="text-success">"BELI"</strong> dengan mitra ${listing.sellerName}<br>
+                    • Transaksi penjual: <strong class="text-danger">"JUAL"</strong> dengan mitra ${userGoldBalance.userName}</small>
                 </div>
                 <div style="display:flex; gap:12px;">
                     <button id="buyNowBtn" class="btn-primary"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button>
@@ -566,6 +595,7 @@
                 <div class="info-message" style="background:#fff3e0; margin-top:16px;">
                     <i class="fas fa-exclamation-triangle"></i> Ini adalah listing milik Anda sendiri. 
                     Listing akan otomatis hilang setelah dibeli oleh pengguna lain.
+                    Saat dibeli, transaksi Anda akan tercatat sebagai <strong class="text-danger">"JUAL"</strong> dengan mitra = pembeli.
                 </div>
             `}
         `;
@@ -672,7 +702,7 @@
             <div class="info-message" style="margin-bottom:16px;">
                 <i class="fas fa-globe"></i> Semua listing dari seluruh pengguna Brankas LM. 
                 ${marketplaceListings.filter(l => l.sellerEmail === currentUserEmail).length > 0 ? 
-                    `<span class="badge-seller" style="margin-left:8px;">Listing Anda: ${marketplaceListings.filter(l => l.sellerEmail === currentUserEmail).length} item</span>` : ''}
+                    `<span class="badge-own" style="margin-left:8px;">Listing Anda: ${marketplaceListings.filter(l => l.sellerEmail === currentUserEmail).length} item</span>` : ''}
             </div>
             <div class="section-card">
                 <div id="marketplaceList" class="listing-grid"></div>
@@ -690,7 +720,7 @@
                         <div>
                             <i class="fas fa-coins" style="color:#FFB347;"></i> 
                             <strong>${item.name}</strong>
-                            ${isOwn ? '<span class="badge-seller badge-own" style="margin-left:8px;">Milik Saya</span>' : ''}
+                            ${isOwn ? '<span class="badge-own" style="margin-left:8px;">Milik Saya</span>' : ''}
                             <br><small>Penjual: ${item.sellerName} | ${item.gram} gram</small>
                         </div>
                         <div>${formatRupiah(item.pricePerGram)}/gram<br>${formatRupiah(item.totalPrice)}</div>
@@ -720,7 +750,7 @@
                 <i class="fas fa-info-circle"></i> <strong>Perhatian:</strong> Saat Anda membuat listing, emas akan langsung 
                 <span class="text-danger">BERKURANG</span> dari saldo Anda dan dititipkan ke platform.
                 <br>Setelah dibeli, pembeli akan <span class="text-success">MENERIMA</span> emas tersebut.
-                <br>Transaksi Anda akan tercatat sebagai <strong class="text-danger">"Jual"</strong> di riwayat.
+                <br>Transaksi Anda akan tercatat sebagai <strong class="text-danger">"JUAL"</strong> dengan mitra = nama pembeli.
             </div>
             <div class="section-card">
                 <form id="createListingForm">
@@ -813,9 +843,9 @@
                 </span>
             </div>
             <div class="info-message" style="margin-bottom:16px;">
-                <i class="fas fa-info-circle"></i> <strong>Keterangan:</strong>
-                <span class="badge-beli" style="margin-left:8px;">Beli</span> = Anda membeli emas (saldo BERTAMBAH)
-                <span class="badge-jual" style="margin-left:8px;">Jual</span> = Anda menjual emas (saldo BERKURANG)
+                <i class="fas fa-info-circle"></i> <strong>Keterangan:</strong><br>
+                <span class="badge-beli" style="margin-left:0; margin-right:8px;">BELI</span> = Anda membeli emas (saldo BERTAMBAH) → Mitra = Penjual<br>
+                <span class="badge-jual" style="margin-left:8px;">JUAL</span> = Anda menjual emas (saldo BERKURANG) → Mitra = Pembeli
             </div>
             <div class="section-card">
                 ${sortedTransactions.length === 0 ? 
@@ -830,7 +860,7 @@
                                     <td><span class="${t.type === 'Beli' ? 'badge-beli' : 'badge-jual'}">${t.type}</span></td>
                                     <td>${t.asset}</td>
                                     <td><span class="${t.type === 'Beli' ? 'text-success' : 'text-danger'}">${t.type === 'Beli' ? '+' : '-'}${t.gram}g</span></td>
-                                    <td>${t.counterparty}</td>
+                                    <td><strong>${t.counterparty}</strong><br><small style="font-size:10px;color:#888;">${t.type === 'Beli' ? 'Penjual' : 'Pembeli'}</small></td>
                                     <td>${formatRupiah(t.totalPrice)}</td>
                                     <td>${formatRupiah(t.fee || 0)}</td>
                                     <td>${t.date}</td>
@@ -956,7 +986,7 @@
     });
     
     window.addEventListener("load", () => setTimeout(initGoogleLogin, 100));
-    console.log('🚀 P2P Marketplace v7 - Riwayat lengkap: Pembeli (Beli) & Penjual (Jual)');
+    console.log('🚀 P2P Marketplace v8 - Riwayat transaksi lengkap: Pembeli (BELI) dengan mitra penjual, Penjual (JUAL) dengan mitra pembeli');
 </script>
 </body>
 </html>

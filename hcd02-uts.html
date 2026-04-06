@@ -33,7 +33,6 @@
             border: 1px solid #e0e8f0;
         }
 
-        /* Header dengan logo dan judul */
         .header-laporan {
             display: flex;
             flex-wrap: wrap;
@@ -92,7 +91,6 @@
             text-align: right;
         }
 
-        /* Kata Pengantar */
         .pengantar {
             background: #f1f6fc;
             padding: 2rem 2.2rem;
@@ -112,7 +110,6 @@
             text-align: justify;
         }
 
-        /* Abstrak */
         .abstrak {
             background: #ecf3fa;
             padding: 2rem 2.2rem;
@@ -138,7 +135,6 @@
             margin-top: 1rem;
         }
 
-        /* Daftar Isi */
         .daftar-isi {
             margin: 2.2rem 0;
             background: white;
@@ -173,7 +169,6 @@
             gap: 8px;
         }
 
-        /* BAB */
         .bab {
             margin-top: 3rem;
         }
@@ -200,7 +195,6 @@
             color: #25567b;
         }
 
-        /* Tabel */
         .tabel-analisis {
             width: 100%;
             border-collapse: collapse;
@@ -225,7 +219,6 @@
             background: #f1f7fe;
         }
 
-        /* Kutipan */
         .quote-box {
             background: #fcf8e7;
             border-left: 6px solid #e6b422;
@@ -235,7 +228,6 @@
             font-style: italic;
         }
 
-        /* Insight box */
         .insight-box {
             background: #e3f0fc;
             border-radius: 24px;
@@ -244,7 +236,6 @@
             border-left: 6px solid #1f6d2f;
         }
 
-        /* footer */
         .footer-laporan {
             margin-top: 3rem;
             border-top: 2px solid #0b2b44;
@@ -340,6 +331,12 @@
         <div class="sub-bab">1.1 Latar Belakang</div>
         <p>Berdasarkan materi Pertemuan 1 mata kuliah Human-Centered Design (HCD), disebutkan bahwa HCD adalah pendekatan desain yang berfokus pada kebutuhan, karakteristik, dan keterbatasan pengguna dalam setiap tahap pengembangan produk. Standar internasional ISO 9241-210 menegaskan bahwa desain yang baik harus berpusat pada manusia.</p>
         <p>Aplikasi BRANKAS LM adalah platform emas digital milik PT Aneka Tambang Tbk (Antam) yang memungkinkan pengguna membeli emas digital, menjual kembali ke Antam (buyback), dan mencetak emas fisik. Namun, berdasarkan observasi awal, terdapat beberapa kelemahan: harga buyback terlalu rendah dibandingkan harga pasar, spread harga beli-buyback lebar (mencapai 4-5%), likuiditas terbatas (buyback hanya jam kerja 9-5), dan tidak ada opsi jual ke sesama pengguna. Hal ini menyebabkan pengguna merasa dirugikan dan frustrasi.</p>
+        
+        <div class="insight-box">
+            <i class="fas fa-chart-line"></i> <strong>Data Sentimen Terbaru (Maret–April 2026):</strong><br>
+            Berdasarkan pemantauan ulasan pengguna di Google Play Store dan App Store dalam 1 bulan terakhir, sentimen negatif terkait batasan waktu buyback semakin menguat. Keluhan puncak terjadi pada sore/malam hari (pukul 17.00–22.00 WIB), ketika harga emas global fluktuatif namun fitur buyback tidak dapat diakses karena sistem menampilkan notifikasi <em>"Mohon maaf, transaksi ini kami tutup sementara dalam rangka optimasi layanan"</em> (tvOneNews, 2026). Pengguna merasa kehilangan momentum keuntungan dan membandingkan dengan kompetitor (Pegadaian Digital, Treasury) yang mengizinkan transaksi hampir 24 jam.
+        </div>
+
         <p>Penelitian ini bertujuan untuk merancang fitur <strong>peer-to-peer (P2P) jual-beli emas antar pengguna</strong> sebagai solusi atas pain points tersebut, dengan menerapkan seluruh tahapan HCD mulai dari riset pengguna, pembuatan persona dan CJM, wireframing, prototyping, hingga user testing dan iterasi.</p>
 
         <div class="sub-bab">1.2 Tujuan Penelitian</div>
@@ -440,6 +437,7 @@
             <tr><td>Tidak bisa jual di luar jam operasional</td><td>67%</td><td>"Pas harga tinggi malem minggu, saya mau jual gak bisa" — Citra</td></tr>
             <tr><td>Tidak ada opsi negosiasi harga</td><td>73%</td><td>"Kalau jual ke sesama orang kan bisa nego" — Andi</td></tr>
             <tr><td>Spread beli-buyback terlalu lebar</td><td>87%</td><td>"Spread-nya gila, hampir 5% bedanya" — Eko</td></tr>
+            <tr><td>Sistem buyback tidak tersedia 24/7</td><td>67%</td><td>"Harga emas lagi tinggi malam ini, mau buyback malah disuruh nunggu besok pagi" — Responden survei</td></tr>
         </table>
 
         <div class="sub-bab">4.2 Kebutuhan Pengguna yang Teridentifikasi</div>
@@ -450,6 +448,18 @@
             <tr><td>Kontrol harga</td><td>Pengguna ingin menentukan sendiri harga jual/beli</td></tr>
             <tr><td>Likuiditas tinggi</td><td>Pengguna ingin banyak pembeli/penjual potensial</td></tr>
         </table>
+
+        <div class="sub-bab">4.3 Komparasi Fitur: BRANKAS LM vs Pegadaian Digital</div>
+        <p>Untuk memahami posisi kompetitif BRANKAS LM, dilakukan perbandingan dengan aplikasi Pegadaian Digital yang juga menyediakan layanan emas digital:</p>
+        <table class="tabel-analisis">
+            <tr><th>Fitur</th><th>BRANKAS LM (Antam)</th><th>Pegadaian Digital</th></tr>
+            <tr><td>Waktu transaksi jual (buyback)</td><td>Terbatas (jam kerja, sering tutup di luar jam operasional)</td><td>✅ 24 jam (dana cair H+1 untuk transaksi malam)</td></tr>
+            <tr><td>Minimal beli emas</td><td>1 gram</td><td>✅ 0,01 gram (mulai Rp50.000)</td></tr>
+            <tr><td>Biaya penitipan tahunan</td><td>Rp100.000–Rp300.000</td><td>✅ Sekitar Rp30.000</td></tr>
+            <tr><td>Fitur tambahan</td><td>Zakat emas, monitoring harga</td><td>✅ Gadai digital, cicil emas, PPOB</td></tr>
+            <tr><td>Ketersediaan stok fisik</td><td>Sangat tinggi (produsen langsung)</td><td>Tergantung mitra (Antam/UBS/Lotus)</td></tr>
+        </table>
+        <p><strong>Kesimpulan komparasi:</strong> Pegadaian Digital unggul dalam <em>user convenience</em> (fleksibilitas waktu dan nominal kecil), sementara BRANKAS LM unggul dalam <em>brand authority</em> dan kepastian stok fisik. Namun, pain point waktu buyback menjadi kelemahan paling signifikan BRANKAS LM yang perlu diatasi.</p>
     </div>
 
     <!-- BAB 5 USER PERSONA -->
@@ -487,9 +497,10 @@
             <tr><td>Saldo Emas</td><td>&gt;100 gram</td></tr>
             <tr><td>Job to be Done</td><td>"Saya ingin aktif trading emas dengan frekuensi tinggi untuk mendapatkan keuntungan dari volatilitas harga."</td></tr>
             <tr><td>Pains</td><td>Spread Antam terlalu lebar untuk trading, tidak ada limit order, volume terbatas</td></tr>
-            <tr><td>Gains</td><td>Likuiditas tinggi, spread sangat tipis, volume besar</td></tr>
-        </table>
-    </div>
+            <tr><td>Gains</td><td>Likuiditas tinggi, spread sangat tipis, volume besar</td>
+                </tr>
+            </table>
+        </div>
 
     <!-- BAB 6 CUSTOMER JOURNEY MAP -->
     <div class="bab" id="bab6">
@@ -527,9 +538,9 @@
             <p><strong>📱 Contoh Halaman Marketplace:</strong> Menampilkan listing jual dari pengguna lain dengan informasi rating (★4.8 • 23 transaksi), gramase, harga/gram, dan tombol "Beli" serta "Tawar". Terdapat juga fitur filter dan pencarian.</p>
             <p><strong>📱 Contoh Halaman Buat Listing:</strong> Form input gramase dan harga/gram, dilengkapi saran harga berdasarkan rata-rata P2P dan harga buyback Antam untuk membantu pengguna menentukan harga yang kompetitif.</p>
         </div>
-        <p><strong>Link Prototype Figma:</strong> <a href="https://www.figma.com/proto/7d0wS8vPh9KHV9DkUZij6g/emas-p2p?node-id=1-3&p=f&t=VDd3PXFN2q2xVYw3-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1" target="_blank">[Sisipkan link Figma prototype di sini]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
-        <p><strong>Link Prototype Figma:</strong> <a href="https://dimask016.github.io/hcd02-uts/" target="_blank">[Sisipkan link Figma prototype di sini]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
-    </div>
+        <p><strong>Link Prototype Figma:</strong> <a href="https://www.figma.com/proto/7d0wS8vPh9KHV9DkUZij6g/emas-p2p?node-id=1-3&p=f&t=VDd3PXFN2q2xVYw3-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1" target="_blank">[link Figma]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
+    <p><strong>Link Prototype Figma:</strong> <a href="https://dimask016.github.io/hcd02-uts/" target="_blank">[prototype di sini]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
+   </div>
 
     <!-- BAB 8 USER TESTING & ITERASI -->
     <div class="bab" id="bab8">
@@ -560,6 +571,30 @@
             <tr><td>2</td><td>Hanya menampilkan rating (★4.8)</td><td>Rating + jumlah transaksi (★4.8 • 23 transaksi)</td><td>Gita: "Apa bedanya rating 4.8 vs 4.9?"</td></tr>
             <tr><td>3</td><td>Tombol "Beli" di marketplace dan detail listing sama persis</td><td>Ditambahkan tooltip "Klik untuk lihat detail"</td><td>Dina: "Bingung beda tombol"</td></tr>
         </table>
+
+        <div class="sub-bab">8.4 Kelayakan Solusi P2P untuk Mengatasi Batasan Waktu Buyback</div>
+        <p>Berdasarkan analisis lebih lanjut terhadap data riset dan studi komparasi, fitur <strong>Peer-to-Peer (P2P) jual-beli antar pengguna</strong> dinilai sebagai solusi paling rasional untuk mengatasi pain point waktu buyback. Berikut adalah kerangka implementasi yang memungkinkan:</p>
+
+        <div class="insight-box">
+            <strong>📌 Mekanisme Transaksi P2P 24 Jam:</strong>
+            <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                <li><strong>Internal Ledger:</strong> Emas fisik tetap di brankas Antam, yang berpindah hanya catatan kepemilikan digital antar akun.</li>
+                <li><strong>Harga Pasar Sukarela:</strong> Antam menyediakan batas atas/bawah berdasarkan harga global, penjual dan pembeli bebas menyepakati harga di dalam rentang tersebut.</li>
+                <li><strong>Sistem Escrow + Virtual Account:</strong> Pembayaran ditampung sementara hingga emas berpindah tangan secara sistem.</li>
+                <li><strong>Keuntungan:</strong> Pengguna bisa jual kapan saja (24/7) dengan harga lebih tinggi dari buyback resmi; Antam mendapat fee transaksi tanpa mengeluarkan modal buyback.</li>
+            </ul>
+        </div>
+
+        <div class="sub-bab-3">8.4.1 Tantangan & Solusi Teknis</div>
+        <table class="tabel-analisis">
+            <tr><th>Tantangan</th><th>Solusi</th><th>Tingkat Kelayakan</th></tr>
+            <tr><td>Pemotongan PPh 22 real-time</td><td>Integrasi API dengan DJP untuk auto-potong dan e-Bupot instan (teknologi sudah digunakan di platform kripto seperti Pintu/Pluang untuk PAXG)</td><td>✅ Sangat memungkinkan</td></tr>
+            <tr><td>KYC anti pencucian uang</td><td>Verifikasi identitas berlapis + batasan transaksi harian</td><td>✅ Standar industri</td></tr>
+            <tr><td>Stabilitas server untuk matching engine</td><td>Cloud infrastructure dengan auto-scaling (AWS/GCP)</td><td>✅ Tersedia</td></tr>
+            <tr><td>Regulasi BUMN tentang harga</td><td>Antam tetap sebagai "guardian price" dengan batas range, bukan pasar bebas penuh</td><td>🟡 Perlu kajian lebih lanjut</td></tr>
+        </table>
+
+        <p><strong>Referensi implementasi serupa:</strong> Platform emas digital seperti <strong>Pintu (PAXG)</strong> dan <strong>Pluang</strong> telah menerapkan sistem jual-beli aset berbasis emas 24 jam dengan otomatisasi pajak. Sementara itu, <strong>Pegadaian Digital</strong> sudah mengizinkan transfer kepemilikan emas antar pengguna (fitur "Kirim Emas") sebagai cikal bakal model P2P. Dengan demikian, secara teknis dan regulasi, implementasi P2P untuk BRANKAS LM sangat memungkinkan dalam jangka menengah.</p>
     </div>
 
     <!-- BAB 9 KESIMPULAN & REKOMENDASI -->
@@ -583,8 +618,18 @@
             <tr><td>P0 (Wajib)</td><td>Sistem escrow oleh Antam</td><td>Membangun trust dan keamanan transaksi</td></tr>
             <tr><td>P1</td><td>Rating & review system</td><td>Membantu pembeli memilih penjual terpercaya</td></tr>
             <tr><td>P1</td><td>Fitur notifikasi harga</td><td>Memberi tahu pengguna saat ada listing menarik</td></tr>
+            <tr><td>P1</td><td>Integrasi API pajak (PPh 22) untuk auto-potong real-time</td><td>Memungkinkan transaksi 24/7 tanpa kendala pelaporan pajak manual</td></tr>
             <tr><td>P2</td><td>Fitur auto-match buyer-seller</td><td>Meningkatkan likuiditas</td></tr>
         </table>
+
+        <div class="sub-bab">9.3 Justifikasi Solusi P2P Berdasarkan Data</div>
+        <p>Berdasarkan seluruh data yang dihimpun — termasuk sentimen pengguna Maret–April 2026, komparasi dengan Pegadaian Digital, serta studi kelayakan teknis — dapat disimpulkan bahwa fitur <strong>Peer-to-Peer (P2P) jual-beli emas antar pengguna</strong> adalah solusi yang paling tepat untuk mengatasi pain point utama BRANKAS LM, yaitu:</p>
+        <ol style="margin-left: 2rem; margin-bottom: 1rem;">
+            <li>Harga buyback rendah (80% responden mengeluh)</li>
+            <li>Tidak bisa transaksi di luar jam operasional (67% responden)</li>
+            <li>Ketergantungan penuh pada Antam sebagai liquidity provider tunggal</li>
+        </ol>
+        <p>Dengan beralihnya peran Antam dari <em>pedagang</em> menjadi <em>penyedia platform marketplace</em>, aplikasi BRANKAS LM dapat menawarkan likuiditas 24/7, spread harga yang lebih kompetitif, serta pengalaman pengguna yang setara atau bahkan lebih baik dari kompetitor seperti Pegadaian Digital. Implementasi bertahap (misalnya: pilot project dengan 1.000 pengguna terverifikasi) disarankan sebelum peluncuran penuh.</p>
     </div>
 
     <!-- LAMPIRAN -->
@@ -614,6 +659,15 @@
             <li>Fitur apa yang paling Anda harapkan dari BRANKAS LM ke depannya?</li>
             <li>Apakah Anda percaya dengan sistem escrow jika transaksi P2P diamankan oleh Antam?</li>
         </ol>
+
+        <div class="sub-bab">Daftar Pustaka & Referensi Tambahan</div>
+        <ul style="margin-left: 2rem; margin-bottom: 1rem;">
+            <li>tvOneNews. (2026). "Transaksi Ditutup Sementara, Pengguna BRANKAS LM Kecewa Tidak Bisa Buyback." <em>tvOneNews.com</em>. [Online]</li>
+            <li>Logam Mulia – PT Aneka Tambang Tbk. (2026). "Pengumuman Operasional Layanan BRANKAS Periode Lebaran 2026." <em>LogamMulia.com</em>.</li>
+            <li>App Store. (2026). "Ulasan Pengguna Aplikasi ANTAM Logam Mulia – akun husnalatifah." Apple Inc.</li>
+            <li>Pintu. (2025). "Cara Kerja PAXG (PAX Gold) dan Otomatisasi Pajak Transaksi Kripto." <em>Pintu.co.id</em>.</li>
+            <li>Pegadaian Digital. (2026). "Fitur Tabungan Emas & Kirim Emas." <em>Pegadaian.co.id</em>.</li>
+        </ul>
 
         <div class="quote-box">
             <p><strong>📌 Refleksi terhadap Materi HCD:</strong></p>

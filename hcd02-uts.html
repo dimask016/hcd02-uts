@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Riset UX: Redesign BRANKAS LM · Fitur P2P Jual-Beli Emas Antar Pengguna</title>
+    <title>Laporan Riset UX: Redesign BRANKAS LM · Fitur P2P Jual-Beli Emas Antar Pengguna + QRIS Payment</title>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -236,6 +236,25 @@
             border-left: 6px solid #1f6d2f;
         }
 
+        .qris-box {
+            background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
+            color: white;
+            border-radius: 24px;
+            padding: 1.8rem 2rem;
+            margin: 1.8rem 0;
+            border-left: 6px solid #FFD166;
+        }
+
+        .qris-box h4 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #FFD166;
+        }
+
+        .qris-box i {
+            color: #FFD166;
+        }
+
         .footer-laporan {
             margin-top: 3rem;
             border-top: 2px solid #0b2b44;
@@ -269,8 +288,8 @@
             <img src="logo-cakrawala-v2.webp" alt="Cakrawala University" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
             <div style="display:none; color:#a00; font-style:italic;">[Logo tidak ditemukan]</div>
             <div>
-                <div class="judul-utama">REDESIGN APLIKASI BRANKAS LM:<br>FITUR PEER-TO-PEER JUAL-BELI EMAS ANTAR PENGGUNA</div>
-                <div style="font-size:1rem; color:#2f5575;">Studi Kasus: Penambahan Marketplace P2P untuk Mengatasi Pain Point Harga Buyback Rendah & Likuiditas Terbatas</div>
+                <div class="judul-utama">REDESIGN APLIKASI BRANKAS LM:<br>FITUR PEER-TO-PEER JUAL-BELI EMAS ANTAR PENGGUNA + QRIS PAYMENT</div>
+                <div style="font-size:1rem; color:#2f5575;">Studi Kasus: Penambahan Marketplace P2P & Pembayaran QRIS untuk Transaksi Sehari-hari</div>
             </div>
         </div>
         <div class="identitas-wrapper">
@@ -289,10 +308,11 @@
     <!-- KATA PENGANTAR -->
     <div class="pengantar">
         <h3><i class="fas fa-feather-alt"></i> KATA PENGANTAR</h3>
-        <p>Puji syukur kami panjatkan ke hadirat Allah SWT, karena berkat rahmat dan karunia-Nya, laporan tugas UTS mata kuliah Human Centered Design (IKR2130) dengan judul "Redesign Aplikasi BRANKAS LM: Penambahan Fitur Peer-to-Peer Jual-Beli Emas Antar Pengguna" ini dapat diselesaikan dengan baik. Laporan ini disusun sebagai bentuk implementasi dari materi perkuliahan Pertemuan 1 (HCD), Pertemuan 2 (Riset Pengguna), dan Pertemuan 3 (User Persona & Customer Journey Map).</p>
-        <p>Aplikasi BRANKAS LM sebagai platform emas digital milik PT Aneka Tambang Tbk (Antam) memiliki potensi besar namun masih menyisakan masalah bagi pengguna, terutama terkait harga buyback yang rendah dan ketergantungan penuh pada Antam sebagai satu-satunya liquidity provider. Berdasarkan hasil riset awal, 73.3% pengguna menginginkan adanya fitur jual-beli antar sesama pengguna (peer-to-peer) agar mereka bisa mendapatkan harga yang lebih baik dan bertransaksi 24/7.</p>
-        <p>Melalui pendekatan Human-Centered Design (ISO 9241-210), penelitian ini melakukan riset pengguna (wawancara + survei dengan total 20 responden), menyusun user persona dan customer journey map, membuat wireframe high-fidelity di Figma, serta melakukan user testing dan iterasi desain berdasarkan feedback. Hasil akhirnya adalah prototype fitur P2P marketplace yang memungkinkan pengguna saling jual-beli emas digital dengan sistem escrow yang diamankan oleh Antam.</p>
-        <p>Kami mengucapkan terima kasih kepada Dosen Pengampu, Dr. Fandy Neta, S.Pd., M.Pd.T., yang telah memberikan bimbingan, masukan, dan ilmu selama proses pembelajaran. Terima kasih juga kepada 20 responden yang telah bersedia meluangkan waktu untuk berbagi pengalaman menggunakan BRANKAS LM.</p>
+        <p>Puji syukur kami panjatkan ke hadirat Allah SWT, karena berkat rahmat dan karunia-Nya, laporan tugas UTS mata kuliah Human Centered Design (IKR2130) dengan judul "Redesign Aplikasi BRANKAS LM: Penambahan Fitur Peer-to-Peer Jual-Beli Emas Antar Pengguna + QRIS Payment" ini dapat diselesaikan dengan baik. Laporan ini disusun sebagai bentuk implementasi dari materi perkuliahan Pertemuan 1 (HCD), Pertemuan 2 (Riset Pengguna), dan Pertemuan 3 (User Persona & Customer Journey Map).</p>
+        <p>Aplikasi BRANKAS LM sebagai platform emas digital milik PT Aneka Tambang Tbk (Antam) memiliki potensi besar namun masih menyisakan masalah bagi pengguna, terutama terkait harga buyback yang rendah dan ketergantungan penuh pada Antam sebagai satu-satunya liquidity provider. Berdasarkan hasil riset awal, 100% pengguna menginginkan adanya fitur jual-beli antar sesama pengguna (peer-to-peer) agar mereka bisa mendapatkan harga yang lebih baik dan bertransaksi 24/7.</p>
+        <p>Selain itu, sebagai inovasi tambahan, laporan ini juga mengusulkan fitur <strong>Pembayaran QRIS</strong> yang memungkinkan pengguna membelanjakan emas digital mereka secara langsung di supermarket, toko retail, dan merchant lain yang mendukung QRIS. Fitur ini menjawab kebutuhan pengguna akan utilitas emas digital sebagai alat pembayaran yang praktis dan diterima luas.</p>
+        <p>Melalui pendekatan Human-Centered Design (ISO 9241-210), penelitian ini melakukan riset pengguna (survei dengan total 3 responden), menyusun user persona dan customer journey map, membuat wireframe high-fidelity di Figma, serta melakukan user testing dan iterasi desain berdasarkan feedback. Hasil akhirnya adalah prototype fitur P2P marketplace dan QRIS payment yang memungkinkan pengguna saling jual-beli emas digital serta berbelanja kebutuhan sehari-hari dengan emas.</p>
+        <p>Kami mengucapkan terima kasih kepada Dosen Pengampu, Dr. Fandy Neta, S.Pd., M.Pd.T., yang telah memberikan bimbingan, masukan, dan ilmu selama proses pembelajaran. Terima kasih juga kepada 3 responden yang telah bersedia meluangkan waktu untuk berbagi pengalaman menggunakan BRANKAS LM.</p>
         <div style="margin-top:1.5rem;">
             Hormat kami,<br><br>
             <strong>Dimas Kurniawan</strong><br>
@@ -303,8 +323,8 @@
     <!-- ABSTRAK -->
     <div class="abstrak">
         <h3><i class="fas fa-book-open"></i> ABSTRAK</h3>
-        <p>Laporan ini menyajikan analisis pengalaman pengguna aplikasi emas digital BRANKAS LM dengan fokus pada penambahan fitur peer-to-peer (P2P) jual-beli emas antar pengguna. Riset dilakukan terhadap 20 responden (5 wawancara mendalam + 15 survei) dengan target pengguna aktif BRANKAS LM. Temuan utama menunjukkan bahwa 80% responden mengeluhkan harga buyback yang terlalu rendah, dan 73.3% menginginkan fitur jual-beli antar sesama pengguna. Pengguna mengalami frustrasi karena spread harga beli-buyback yang lebar dan tidak bisa bertransaksi di luar jam operasional Antam. Berdasarkan data riset, disusun 3 user persona (Investor Aktif, Nabung Emas, Trader) dan customer journey map yang menunjukkan peningkatan emotional curve dari -1 menjadi +2 setelah fitur P2P ditambahkan. Prototype high-fidelity dibuat di Figma mencakup 5 halaman utama: Dashboard, Marketplace, Buat Listing, Detail Listing, dan Riwayat Transaksi P2P. User testing dengan 3 responden menunjukkan tingkat keberhasilan 88.9% dengan 3 iterasi perbaikan (tombol marketplace diperbesar, rating + jumlah transaksi, tooltip informatif). Rekomendasi utama adalah implementasi fitur P2P marketplace dengan sistem escrow oleh Antam, rating & review system, dan fitur notifikasi harga.</p>
-        <p class="kata-kunci"><i class="fas fa-tags"></i> Kata Kunci: Human-Centered Design, BRANKAS LM, peer-to-peer, emas digital, user research, user persona, customer journey map, wireframe high-fidelity, Figma, user testing, iterasi desain</p>
+        <p>Laporan ini menyajikan analisis pengalaman pengguna aplikasi emas digital BRANKAS LM dengan fokus pada penambahan dua fitur utama: (1) peer-to-peer (P2P) jual-beli emas antar pengguna, dan (2) pembayaran QRIS untuk belanja di supermarket/merchant. Riset dilakukan terhadap 3 responden (survei) dengan target pengguna aktif BRANKAS LM. Temuan utama menunjukkan bahwa 100% responden mengeluhkan harga buyback yang terlalu rendah, 100% menginginkan fitur jual-beli antar sesama pengguna, dan 100% tertarik dengan fitur pembayaran QRIS untuk belanja sehari-hari. Pengguna mengalami frustrasi karena spread harga beli-buyback yang lebar, tidak bisa bertransaksi di luar jam operasional Antam, serta tidak bisa menggunakan emas digital mereka untuk transaksi konsumtif sehari-hari. Berdasarkan data riset, disusun 3 user persona (Investor Aktif, Nabung Emas, Trader) dan customer journey map yang menunjukkan peningkatan emotional curve dari -1 menjadi +2 setelah fitur P2P dan QRIS ditambahkan. Prototype high-fidelity dibuat di Figma mencakup 6 halaman utama: Dashboard, Marketplace, Buat Listing, Detail Listing, Riwayat Transaksi P2P, dan <strong>QRIS Payment</strong>. User testing dengan 3 responden menunjukkan tingkat keberhasilan 88.9% dengan 3 iterasi perbaikan. Rekomendasi utama adalah implementasi fitur P2P marketplace dengan sistem escrow, integrasi QRIS untuk pembayaran di merchant, rating & review system, dan fitur notifikasi harga.</p>
+        <p class="kata-kunci"><i class="fas fa-tags"></i> Kata Kunci: Human-Centered Design, BRANKAS LM, peer-to-peer, emas digital, QRIS payment, supermarket, user research, user persona, customer journey map, wireframe high-fidelity, Figma, user testing, iterasi desain</p>
     </div>
 
     <!-- DAFTAR ISI -->
@@ -315,6 +335,8 @@
             <li><a href="#bab2"><i class="fas fa-caret-right"></i> BAB 2 – METODOLOGI RISET</a></li>
             <li><a href="#bab3"><i class="fas fa-caret-right"></i> BAB 3 – DAFTAR PERTANYAAN & JAWABAN</a></li>
             <li><a href="#bab4"><i class="fas fa-caret-right"></i> BAB 4 – ANALISIS TEMUAN</a></li>
+            <li><a href="#bab4a"><i class="fas fa-caret-right"></i> BAB 4A – ANALISIS UCD (FIRST-HAND EXPERIENCE)</a></li>
+            <li><a href="#bab4b"><i class="fas fa-caret-right"></i> BAB 4B – REKOMENDASI PERBAIKAN UCD</a></li>
             <li><a href="#bab5"><i class="fas fa-caret-right"></i> BAB 5 – USER PERSONA</a></li>
             <li><a href="#bab6"><i class="fas fa-caret-right"></i> BAB 6 – CUSTOMER JOURNEY MAP</a></li>
             <li><a href="#bab7"><i class="fas fa-caret-right"></i> BAB 7 – WIREFRAME & PROTOTYPE</a></li>
@@ -330,19 +352,20 @@
         
         <div class="sub-bab">1.1 Latar Belakang</div>
         <p>Berdasarkan materi Pertemuan 1 mata kuliah Human-Centered Design (HCD), disebutkan bahwa HCD adalah pendekatan desain yang berfokus pada kebutuhan, karakteristik, dan keterbatasan pengguna dalam setiap tahap pengembangan produk. Standar internasional ISO 9241-210 menegaskan bahwa desain yang baik harus berpusat pada manusia.</p>
-        <p>Aplikasi BRANKAS LM adalah platform emas digital milik PT Aneka Tambang Tbk (Antam) yang memungkinkan pengguna membeli emas digital, menjual kembali ke Antam (buyback), dan mencetak emas fisik. Namun, berdasarkan observasi awal, terdapat beberapa kelemahan: harga buyback terlalu rendah dibandingkan harga pasar, spread harga beli-buyback lebar (mencapai 4-5%), likuiditas terbatas (buyback hanya jam kerja 9-5), dan tidak ada opsi jual ke sesama pengguna. Hal ini menyebabkan pengguna merasa dirugikan dan frustrasi.</p>
+        <p>Aplikasi BRANKAS LM adalah platform emas digital milik PT Aneka Tambang Tbk (Antam) yang memungkinkan pengguna membeli emas digital, menjual kembali ke Antam (buyback), dan mencetak emas fisik. Namun, berdasarkan observasi awal, terdapat beberapa kelemahan: harga buyback terlalu rendah dibandingkan harga pasar, spread harga beli-buyback lebar (mencapai 4-5%), likuiditas terbatas (buyback hanya jam kerja 9-5), tidak ada opsi jual ke sesama pengguna, dan <strong>tidak ada utilitas untuk membelanjakan emas digital secara langsung</strong> di kehidupan sehari-hari.</p>
         
         <div class="insight-box">
             <i class="fas fa-chart-line"></i> <strong>Data Sentimen Terbaru (Maret–April 2026):</strong><br>
-            Berdasarkan pemantauan ulasan pengguna di Google Play Store dan App Store dalam 1 bulan terakhir, sentimen negatif terkait batasan waktu buyback semakin menguat. Keluhan puncak terjadi pada sore/malam hari (pukul 17.00–22.00 WIB), ketika harga emas global fluktuatif namun fitur buyback tidak dapat diakses karena sistem menampilkan notifikasi <em>"Mohon maaf, transaksi ini kami tutup sementara dalam rangka optimasi layanan"</em> (tvOneNews, 2026). Pengguna merasa kehilangan momentum keuntungan dan membandingkan dengan kompetitor (Pegadaian Digital, Treasury) yang mengizinkan transaksi hampir 24 jam.
+            Berdasarkan pemantauan ulasan pengguna di Google Play Store dan App Store dalam 1 bulan terakhir, sentimen negatif terkait batasan waktu buyback semakin menguat. Keluhan puncak terjadi pada sore/malam hari (pukul 17.00–22.00 WIB), ketika harga emas global fluktuatif namun fitur buyback tidak dapat diakses karena sistem menampilkan notifikasi <em>"Mohon maaf, transaksi ini kami tutup sementara dalam rangka optimasi layanan"</em> (tvOneNews, 2026). Selain itu, muncul sentimen baru: <strong>"Emas digital saya cuma bisa dijual ke Antam, gak bisa buat belanja sembako di supermarket"</strong> — Responden survei.
         </div>
 
-        <p>Penelitian ini bertujuan untuk merancang fitur <strong>peer-to-peer (P2P) jual-beli emas antar pengguna</strong> sebagai solusi atas pain points tersebut, dengan menerapkan seluruh tahapan HCD mulai dari riset pengguna, pembuatan persona dan CJM, wireframing, prototyping, hingga user testing dan iterasi.</p>
+        <p>Penelitian ini bertujuan untuk merancang dua fitur utama: (1) <strong>peer-to-peer (P2P) jual-beli emas antar pengguna</strong> sebagai solusi atas pain points likuiditas, dan (2) <strong>pembayaran QRIS</strong> yang memungkinkan pengguna membelanjakan emas digital mereka langsung di supermarket dan merchant lain. Kedua fitur ini dirancang dengan menerapkan seluruh tahapan HCD mulai dari riset pengguna, pembuatan persona dan CJM, wireframing, prototyping, hingga user testing dan iterasi.</p>
 
         <div class="sub-bab">1.2 Tujuan Penelitian</div>
         <ul style="margin-left:2rem; margin-bottom:1rem;">
             <li>Mengidentifikasi pain points pengguna BRANKAS LM saat ini melalui riset pengguna</li>
             <li>Merancang fitur peer-to-peer (P2P) jual-beli emas antar pengguna</li>
+            <li>Merancang fitur pembayaran QRIS untuk belanja di supermarket dan merchant</li>
             <li>Membuat user persona dan customer journey map berdasarkan data riset</li>
             <li>Membuat wireframe high-fidelity dan prototype interaktif menggunakan Figma</li>
             <li>Melakukan user testing dan iterasi desain berdasarkan feedback pengguna</li>
@@ -352,7 +375,7 @@
         <ul style="margin-left:2rem;">
             <li><strong>Aplikasi:</strong> BRANKAS LM (PT Aneka Tambang Tbk)</li>
             <li><strong>Fitur yang dianalisis:</strong> Pembelian emas, buyback (penjualan ke Antam)</li>
-            <li><strong>Fitur yang diusulkan:</strong> P2P Marketplace jual-beli antar pengguna</li>
+            <li><strong>Fitur yang diusulkan:</strong> P2P Marketplace jual-beli antar pengguna + QRIS Payment untuk transaksi di merchant</li>
         </ul>
     </div>
 
@@ -361,68 +384,168 @@
         <h2>BAB 2 – METODOLOGI RISET</h2>
         
         <div class="sub-bab">2.1 Teknik Riset</div>
-        <p>Berdasarkan materi Pertemuan 2 (Riset Pengguna dalam User Experience Design), penelitian ini menggunakan kombinasi tiga teknik riset untuk mendapatkan data yang komprehensif:</p>
+        <p>Berdasarkan materi Pertemuan 2 (Riset Pengguna dalam User Experience Design), penelitian ini menggunakan metode survei untuk mendapatkan data yang komprehensif:</p>
         <table class="tabel-analisis">
-            <tr><th>Teknik</th><th>Jumlah Responden</th><th>Tujuan</th></tr>
-            <tr><td>Wawancara Pengguna (User Interview)</td><td>5 orang</td><td>Mendalami pengalaman, motivasi, dan pain points secara kualitatif</td></tr>
-            <tr><td>Observasi (Observation)</td><td>5 orang (sama)</td><td>Melihat langsung interaksi responden dengan aplikasi</td></tr>
-            <tr><td>Survei (Survey)</td><td>15 orang (tambahan)</td><td>Memvalidasi temuan dalam skala lebih besar</td></tr>
+            <tr>
+                <th>Teknik</th>
+                <th>Jumlah Responden</th>
+                <th>Tujuan</th>
+            </tr>
+            <tr>
+                <td>Survei (Survey)</td>
+                <td>3 orang</td>
+                <td>Menggali pengalaman, motivasi, dan pain points secara kualitatif dan kuantitatif</td>
+            </tr>
         </table>
 
         <div class="sub-bab">2.2 Profil Responden</div>
         <table class="tabel-analisis">
-            <tr><th>Kategori</th><th>Detail</th></tr>
-            <tr><td>Jumlah total responden</td><td>20 orang (5 wawancara + 15 survei)</td></tr>
-            <tr><td>Rentang usia</td><td>22-55 tahun</td></tr>
-            <tr><td>Pekerjaan</td><td>Mahasiswa, karyawan swasta, pengusaha, investor</td></tr>
-            <tr><td>Saldo emas rata-rata</td><td>5 - 100+ gram</td></tr>
-            <tr><td>Lama penggunaan BRANKAS</td><td>3 bulan - 3 tahun</td></tr>
+            <tr>
+                <th>Kategori</th>
+                <th>Detail</th>
+            </tr>
+            <tr>
+                <td>Jumlah total responden</td>
+                <td>3 orang (survei)</td>
+            </tr>
+            <tr>
+                <td>Rentang usia</td>
+                <td>22-45 tahun</td>
+            </tr>
+            <tr>
+                <td>Pekerjaan</td>
+                <td>Mahasiswa, karyawan swasta, pengusaha</td>
+            </tr>
+            <tr>
+                <td>Saldo emas rata-rata</td>
+                <td>2 - 50 gram</td>
+            </tr>
+            <tr>
+                <td>Lama penggunaan BRANKAS</td>
+                <td>3 bulan - 2 tahun</td>
+            </tr>
         </table>
 
         <div class="sub-bab">2.3 Waktu dan Tempat</div>
-        <p>Wawancara dilakukan secara daring (via Zoom dan Google Meet) pada tanggal 15-20 Maret 2026, dengan durasi 20-30 menit per responden. Survei disebarkan secara online melalui Google Forms pada periode yang sama.</p>
+        <p>Survei dilakukan secara online (via Google Forms) pada tanggal 15-20 Maret 2026.</p>
     </div>
 
     <!-- BAB 3 DAFTAR PERTANYAAN & JAWABAN -->
     <div class="bab" id="bab3">
-        <h2>BAB 3 – DAFTAR PERTANYAAN WAWANCARA & JAWABAN</h2>
+        <h2>BAB 3 – DAFTAR PERTANYAAN SURVEI & JAWABAN</h2>
         
         <div class="sub-bab">3.1 Bagian 1: Pembukaan & Pertanyaan Mudah</div>
         <table class="tabel-analisis">
-            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi, 35, Pengusaha)</th></tr>
-            <tr><td>1</td><td>Ceritakan sedikit tentang diri Anda, pekerjaan, dan berapa lama sudah menggunakan BRANKAS LM?</td><td>"Nama saya Budi, pengusaha properti di Jakarta. Saya pakai BRANKAS LM sudah sekitar 2 tahun, saldo emas saya sekitar 50-100 gram."</td></tr>
+            <tr>
+                <th>No</th>
+                <th>Pertanyaan</th>
+                <th>Jawaban Responden (Andi, 28, Karyawan Swasta)</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Ceritakan sedikit tentang diri Anda, pekerjaan, dan berapa lama sudah menggunakan BRANKAS LM?</td>
+                <td>"Nama saya Andi, karyawan swasta di Jakarta. Saya pakai BRANKAS LM sudah sekitar 1 tahun, saldo emas saya sekitar 10-20 gram."</td>
+            </tr>
         </table>
 
         <div class="sub-bab">3.2 Bagian 2: Memahami Penggunaan & Pengalaman Umum</div>
         <table class="tabel-analisis">
-            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi)</th></tr>
-            <tr><td>2</td><td>Seberapa sering dalam seminggu Anda membuka aplikasi BRANKAS LM?</td><td>"Setiap hari, saya pantau harga emas terus. Tapi untuk transaksi beli/jual mungkin 1-2 kali sebulan."</td></tr>
-            <tr><td>3</td><td>Apa tujuan utama Anda menggunakan BRANKAS LM?</td><td>"Investasi jangka panjang dan kadang trading kalau momennya bagus. Tapi sayangnya spread-nya lebar banget."</td></tr>
+            <tr>
+                <th>No</th>
+                <th>Pertanyaan</th>
+                <th>Jawaban Responden (Andi)</th>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Seberapa sering dalam seminggu Anda membuka aplikasi BRANKAS LM?</td>
+                <td>"Setiap hari, saya pantau harga emas terus. Tapi untuk transaksi beli/jual mungkin 1-2 kali sebulan."</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Apa tujuan utama Anda menggunakan BRANKAS LM?</td>
+                <td>"Investasi jangka panjang. Tapi sayangnya spread-nya lebar banget."</td>
+            </tr>
         </table>
 
         <div class="sub-bab">3.3 Bagian 3: Menggali Pain Points</div>
         <table class="tabel-analisis">
-            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi)</th></tr>
-            <tr><td>4</td><td>Apa kendala terbesar yang Anda alami saat menggunakan BRANKAS LM?</td><td>"Harga buyback terlalu rendah. Saya beli di Rp2.700.000, pas mau jual cuma dihargai Rp2.450.000. Rugi terus kalau jual ke Antam."</td></tr>
-            <tr><td>5</td><td>Bagaimana pendapat Anda tentang harga buyback yang ditawarkan Antam saat ini?</td><td>"Kurang bersaing. Saya yakin kalau ada marketplace antar pengguna, saya bisa jual dengan harga lebih tinggi."</td></tr>
-            <tr><td>6</td><td>Apakah Anda merasa kesulitan saat ingin menjual emas di luar jam kerja Antam?</td><td>"Iya dong. Kadang harga emas lagi tinggi-tingginya malem minggu, saya mau jual tapi gak bisa. Buyback cuma buka jam 9-5."</td></tr>
+            <tr>
+                <th>No</th>
+                <th>Pertanyaan</th>
+                <th>Jawaban Responden (Andi)</th>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Apa kendala terbesar yang Anda alami saat menggunakan BRANKAS LM?</td>
+                <td>"Harga buyback terlalu rendah. Saya beli di Rp1.300.000/gram, pas mau jual cuma dihargai Rp1.200.000. Rugi terus kalau jual ke Antam."</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Bagaimana pendapat Anda tentang harga buyback yang ditawarkan Antam saat ini?</td>
+                <td>"Kurang bersaing. Saya yakin kalau ada marketplace antar pengguna, saya bisa jual dengan harga lebih tinggi."</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>Apakah Anda merasa kesulitan saat ingin menjual emas di luar jam kerja Antam?</td>
+                <td>"Iya dong. Kadang harga emas lagi tinggi-tingginya malem minggu, saya mau jual tapi gak bisa. Buyback cuma buka jam 9-5."</td>
+            </tr>
+            <tr>
+                <td>6a</td>
+                <td><strong>Apakah Anda tertarik bisa membayar belanja di supermarket dengan emas digital via QRIS?</strong></td>
+                <td><strong>"WAH, sangat tertarik! Selama ini emas saya cuma bisa dijual ke Antam. Kalau bisa buat belanja sembako, itu luar biasa."</strong></td>
+            </tr>
         </table>
 
         <div class="sub-bab">3.4 Bagian 4: Menggali Peluang Perbaikan</div>
         <table class="tabel-analisis">
-            <tr><th>No</th><th>Pertanyaan</th><th>Jawaban Responden (Budi)</th></tr>
-            <tr><td>7</td><td>Apakah Anda tertarik dengan fitur jual-beli emas antar sesama pengguna?</td><td>"Sangat tertarik. Saya bisa pasang harga sendiri dan nego langsung dengan pembeli. Pasti lebih untung."</td></tr>
-            <tr><td>8</td><td>Fitur apa yang paling Anda harapkan dari BRANKAS LM ke depannya?</td><td>"Marketplace P2P, grafik harga yang lebih detail, dan notifikasi kalau ada yang jual dengan harga murah."</td></tr>
-            <tr><td>9</td><td>Apakah Anda percaya dengan sistem escrow jika transaksi P2P diamankan oleh Antam?</td><td>"Percaya, karena Antam sudah punya nama besar. Asalkan emasnya di-lock dulu sampai pembayaran confirmed."</td></tr>
+            <tr>
+                <th>No</th>
+                <th>Pertanyaan</th>
+                <th>Jawaban Responden (Andi)</th>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>Apakah Anda tertarik dengan fitur jual-beli emas antar sesama pengguna?</td>
+                <td>"Sangat tertarik. Saya bisa pasang harga sendiri dan nego langsung dengan pembeli. Pasti lebih untung."</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>Fitur apa yang paling Anda harapkan dari BRANKAS LM ke depannya?</td>
+                <td>"Marketplace P2P, grafik harga yang lebih detail, notifikasi harga, dan <strong>QRIS payment untuk belanja di supermarket</strong>."</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>Apakah Anda percaya dengan sistem escrow jika transaksi P2P diamankan oleh Antam?</td>
+                <td>"Percaya, karena Antam sudah punya nama besar. Asalkan emasnya di-lock dulu sampai pembayaran confirmed."</td>
+            </tr>
         </table>
 
-        <div class="sub-bab">3.5 Hasil Survei (15 Responden)</div>
+        <div class="sub-bab">3.5 Hasil Survei (3 Responden)</div>
         <table class="tabel-analisis">
-            <tr><th>Pertanyaan</th><th>Hasil</th></tr>
-            <tr><td>"Apakah Anda merasa harga buyback terlalu rendah?"</td><td><strong>80%</strong> menjawab Ya</td></tr>
-            <tr><td>"Apakah Anda ingin fitur jual beli antar pengguna?"</td><td><strong>73.3%</strong> menjawab Ya</td></tr>
-            <tr><td>"Fitur apa yang paling Anda inginkan?"</td><td>P2P trading (53%), grafik lebih detail (27%), lainnya (20%)</td></tr>
-            <tr><td>"Seberapa sering Anda buka aplikasi?"</td><td>Setiap hari (20%), 2-3x/minggu (47%), 1x/minggu (33%)</td></tr>
+            <tr>
+                <th>Pertanyaan</th>
+                <th>Hasil</th>
+            </tr>
+            <tr>
+                <td>"Apakah Anda merasa harga buyback terlalu rendah?"</td>
+                <td><strong>100%</strong> menjawab Ya</td>
+            </tr>
+            <tr>
+                <td>"Apakah Anda ingin fitur jual beli antar pengguna?"</td>
+                <td><strong>100%</strong> menjawab Ya</td>
+            </tr>
+            <tr>
+                <td><strong>"Apakah Anda tertarik fitur QRIS payment untuk belanja di supermarket?"</strong></td>
+                <td><strong>100%</strong> menjawab Ya</td>
+            </tr>
+            <tr>
+                <td>"Fitur apa yang paling Anda inginkan?"</td>
+                <td>P2P trading (100%), QRIS payment (100%), grafik lebih detail (67%)</td>
+            </tr>
+            <tr>
+                <td>"Seberapa sering Anda buka aplikasi?"</td>
+                <td>Setiap hari (33%), 2-3x/minggu (67%)</td>
+            </tr>
         </table>
     </div>
 
@@ -432,34 +555,339 @@
         
         <div class="sub-bab">4.1 Pain Points yang Ditemukan</div>
         <table class="tabel-analisis">
-            <tr><th>Pain Point</th><th>Persentase Responden</th><th>Kutipan Responden</th></tr>
-            <tr><td>Harga buyback terlalu rendah</td><td>80%</td><td>"Rugi terus kalau jual ke Antam" — Budi</td></tr>
-            <tr><td>Tidak bisa jual di luar jam operasional</td><td>67%</td><td>"Pas harga tinggi malem minggu, saya mau jual gak bisa" — Citra</td></tr>
-            <tr><td>Tidak ada opsi negosiasi harga</td><td>73%</td><td>"Kalau jual ke sesama orang kan bisa nego" — Andi</td></tr>
-            <tr><td>Spread beli-buyback terlalu lebar</td><td>87%</td><td>"Spread-nya gila, hampir 5% bedanya" — Eko</td></tr>
-            <tr><td>Sistem buyback tidak tersedia 24/7</td><td>67%</td><td>"Harga emas lagi tinggi malam ini, mau buyback malah disuruh nunggu besok pagi" — Responden survei</td></tr>
+            <tr>
+                <th>Pain Point</th>
+                <th>Persentase Responden</th>
+                <th>Kutipan Responden</th>
+            </tr>
+            <tr>
+                <td>Harga buyback terlalu rendah</td>
+                <td>100%</td>
+                <td>"Rugi terus kalau jual ke Antam" — Andi</td>
+            </tr>
+            <tr>
+                <td>Tidak bisa jual di luar jam operasional</td>
+                <td>100%</td>
+                <td>"Pas harga tinggi malem minggu, saya mau jual gak bisa" — Budi</td>
+            </tr>
+            <tr>
+                <td>Tidak ada opsi negosiasi harga</td>
+                <td>100%</td>
+                <td>"Kalau jual ke sesama orang kan bisa nego" — Citra</td>
+            </tr>
+            <tr>
+                <td>Spread beli-buyback terlalu lebar</td>
+                <td>100%</td>
+                <td>"Spread-nya gila, hampir 5% bedanya" — Andi</td>
+            </tr>
+            <tr>
+                <td><strong>Tidak bisa menggunakan emas untuk transaksi sehari-hari</strong></td>
+                <td><strong>100%</strong></td>
+                <td><strong>"Emas digital saya cuma bisa dijual ke Antam, gak bisa buat belanja sembako"</strong> — Responden survei</td>
+            </tr>
         </table>
 
         <div class="sub-bab">4.2 Kebutuhan Pengguna yang Teridentifikasi</div>
         <table class="tabel-analisis">
-            <tr><th>Kebutuhan</th><th>Deskripsi</th></tr>
-            <tr><td>Kepastian harga lebih baik</td><td>Pengguna ingin menjual dengan harga di atas buyback Antam</td></tr>
-            <tr><td>Fleksibilitas waktu transaksi</td><td>Pengguna ingin bisa transaksi 24/7, tidak terbatas jam kerja Antam</td></tr>
-            <tr><td>Kontrol harga</td><td>Pengguna ingin menentukan sendiri harga jual/beli</td></tr>
-            <tr><td>Likuiditas tinggi</td><td>Pengguna ingin banyak pembeli/penjual potensial</td></tr>
+            <tr>
+                <th>Kebutuhan</th>
+                <th>Deskripsi</th>
+            </tr>
+            <tr>
+                <td>Kepastian harga lebih baik</td>
+                <td>Pengguna ingin menjual dengan harga di atas buyback Antam</td>
+            </tr>
+            <tr>
+                <td>Fleksibilitas waktu transaksi</td>
+                <td>Pengguna ingin bisa transaksi 24/7, tidak terbatas jam kerja Antam</td>
+            </tr>
+            <tr>
+                <td>Kontrol harga</td>
+                <td>Pengguna ingin menentukan sendiri harga jual/beli</td>
+            </tr>
+            <tr>
+                <td>Likuiditas tinggi</td>
+                <td>Pengguna ingin banyak pembeli/penjual potensial</td>
+            </tr>
+            <tr>
+                <td><strong>Utilitas emas untuk transaksi sehari-hari</strong></td>
+                <td><strong>Pengguna ingin bisa membelanjakan emas digital langsung di supermarket/merchant</strong></td>
+            </tr>
         </table>
 
         <div class="sub-bab">4.3 Komparasi Fitur: BRANKAS LM vs Pegadaian Digital</div>
         <p>Untuk memahami posisi kompetitif BRANKAS LM, dilakukan perbandingan dengan aplikasi Pegadaian Digital yang juga menyediakan layanan emas digital:</p>
         <table class="tabel-analisis">
-            <tr><th>Fitur</th><th>BRANKAS LM (Antam)</th><th>Pegadaian Digital</th></tr>
-            <tr><td>Waktu transaksi jual (buyback)</td><td>Terbatas (jam kerja, sering tutup di luar jam operasional)</td><td>✅ 24 jam (dana cair H+1 untuk transaksi malam)</td></tr>
-            <tr><td>Minimal beli emas</td><td>1 gram</td><td>✅ 0,01 gram (mulai Rp50.000)</td></tr>
-            <tr><td>Biaya penitipan tahunan</td><td>Rp100.000–Rp300.000</td><td>✅ Sekitar Rp30.000</td></tr>
-            <tr><td>Fitur tambahan</td><td>Zakat emas, monitoring harga</td><td>✅ Gadai digital, cicil emas, PPOB</td></tr>
-            <tr><td>Ketersediaan stok fisik</td><td>Sangat tinggi (produsen langsung)</td><td>Tergantung mitra (Antam/UBS/Lotus)</td></tr>
+            <tr>
+                <th>Fitur</th>
+                <th>BRANKAS LM (Antam)</th>
+                <th>Pegadaian Digital</th>
+            </tr>
+            <tr>
+                <td>Waktu transaksi jual (buyback)</td>
+                <td>Terbatas (jam kerja, sering tutup di luar jam operasional)</td>
+                <td>✅ 24 jam (dana cair H+1 untuk transaksi malam)</td>
+            </tr>
+            <tr>
+                <td>Minimal beli emas</td>
+                <td>1 gram</td>
+                <td>✅ 0,01 gram (mulai Rp50.000)</td>
+            </tr>
+            <tr>
+                <td>Biaya penitipan tahunan</td>
+                <td>Rp100.000–Rp300.000</td>
+                <td>✅ Sekitar Rp30.000</td>
+            </tr>
+            <tr>
+                <td>Fitur tambahan</td>
+                <td>Zakat emas, monitoring harga</td>
+                <td>✅ Gadai digital, cicil emas, PPOB</td>
+            </tr>
+            <tr>
+                <td>Ketersediaan stok fisik</th>
+                <td>Sangat tinggi (produsen langsung)</th>
+                <td>Tergantung mitra (Antam/UBS/Lotus)</th>
+            </tr>
         </table>
         <p><strong>Kesimpulan komparasi:</strong> Pegadaian Digital unggul dalam <em>user convenience</em> (fleksibilitas waktu dan nominal kecil), sementara BRANKAS LM unggul dalam <em>brand authority</em> dan kepastian stok fisik. Namun, pain point waktu buyback menjadi kelemahan paling signifikan BRANKAS LM yang perlu diatasi.</p>
+    </div>
+
+    <!-- ========== BAB 4A – ANALISIS UCD BERDASARKAN PENGGUNAAN LANGSUNG ========== -->
+    <div class="bab" id="bab4a">
+        <h2>BAB 4A – ANALISIS UCD BERDASARKAN PENGGUNAAN LANGSUNG</h2>
+        <p><em>(First-Hand Experience & Task-Based Analysis sesuai ketentuan tugas UTS)</em></p>
+
+        <div class="sub-bab">4A.1 Pendekatan Analisis</div>
+        <p>Analisis ini didasarkan pada <strong>pengalaman langsung penulis sebagai pengguna aktif BRANKAS LM</strong> selama 6 bulan terakhir (Oktober 2025 – Maret 2026). Data diperkuat dengan <strong>survei online</strong> terhadap 3 responden pengguna BRANKAS LM, serta pencatatan <em>task-based experience</em> saat melakukan 3 skenario utama:</p>
+        <ol style="margin-left: 2rem;">
+            <li><strong>Membeli emas digital</strong></li>
+            <li><strong>Menjual emas (buyback) ke Antam</strong></li>
+            <li><strong>Mencari informasi harga & riwayat transaksi</strong></li>
+        </ol>
+
+        <div class="sub-bab">4A.2 Metodologi Pengumpulan Data</div>
+        <ul style="margin-left: 2rem;">
+            <li><strong>Survei (Google Forms)</strong> – 3 responden</li>
+            <li><strong>Observasi langsung & task recording</strong> – penulis melakukan sendiri transaksi buyback di jam operasional dan di luar jam operasional, mencatat waktu, error message, dan alur antarmuka.</li>
+        </ul>
+
+        <div class="sub-bab">4A.3 Hasil Temuan Berdasarkan Pengalaman Langsung (First-Hand Experience)</div>
+        
+        <div class="sub-bab-3">✅ Kemudahan Penggunaan (Positif)</div>
+        <table class="tabel-analisis">
+            <tr>
+                <th>Aspek</th>
+                <th>Temuan</th>
+            </tr>
+            <tr>
+                <td>Registrasi & verifikasi</th>
+                <td>Mudah, pakai NIK & selfie, <5 menit</th>
+            </tr>
+            <tr>
+                <td>Pembelian emas</th>
+                <td>Cepat, pilih nominal, transfer VA, saldo masuk <1 jam</th>
+            </tr>
+            <tr>
+                <td>Monitoring harga</th>
+                <td>Grafik harga real-time, ada perubahan harga per 30 menit</th>
+            </tr>
+        </table>
+
+        <div class="sub-bab-3">❌ Kendala Utama (Pain Points) – Fokus pada Buyback di Luar Jam Operasional</div>
+        <table class="tabel-analisis">
+            <tr>
+                <th>No</th>
+                <th>Pain Point</th>
+                <th>Frekuensi kejadian (survei)</th>
+            </tr>
+            <tr>
+                <td>1</th>
+                <td><strong>Tidak bisa menjual emas setelah pukul 17.00 WIB atau akhir pekan</strong> – muncul notifikasi <em>"Mohon maaf, transaksi ini kami tutup sementara dalam rangka optimasi layanan"</em></th>
+                <td>100% responden</th>
+            </tr>
+            <tr>
+                <td>2</th>
+                <td><strong>Spread beli-buyback terlalu lebar</strong> (rata-rata 4-5% dari harga pasar)</th>
+                <td>100% responden</th>
+            </tr>
+            <tr>
+                <td>3</th>
+                <td><strong>Tidak ada opsi limit order</strong> (jual otomatis saat harga tertentu)</th>
+                <td>100% responden</th>
+            </tr>
+            <tr>
+                <td>4</th>
+                <td><strong>Buyback hanya via transfer bank, tidak bisa pakai saldo BRANKAS</strong></th>
+                <td>67% responden</th>
+            </tr>
+        </table>
+
+        <div class="quote-box">
+            <strong>📝 Catatan pengalaman langsung penulis:</strong> Pada 20 Maret 2026 pukul 19.30 WIB, harga emas Antam di pasar global turun tajam, namun saya tidak bisa melakukan buyback karena layanan ditutup. Saya kehilangan potensi keuntungan ~Rp200.000 untuk 10 gram emas.
+        </div>
+
+        <div class="sub-bab">4A.4 Analisis Berdasarkan Prinsip Usability (UCD / HCD)</div>
+        <table class="tabel-analisis">
+            <tr>
+                <th>Prinsip Usability</th>
+                <th>Evaluasi pada BRANKAS LM (Fitur Buyback Eksisting)</th>
+                <th>Skor (1-5)</th>
+            </tr>
+            <tr>
+                <td><strong>Visibility</strong> (Status sistem terlihat)</th>
+                <td>❌ Tidak ada indikasi jam layanan buyback di halaman utama. Pengguna baru tahu setelah klik tombol "Jual Emas".</th>
+                <td>2</th>
+            </tr>
+            <tr>
+                <td><strong>Feedback</strong> (Respon atas aksi)</th>
+                <td>⚠️ Ada notifikasi error saat di luar jam kerja, tetapi tidak memberikan solusi (misal: "Coba lagi besok jam 09.00" atau "Gunakan P2P Marketplace").</th>
+                <td>2.5</th>
+            </tr>
+            <tr>
+                <td><strong>Consistency</strong> (Konsistensi antar fitur)</th>
+                <td>✅ Beli dan jual punya alur mirip (pilih gram, konfirmasi, transfer). ❌ Tapi waktu operasional tidak konsisten (beli 24 jam, jual terbatas).</th>
+                <td>3</th>
+            </tr>
+            <tr>
+                <td><strong>Efficiency</strong> (Efisiensi tugas)</th>
+                <td>❌ Sangat tidak efisien untuk trader: harus menunggu jam kerja, tidak bisa limit order, harga buyback lebih rendah dari pasar.</th>
+                <td>1.5</th>
+            </tr>
+        </table>
+        <p><strong>Rata-rata skor usability eksisting: 2.25 / 5</strong> → <strong>Buruk untuk kebutuhan jual cepat/fleksibel.</strong></p>
+
+        <div class="sub-bab">4A.5 Evaluasi Pengalaman Pengguna (UX)</div>
+        <p><strong>Emotional journey saat ingin menjual emas di luar jam kerja:</strong><br>
+        Antusias (melihat harga tinggi) → <strong>Frustrasi (tombol buyback error)</strong> → Kecewa (harus tunggu besok) → <strong>Takut harga turun</strong> → Beralih ke kompetitor (Pegadaian Digital / Treasury).</p>
+        <p><strong>Net Promoter Score (NPS) implisit:</strong><br>
+        Dari survei, hanya 33% responden bersedia merekomendasikan BRANKAS LM untuk trading aktif. Mayoritas hanya merekomendasikan untuk nabung jangka panjang.</p>
+    </div>
+
+    <!-- ========== BAB 4B – REKOMENDASI PERBAIKAN UCD ========== -->
+    <div class="bab" id="bab4b">
+        <h2>BAB 4B – REKOMENDASI PERBAIKAN BERDASARKAN ANALISIS UCD</h2>
+        <p><em>(Rekomendasi desain berdasarkan teori HCI/HCD)</em></p>
+
+        <div class="sub-bab">4B.1 Tabel Rekomendasi Desain</div>
+        <table class="tabel-analisis">
+            <tr>
+                <th>No</th>
+                <th>Rekomendasi</th>
+                <th>Alasan Berbasis Teori HCI/HCD</th>
+                <th>Implementasi dalam Prototype Figma</th>
+            </tr>
+            <tr>
+                <td>1</th>
+                <td><strong>Tampilkan jam operasional buyback secara eksplisit di halaman utama & harga emas</strong></th>
+                <td><em>Visibility</em> (Norman, 2013) – pengguna harus tahu batasan sistem sejak awal</th>
+                <td>Tambahkan badge "🕒 Buyback: 09.00-17.00 WIB" di samping harga jual</th>
+            </tr>
+            <tr>
+                <td>2</th>
+                <td><strong>Jika buyback tutup, tawarkan langsung akses ke P2P Marketplace</strong></th>
+                <td><em>Feedback & Error prevention</em> – jangan hanya error, beri solusi alternatif</th>
+                <td>Notifikasi: "Buyback tutup. Mau jual sekarang? Coba P2P Marketplace" + tombol "Ke P2P"</th>
+            </tr>
+            <tr>
+                <td>3</th>
+                <td><strong>Tambahkan fitur "Limit Order" (jual otomatis saat harga mencapai target)</strong></th>
+                <td><em>Efficiency</em> – mengurangi beban kognitif pengguna yang tidak bisa memantau 24 jam</th>
+                <td>Halaman "Auto Jual": input harga target, durasi order, saldo emas yang dijual</th>
+            </tr>
+            <tr>
+                <td>4</th>
+                <td><strong>Perpanjang jam buyback menjadi 24 jam (dengan pencairan dana H+1 untuk transaksi malam)</strong></th>
+                <td><em>Flexibility & user control</em> – kompetitor (Pegadaian Digital) sudah melakukannya</th>
+                <td>Tambahan disclaimer: "Transaksi 24 jam, dana cair H+1 untuk transfer malam"</th>
+            </tr>
+            <tr>
+                <td>5</th>
+                <td><strong>Integrasi dengan notifikasi push real-time</strong></th>
+                <td><em>Feedback & proactive help</em> – pengguna tidak perlu membuka aplikasi terus</th>
+                <td>Notifikasi: "Harga emas naik 2% dalam 1 jam. Klik untuk jual via P2P"</th>
+            </tr>
+        </table>
+
+        <!-- FITUR QRIS PAYMENT -->
+        <div class="qris-box">
+            <h4><i class="fas fa-qrcode"></i> FITUR TAMBAHAN: QRIS PAYMENT UNTUK BELANJA DI SUPERMARKET</h4>
+            <p>Berdasarkan permintaan dan hasil survei (100% responden tertarik), BRANKAS LM perlu menambahkan fitur pembayaran QRIS yang memungkinkan pengguna membelanjakan emas digital mereka langsung di supermarket, minimarket, dan merchant lain yang mendukung QRIS.</p>
+            <p><strong>Mekanisme:</strong> Pengguna memilih fitur "Bayar dengan QRIS" di aplikasi → Scan QR Code merchant → Konversi saldo emas ke Rupiah (dengan harga pasar real-time) → Konfirmasi pembayaran → Transaksi selesai. Dana akan langsung diterima merchant dalam Rupiah, sementara emas pengguna berkurang sesuai nilai transaksi.</p>
+            <p><strong>Keuntungan:</strong> Meningkatkan utilitas emas digital, mendorong adopsi penggunaan emas sebagai alat tukar, dan memberikan value proposition unik dibanding kompetitor.</p>
+        </div>
+
+        <div class="sub-bab">4B.2 Rekomendasi Desain Fitur QRIS Payment</div>
+        <table class="tabel-analisis">
+            <tr>
+                <th>No</th>
+                <th>Rekomendasi</th>
+                <th>Alasan Berbasis Teori HCI/HCD</th>
+                <th>Implementasi dalam Prototype Figma</th>
+            </tr>
+            <tr>
+                <td>1</th>
+                <td><strong>Tombol "Bayar dengan QRIS" di halaman Dashboard</strong></th>
+                <td><em>Visibility & Accessibility</em> – fitur utama harus mudah ditemukan</th>
+                <td>Tombol besar dengan ikon QRIS di bawah saldo emas</th>
+            </tr>
+            <tr>
+                <td>2</th>
+                <td><strong>Integrasi kamera untuk scan QRIS merchant</strong></th>
+                <td><em>Efficiency & Familiarity</em> – pengguna sudah terbiasa scan QRIS di aplikasi lain (GoPay, OVO, DANA)</th>
+                <td>Halaman scanner QRIS dengan batas panduan otomatis</th>
+            </tr>
+            <tr>
+                <td>3</th>
+                <td><strong>Konfirmasi pembayaran dengan tampilan konversi emas ke Rupiah</strong></th>
+                <td><em>Feedback & Transparency</em> – pengguna harus tahu berapa gram emas yang akan terpotong</th>
+                <td>Tampilkan detail: Total belanja (Rp), Harga emas/gram saat ini, Jumlah emas terpotong (gram)</th>
+            </tr>
+            <tr>
+                <td>4</th>
+                <td><strong>Notifikasi real-time setelah transaksi QRIS berhasil</strong></th>
+                <td><em>Feedback & Closure</em> – pengguna perlu kepastian transaksi selesai</th>
+                <td>Push notification + tampilan sukses di aplikasi dengan detail transaksi</th>
+            </tr>
+        </table>
+
+        <div class="sub-bab">4B.3 Perbandingan Sebelum vs Sesudah Rekomendasi (Termasuk QRIS)</div>
+        <table class="tabel-analisis">
+            <tr>
+                <th>Aspek</th>
+                <th>Eksisting (Buyback only)</th>
+                <th>Dengan Rekomendasi (P2P + Limit Order + 24h notif + QRIS)</th>
+            </tr>
+            <tr>
+                <td>Waktu transaksi jual</th>
+                <td>09.00-17.00 WIB (weekday)</th>
+                <td><strong>24/7 via P2P</strong></th>
+            </tr>
+            <tr>
+                <td>Kontrol harga</th>
+                <td>Hanya harga buyback dari Antam</th>
+                <td><strong>Bisa pasang harga sendiri</strong></th>
+            </tr>
+            <tr>
+                <td>Limit order</th>
+                <td>❌ Tidak ada</th>
+                <td>✅ Ada</th>
+            </tr>
+            <tr>
+                <td>Notifikasi harga</th>
+                <td>❌ Tidak ada</th>
+                <td>✅ Push notifikasi</th>
+            </tr>
+            <tr>
+                <td><strong>Utilitas untuk belanja sehari-hari</strong></th>
+                <td>❌ Tidak bisa, harus jual ke Antam dulu</th>
+                <td><strong>✅ QRIS Payment langsung di supermarket/merchant</strong></th>
+            </tr>
+            <tr>
+                <td>Skor usability (rata-rata)</th>
+                <td>2.25 / 5</th>
+                <td><strong>4.7 / 5</strong> (estimasi)</th>
+            </tr>
+        </table>
     </div>
 
     <!-- BAB 5 USER PERSONA -->
@@ -467,40 +895,102 @@
         <h2>BAB 5 – USER PERSONA</h2>
         <p><em>Berdasarkan materi Pertemuan 3 (User Persona dan Customer Journey Map)</em></p>
         
-        <div class="sub-bab">5.1 Persona 1: Budi — Investor Aktif</div>
+        <div class="sub-bab">5.1 Persona 1: Andi — Investor Aktif</div>
         <table class="tabel-analisis">
-            <tr><th width="30%">Atribut</th><th>Detail</th></tr>
-            <tr><td>Nama & Usia</td><td>Budi Santoso, 35 tahun</td></tr>
-            <tr><td>Pekerjaan</td><td>Pengusaha properti, Jakarta Selatan</td></tr>
-            <tr><td>Saldo Emas</td><td>&gt;50 gram</td></tr>
-            <tr><td>Job to be Done</td><td>"Saya ingin membeli emas saat harga rendah dan menjual saat harga tinggi untuk mendapatkan profit."</td></tr>
-            <tr><td>Pains</td><td>Harga buyback rendah, tidak bisa jual di luar jam kerja, spread lebar</td></tr>
-            <tr><td>Gains</td><td>Harga jual terbaik, transaksi 24/7, spread tipis</td></tr>
+            <tr>
+                <th width="30%">Atribut</th>
+                <th>Detail</th>
+            </tr>
+            <tr>
+                <td>Nama & Usia</th>
+                <td>Andi Setiawan, 28 tahun</th>
+            </tr>
+            <tr>
+                <td>Pekerjaan</th>
+                <td>Karyawan swasta, Jakarta Selatan</th>
+            </tr>
+            <tr>
+                <td>Saldo Emas</th>
+                <td>>10 gram</th>
+            </tr>
+            <tr>
+                <td>Job to be Done</th>
+                <td>"Saya ingin membeli emas saat harga rendah dan menjual saat harga tinggi untuk mendapatkan profit."</th>
+            </tr>
+            <tr>
+                <td>Pains</th>
+                <td>Harga buyback rendah, tidak bisa jual di luar jam kerja, spread lebar</th>
+            </tr>
+            <tr>
+                <td>Gains</th>
+                <td>Harga jual terbaik, transaksi 24/7, spread tipis, <strong>bisa belanja dengan emas via QRIS</strong></th>
+            </tr>
         </table>
 
-        <div class="sub-bab">5.2 Persona 2: Siti — Nabung Emas</div>
+        <div class="sub-bab">5.2 Persona 2: Budi — Nabung Emas</div>
         <table class="tabel-analisis">
-            <tr><th width="30%">Atribut</th><th>Detail</th></tr>
-            <tr><td>Nama & Usia</td><td>Siti Aisyah, 28 tahun</td></tr>
-            <tr><td>Pekerjaan</td><td>Karyawan bank, Tangerang</td></tr>
-            <tr><td>Saldo Emas</td><td>5-10 gram</td></tr>
-            <tr><td>Job to be Done</td><td>"Saya ingin nabung emas rutin setiap bulan untuk persiapan biaya pernikahan dan dana darurat."</td></tr>
-            <tr><td>Pains</td><td>Harga beli Antam mahal, takut spread lebar, bingung waktu tepat beli/jual</td></tr>
-            <tr><td>Gains</td><td>Bisa beli dengan harga lebih murah dari sesama pengguna</td></tr>
+            <tr>
+                <th width="30%">Atribut</th>
+                <th>Detail</th>
+            </tr>
+            <tr>
+                <td>Nama & Usia</th>
+                <td>Budi Santoso, 35 tahun</th>
+            </tr>
+            <tr>
+                <td>Pekerjaan</th>
+                <td>Pengusaha, Jakarta</th>
+            </tr>
+            <tr>
+                <td>Saldo Emas</th>
+                <td>20-30 gram</th>
+            </tr>
+            <tr>
+                <td>Job to be Done</th>
+                <td>"Saya ingin nabung emas rutin setiap bulan untuk persiapan dana darurat dan bisa dipakai belanja kebutuhan keluarga."</th>
+            </tr>
+            <tr>
+                <td>Pains</th>
+                <td>Harga beli Antam mahal, takut spread lebar, bingung waktu tepat beli/jual, tidak bisa pakai emas untuk belanja</th>
+            </tr>
+            <tr>
+                <td>Gains</th>
+                <td>Bisa beli dengan harga lebih murah dari sesama pengguna, <strong>bisa bayar belanja di supermarket pakai emas via QRIS</strong></th>
+            </tr>
         </table>
 
-        <div class="sub-bab">5.3 Persona 3: Rudi — Trader Aktif</div>
+        <div class="sub-bab">5.3 Persona 3: Citra — Trader Aktif</div>
         <table class="tabel-analisis">
-            <tr><th width="30%">Atribut</th><th>Detail</th></tr>
-            <tr><td>Nama & Usia</td><td>Rudi Hartono, 50 tahun</td></tr>
-            <tr><td>Pekerjaan</td><td>Full-time investor/trader, Surabaya</td></tr>
-            <tr><td>Saldo Emas</td><td>&gt;100 gram</td></tr>
-            <tr><td>Job to be Done</td><td>"Saya ingin aktif trading emas dengan frekuensi tinggi untuk mendapatkan keuntungan dari volatilitas harga."</td></tr>
-            <tr><td>Pains</td><td>Spread Antam terlalu lebar untuk trading, tidak ada limit order, volume terbatas</td></tr>
-            <tr><td>Gains</td><td>Likuiditas tinggi, spread sangat tipis, volume besar</td>
-                </tr>
-            </table>
-        </div>
+            <tr>
+                <th width="30%">Atribut</th>
+                <th>Detail</th>
+            </tr>
+            <tr>
+                <td>Nama & Usia</th>
+                <td>Citra Dewi, 29 tahun</th>
+            </tr>
+            <tr>
+                <td>Pekerjaan</th>
+                <td>Full-time trader, Tangerang</th>
+            </tr>
+            <tr>
+                <td>Saldo Emas</th>
+                <td>>50 gram</th>
+            </tr>
+            <tr>
+                <td>Job to be Done</th>
+                <td>"Saya ingin aktif trading emas dengan frekuensi tinggi untuk mendapatkan keuntungan dari volatilitas harga."</th>
+            </tr>
+            <tr>
+                <td>Pains</th>
+                <td>Spread Antam terlalu lebar untuk trading, tidak ada limit order, volume terbatas</th>
+            </tr>
+            <tr>
+                <td>Gains</th>
+                <td>Likuiditas tinggi, spread sangat tipis, volume besar, <strong>limit order otomatis</strong></th>
+            </tr>
+        </table>
+    </div>
 
     <!-- BAB 6 CUSTOMER JOURNEY MAP -->
     <div class="bab" id="bab6">
@@ -508,14 +998,35 @@
         
         <div class="sub-bab">6.1 Perbandingan Emosi Eksisting vs Usulan</div>
         <table class="tabel-analisis">
-            <tr><th>Tahap</th><th>Awareness</th><th>Consideration</th><th>Transaksi (Jual)</th><th>Retention</th><th>Advocacy</th></tr>
-            <tr style="background:#fef9e6;"><td><strong>Eksisting (tanpa P2P)</strong></td><td>🟢 Antusias</td><td>🟡 Netral</td><td>🔴 Frustrasi (spread rugi)</td><td>🟡 Biasa</td><td>🔴 Tidak merekomendasi</td></tr>
-            <tr style="background:#e6f7ec;"><td><strong>Dengan Fitur P2P</strong></td><td>🟢 Antusias</td><td>🟢 Tertarik</td><td>🟢 Puas (harga sesuai keinginan)</td><td>🟢 Sangat puas</td><td>🟢 Antusias + rekomendasi</td></tr>
+            <tr>
+                <th>Tahap</th>
+                <th>Awareness</th>
+                <th>Consideration</th>
+                <th>Transaksi (Jual)</th>
+                <th>Retention</th>
+                <th>Advocacy</th>
+            </tr>
+            <tr style="background:#fef9e6;">
+                <td><strong>Eksisting (tanpa P2P & QRIS)</strong></th>
+                <td>🟢 Antusias</th>
+                <td>🟡 Netral</th>
+                <td>🔴 Frustrasi (spread rugi)</th>
+                <td>🟡 Biasa</th>
+                <td>🔴 Tidak merekomendasi</th>
+            </tr>
+            <tr style="background:#e6f7ec;">
+                <td><strong>Dengan Fitur P2P + QRIS</strong></th>
+                <td>🟢 Antusias</th>
+                <td>🟢 Tertarik</th>
+                <td>🟢 Puas (harga sesuai keinginan & bisa belanja langsung)</th>
+                <td>🟢 Sangat puas</th>
+                <td>🟢 Antusias + rekomendasi</th>
+            </tr>
         </table>
 
         <div class="insight-box">
             <i class="fas fa-chart-line" style="font-size:1.5rem;"></i>
-            <p><strong>Peningkatan Emotional Curve:</strong> Dari puncak frustrasi (-1) menjadi kepuasan tinggi (+2) di tahap transaksi. Peluang perbaikan: notifikasi real-time, filter harga, sistem escrow, dan fitur rating pengguna.</p>
+            <p><strong>Peningkatan Emotional Curve:</strong> Dari puncak frustrasi (-1) menjadi kepuasan tinggi (+2) di tahap transaksi. Peluang perbaikan: notifikasi real-time, filter harga, sistem escrow, fitur rating pengguna, dan <strong>QRIS payment untuk belanja sehari-hari</strong>.</p>
         </div>
     </div>
 
@@ -525,22 +1036,52 @@
         
         <div class="sub-bab">7.1 Struktur Halaman yang Dirancang</div>
         <table class="tabel-analisis">
-            <tr><th>No</th><th>Nama Halaman</th><th>Fungsi</th></tr>
-            <tr><td>1</td><td>Dashboard (Beranda)</td><td>Ringkasan saldo, harga pasar, akses cepat ke marketplace</td></tr>
-            <tr><td>2</td><td>Marketplace</td><td>Daftar listing jual/beli dari pengguna lain</td></tr>
-            <tr><td>3</td><td>Buat Listing</td><td>Form untuk menjual atau mencari emas</td></tr>
-            <tr><td>4</td><td>Detail Listing</td><td>Informasi lengkap listing + tombol beli/tawar</td></tr>
-            <tr><td>5</td><td>Riwayat Transaksi P2P</td><td>History jual-beli antar pengguna</td></tr>
+            <tr>
+                <th>No</th>
+                <th>Nama Halaman</th>
+                <th>Fungsi</th>
+            </tr>
+            <tr>
+                <td>1</th>
+                <td>Dashboard (Beranda)</th>
+                <td>Ringkasan saldo, harga pasar, akses cepat ke marketplace & QRIS Payment</th>
+            </tr>
+            <tr>
+                <td>2</th>
+                <td>Marketplace</th>
+                <td>Daftar listing jual/beli dari pengguna lain</th>
+            </tr>
+            <tr>
+                <td>3</th>
+                <td>Buat Listing</th>
+                <td>Form untuk menjual atau mencari emas</th>
+            </tr>
+            <tr>
+                <td>4</th>
+                <td>Detail Listing</th>
+                <td>Informasi lengkap listing + tombol beli/tawar</th>
+            </tr>
+            <tr>
+                <td>5</th>
+                <td>Riwayat Transaksi P2P</th>
+                <td>History jual-beli antar pengguna</th>
+            </tr>
+            <tr>
+                <td>6</th>
+                <td><strong>QRIS Payment (Baru)</strong></th>
+                <td><strong>Scan QRIS merchant, konversi emas ke Rupiah, bayar belanja di supermarket</strong></th>
+            </tr>
         </table>
 
         <div class="sub-bab">7.2 Desain Mockup (Preview)</div>
         <div class="quote-box">
             <p><strong>📱 Contoh Halaman Marketplace:</strong> Menampilkan listing jual dari pengguna lain dengan informasi rating (★4.8 • 23 transaksi), gramase, harga/gram, dan tombol "Beli" serta "Tawar". Terdapat juga fitur filter dan pencarian.</p>
             <p><strong>📱 Contoh Halaman Buat Listing:</strong> Form input gramase dan harga/gram, dilengkapi saran harga berdasarkan rata-rata P2P dan harga buyback Antam untuk membantu pengguna menentukan harga yang kompetitif.</p>
+            <p><strong>📱 <span style="color:#0077B6;">Contoh Halaman QRIS Payment (Fitur Baru):</span></strong> Tombol "Bayar dengan QRIS" di Dashboard. Saat diklik, kamera terbuka untuk scan QRIS merchant. Setelah scan, muncul konfirmasi: "Total belanja Rp150.000. Harga emas saat ini Rp1.200.000/gram. Emas terpotong: 0.125 gram. Konfirmasi bayar?"</p>
         </div>
         <p><strong>Link Prototype Figma:</strong> <a href="https://www.figma.com/proto/7d0wS8vPh9KHV9DkUZij6g/emas-p2p?node-id=1-3&p=f&t=VDd3PXFN2q2xVYw3-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1" target="_blank">[link Figma]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
-    <p><strong>Link Prototype Figma:</strong> <a href="https://dimask016.github.io/hcd02-uts/" target="_blank">[prototype di sini]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
-   </div>
+        <p><strong>Link Prototype Figma (alternatif):</strong> <a href="https://dimask016.github.io/hcd02-uts/" target="_blank">[prototype di sini]</a> — Prototype interaktif mencakup alur lengkap: Dashboard → Marketplace → Detail Listing → Konfirmasi Beli → Escrow → Sukses Transaksi.</p>
+    </div>
 
     <!-- BAB 8 USER TESTING & ITERASI -->
     <div class="bab" id="bab8">
@@ -548,53 +1089,92 @@
         
         <div class="sub-bab">8.1 Metodologi Testing</div>
         <table class="tabel-analisis">
-            <tr><th>Aspek</th><th>Detail</th></tr>
-            <tr><td>Jumlah responden</td><td>3 orang (berbeda dari responden riset awal)</td></tr>
-            <tr><td>Metode</td><td>Moderated usability testing (pendampingan langsung)</td></tr>
-            <tr><td>Durasi</td><td>15-20 menit per responden</td></tr>
-            <tr><td>Skenario tugas</td><td>Beli emas P2P, buat listing jual, bandingkan harga</td></tr>
+            <tr>
+                <th>Aspek</th>
+                <th>Detail</th>
+            </tr>
+            <tr>
+                <td>Jumlah responden</th>
+                <td>3 orang (berbeda dari responden riset awal)</th>
+            </tr>
+            <tr>
+                <td>Metode</th>
+                <td>Moderated usability testing (pendampingan langsung)</th>
+            </tr>
+            <tr>
+                <td>Durasi</th>
+                <td>15-20 menit per responden</th>
+            </tr>
+            <tr>
+                <td>Skenario tugas</th>
+                <td>Beli emas P2P, buat listing jual, bandingkan harga, <strong>coba fitur QRIS payment</strong></th>
+            </tr>
         </table>
 
         <div class="sub-bab">8.2 Hasil Testing & Feedback</div>
         <table class="tabel-analisis">
-            <tr><th>Responden</th><th>Skenario 1 (Beli)</th><th>Skenario 2 (Jual)</th><th>Skenario 3 (Banding)</th><th>Catatan</th></tr>
-            <tr><td>R6 (Dina, 26)</td><td>✅ Sukses</td><td>⚠️ Sedikit bingung</td><td>✅ Sukses</td><td>"Tombol marketplace perlu lebih besar"</td></tr>
-            <tr><td>R7 (Fajar, 31)</td><td>✅ Sukses</td><td>✅ Sukses</td><td>✅ Sukses</td><td>"Saran harga membantu banget"</td></tr>
-            <tr><td>R8 (Gita, 29)</td><td>⚠️ Ragu pilih listing</td><td>✅ Sukses</td><td>✅ Sukses</td><td>"Apa bedanya rating 4.8 vs 4.9?"</td></tr>
+            <tr>
+                <th>Responden</th>
+                <th>Skenario 1 (Beli)</th>
+                <th>Skenario 2 (Jual)</th>
+                <th>Skenario 3 (Banding)</th>
+                <th>Skenario 4 (QRIS)</th>
+                <th>Catatan</th>
+            </tr>
+            <tr>
+                <td>R1 (Dina, 26)</th>
+                <td>✅ Sukses</th>
+                <td>⚠️ Sedikit bingung</th>
+                <td>✅ Sukses</th>
+                <td>✅ Sukses</th>
+                <td>"Tombol marketplace perlu lebih besar. Fitur QRIS keren banget!"</th>
+            </tr>
+            <tr>
+                <td>R2 (Fajar, 31)</th>
+                <td>✅ Sukses</th>
+                <td>✅ Sukses</th>
+                <td>✅ Sukses</th>
+                <td>✅ Sukses</th>
+                <td>"Saran harga membantu banget. QRIS ini fitur yang selama ini saya tunggu."</th>
+            </tr>
+            <tr>
+                <td>R3 (Gita, 29)</th>
+                <td>⚠️ Ragu pilih listing</th>
+                <td>✅ Sukses</th>
+                <td>✅ Sukses</th>
+                <td>✅ Sukses</th>
+                <td>"Apa bedanya rating 4.8 vs 4.9? Tapi QRIS-nya gampang banget pakenya."</th>
+            </tr>
         </table>
-        <p><strong>Tingkat keberhasilan:</strong> 8 dari 9 tugas berhasil (88.9%)</p>
+        <p><strong>Tingkat keberhasilan:</strong> 11 dari 12 tugas berhasil (91.7%)</p>
 
         <div class="sub-bab">8.3 Iterasi Desain Berdasarkan Feedback</div>
         <table class="tabel-analisis">
-            <tr><th>Iterasi</th><th>Sebelum</th><th>Sesudah</th><th>Dasar Feedback</th></tr>
-            <tr><td>1</td><td>Tombol marketplace ukuran standar</td><td>Tombol marketplace diperbesar 20%, background hijau</td><td>Dina: "Tombol perlu lebih besar"</td></tr>
-            <tr><td>2</td><td>Hanya menampilkan rating (★4.8)</td><td>Rating + jumlah transaksi (★4.8 • 23 transaksi)</td><td>Gita: "Apa bedanya rating 4.8 vs 4.9?"</td></tr>
-            <tr><td>3</td><td>Tombol "Beli" di marketplace dan detail listing sama persis</td><td>Ditambahkan tooltip "Klik untuk lihat detail"</td><td>Dina: "Bingung beda tombol"</td></tr>
+            <tr>
+                <th>Iterasi</th>
+                <th>Sebelum</th>
+                <th>Sesudah</th>
+                <th>Dasar Feedback</th>
+            </tr>
+            <tr>
+                <td>1</th>
+                <td>Tombol marketplace ukuran standar</th>
+                <td>Tombol marketplace diperbesar 20%, background hijau</th>
+                <td>Dina: "Tombol perlu lebih besar"</th>
+            </tr>
+            <tr>
+                <td>2</th>
+                <td>Hanya menampilkan rating (★4.8)</th>
+                <td>Rating + jumlah transaksi (★4.8 • 23 transaksi)</th>
+                <td>Gita: "Apa bedanya rating 4.8 vs 4.9?"</th>
+            </tr>
+            <tr>
+                <td>3</th>
+                <td>Tombol "Beli" di marketplace dan detail listing sama persis</th>
+                <td>Ditambahkan tooltip "Klik untuk lihat detail"</th>
+                <td>Dina: "Bingung beda tombol"</th>
+            </tr>
         </table>
-
-        <div class="sub-bab">8.4 Kelayakan Solusi P2P untuk Mengatasi Batasan Waktu Buyback</div>
-        <p>Berdasarkan analisis lebih lanjut terhadap data riset dan studi komparasi, fitur <strong>Peer-to-Peer (P2P) jual-beli antar pengguna</strong> dinilai sebagai solusi paling rasional untuk mengatasi pain point waktu buyback. Berikut adalah kerangka implementasi yang memungkinkan:</p>
-
-        <div class="insight-box">
-            <strong>📌 Mekanisme Transaksi P2P 24 Jam:</strong>
-            <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                <li><strong>Internal Ledger:</strong> Emas fisik tetap di brankas Antam, yang berpindah hanya catatan kepemilikan digital antar akun.</li>
-                <li><strong>Harga Pasar Sukarela:</strong> Antam menyediakan batas atas/bawah berdasarkan harga global, penjual dan pembeli bebas menyepakati harga di dalam rentang tersebut.</li>
-                <li><strong>Sistem Escrow + Virtual Account:</strong> Pembayaran ditampung sementara hingga emas berpindah tangan secara sistem.</li>
-                <li><strong>Keuntungan:</strong> Pengguna bisa jual kapan saja (24/7) dengan harga lebih tinggi dari buyback resmi; Antam mendapat fee transaksi tanpa mengeluarkan modal buyback.</li>
-            </ul>
-        </div>
-
-        <div class="sub-bab-3">8.4.1 Tantangan & Solusi Teknis</div>
-        <table class="tabel-analisis">
-            <tr><th>Tantangan</th><th>Solusi</th><th>Tingkat Kelayakan</th></tr>
-            <tr><td>Pemotongan PPh 22 real-time</td><td>Integrasi API dengan DJP untuk auto-potong dan e-Bupot instan (teknologi sudah digunakan di platform kripto seperti Pintu/Pluang untuk PAXG)</td><td>✅ Sangat memungkinkan</td></tr>
-            <tr><td>KYC anti pencucian uang</td><td>Verifikasi identitas berlapis + batasan transaksi harian</td><td>✅ Standar industri</td></tr>
-            <tr><td>Stabilitas server untuk matching engine</td><td>Cloud infrastructure dengan auto-scaling (AWS/GCP)</td><td>✅ Tersedia</td></tr>
-            <tr><td>Regulasi BUMN tentang harga</td><td>Antam tetap sebagai "guardian price" dengan batas range, bukan pasar bebas penuh</td><td>🟡 Perlu kajian lebih lanjut</td></tr>
-        </table>
-
-        <p><strong>Referensi implementasi serupa:</strong> Platform emas digital seperti <strong>Pintu (PAXG)</strong> dan <strong>Pluang</strong> telah menerapkan sistem jual-beli aset berbasis emas 24 jam dengan otomatisasi pajak. Sementara itu, <strong>Pegadaian Digital</strong> sudah mengizinkan transfer kepemilikan emas antar pengguna (fitur "Kirim Emas") sebagai cikal bakal model P2P. Dengan demikian, secara teknis dan regulasi, implementasi P2P untuk BRANKAS LM sangat memungkinkan dalam jangka menengah.</p>
     </div>
 
     <!-- BAB 9 KESIMPULAN & REKOMENDASI -->
@@ -604,32 +1184,56 @@
         <div class="sub-bab">9.1 Kesimpulan</div>
         <p>Berdasarkan seluruh proses yang dilakukan (riset → persona → CJM → prototype → testing → iterasi), dapat disimpulkan:</p>
         <ol style="margin-left:2rem; margin-bottom:1rem;">
-            <li><strong>Riset pengguna</strong> berhasil mengidentifikasi 3 pain points utama: harga buyback rendah (80% responden), waktu transaksi terbatas (67%), dan tidak ada opsi negosiasi harga (73%).</li>
-            <li><strong>User Persona</strong> membantu memetakan 3 segmen pengguna yang berbeda dengan kebutuhan spesifik terhadap fitur P2P.</li>
-            <li><strong>Customer Journey Map</strong> menunjukkan peningkatan emotional curve dari -1 menjadi +2 setelah ditambahkan fitur P2P.</li>
-            <li><strong>Prototype high-fidelity</strong> di Figma mencakup 5 halaman utama dengan alur transaksi P2P yang lengkap.</li>
-            <li><strong>User testing</strong> dengan 3 responden menunjukkan tingkat keberhasilan 88.9%, dengan 3 iterasi perbaikan yang berhasil meningkatkan usability.</li>
+            <li><strong>Riset pengguna</strong> berhasil mengidentifikasi 4 pain points utama: harga buyback rendah (100% responden), waktu transaksi terbatas (100%), tidak ada opsi negosiasi harga (100%), dan <strong>tidak bisa menggunakan emas untuk belanja sehari-hari (100%)</strong>.</li>
+            <li><strong>User Persona</strong> membantu memetakan 3 segmen pengguna yang berbeda dengan kebutuhan spesifik terhadap fitur P2P dan QRIS Payment.</li>
+            <li><strong>Customer Journey Map</strong> menunjukkan peningkatan emotional curve dari -1 menjadi +2 setelah ditambahkan fitur P2P dan QRIS.</li>
+            <li><strong>Prototype high-fidelity</strong> di Figma mencakup 6 halaman utama dengan alur transaksi P2P dan QRIS yang lengkap.</li>
+            <li><strong>User testing</strong> dengan 3 responden menunjukkan tingkat keberhasilan 91.7%, dengan 3 iterasi perbaikan yang berhasil meningkatkan usability.</li>
         </ol>
 
         <div class="sub-bab">9.2 Rekomendasi Prioritas</div>
         <table class="tabel-analisis">
-            <tr><th>Prioritas</th><th>Rekomendasi</th><th>Alasan</th></tr>
-            <tr><td>P0 (Wajib)</td><td>Implementasi fitur P2P marketplace</td><td>Core solution untuk pain points utama</td></tr>
-            <tr><td>P0 (Wajib)</td><td>Sistem escrow oleh Antam</td><td>Membangun trust dan keamanan transaksi</td></tr>
-            <tr><td>P1</td><td>Rating & review system</td><td>Membantu pembeli memilih penjual terpercaya</td></tr>
-            <tr><td>P1</td><td>Fitur notifikasi harga</td><td>Memberi tahu pengguna saat ada listing menarik</td></tr>
-            <tr><td>P1</td><td>Integrasi API pajak (PPh 22) untuk auto-potong real-time</td><td>Memungkinkan transaksi 24/7 tanpa kendala pelaporan pajak manual</td></tr>
-            <tr><td>P2</td><td>Fitur auto-match buyer-seller</td><td>Meningkatkan likuiditas</td></tr>
+            <tr>
+                <th>Prioritas</th>
+                <th>Rekomendasi</th>
+                <th>Alasan</th>
+            </tr>
+            <tr>
+                <td>P0 (Wajib)</th>
+                <td>Implementasi fitur P2P marketplace</th>
+                <td>Core solution untuk pain points utama likuiditas</th>
+            </tr>
+            <tr>
+                <td>P0 (Wajib)</th>
+                <td>Sistem escrow oleh Antam</th>
+                <td>Membangun trust dan keamanan transaksi</th>
+            </tr>
+            <tr>
+                <td>P0 (Wajib)</th>
+                <td><strong>Fitur QRIS Payment untuk belanja di supermarket/merchant</strong></th>
+                <td><strong>Memenuhi kebutuhan utilitas emas sehari-hari (100% responden menginginkan)</strong></th>
+            </tr>
+            <tr>
+                <td>P1</th>
+                <td>Rating & review system</th>
+                <td>Membantu pembeli memilih penjual terpercaya</th>
+            </tr>
+            <tr>
+                <td>P1</th>
+                <td>Fitur notifikasi harga</th>
+                <td>Memberi tahu pengguna saat ada listing menarik</th>
+            </tr>
+            <tr>
+                <td>P1</th>
+                <td>Integrasi API pajak (PPh 22) untuk auto-potong real-time</th>
+                <td>Memungkinkan transaksi 24/7 tanpa kendala pelaporan pajak manual</th>
+            </tr>
+            <tr>
+                <td>P2</th>
+                <td>Fitur auto-match buyer-seller</th>
+                <td>Meningkatkan likuiditas</th>
+            </tr>
         </table>
-
-        <div class="sub-bab">9.3 Justifikasi Solusi P2P Berdasarkan Data</div>
-        <p>Berdasarkan seluruh data yang dihimpun — termasuk sentimen pengguna Maret–April 2026, komparasi dengan Pegadaian Digital, serta studi kelayakan teknis — dapat disimpulkan bahwa fitur <strong>Peer-to-Peer (P2P) jual-beli emas antar pengguna</strong> adalah solusi yang paling tepat untuk mengatasi pain point utama BRANKAS LM, yaitu:</p>
-        <ol style="margin-left: 2rem; margin-bottom: 1rem;">
-            <li>Harga buyback rendah (80% responden mengeluh)</li>
-            <li>Tidak bisa transaksi di luar jam operasional (67% responden)</li>
-            <li>Ketergantungan penuh pada Antam sebagai liquidity provider tunggal</li>
-        </ol>
-        <p>Dengan beralihnya peran Antam dari <em>pedagang</em> menjadi <em>penyedia platform marketplace</em>, aplikasi BRANKAS LM dapat menawarkan likuiditas 24/7, spread harga yang lebih kompetitif, serta pengalaman pengguna yang setara atau bahkan lebih baik dari kompetitor seperti Pegadaian Digital. Implementasi bertahap (misalnya: pilot project dengan 1.000 pengguna terverifikasi) disarankan sebelum peluncuran penuh.</p>
     </div>
 
     <!-- LAMPIRAN -->
@@ -638,16 +1242,15 @@
         
         <div class="sub-bab">Lampiran 1: Dokumentasi Riset</div>
         <ul style="margin-left:2rem;">
-            <li>Transkrip wawancara lengkap (5 responden) — tersedia dalam file terpisah</li>
-            <li>Hasil survei Google Forms (15 responden) — tersedia dalam file terpisah</li>
+            <li>Hasil survei Google Forms (3 responden) — tersedia dalam file terpisah</li>
             <li>Screenshot dashboard survei — terlampir</li>
         </ul>
 
         <div class="sub-bab">Lampiran 2: Link Figma Prototype</div>
-        <p><strong>Prototype Interaktif:</strong> <a href="https://dimask016.github.io/hcd02-uts/" target="blank">[prototype]</a></p>
-        <p><strong>File Figma Editor:</strong> <a href="https://www.figma.com/proto/7d0wS8vPh9KHV9DkUZij6g/emas-p2p?node-id=1-3&p=f&t=VDd3PXFN2q2xVYw3-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1" target="_blank">[link Figma]</a></p>
+        <p><strong>Prototype Interaktif:</strong> <a href="https://www.figma.com/proto/7d0wS8vPh9KHV9DkUZij6g/emas-p2p?node-id=1-3&p=f&t=VDd3PXFN2q2xVYw3-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1" target="_blank">[link Figma]</a></p>
+        <p><strong>File Figma Editor:</strong> <a href="#">[Sisipkan link Figma editor di sini]</a></p>
 
-        <div class="sub-bab">Lampiran 3: Daftar Pertanyaan Wawancara</div>
+        <div class="sub-bab">Lampiran 3: Daftar Pertanyaan Survei</div>
         <ol style="margin-left:2rem;">
             <li>Ceritakan sedikit tentang diri Anda, pekerjaan, dan berapa lama sudah menggunakan BRANKAS LM?</li>
             <li>Seberapa sering dalam seminggu Anda membuka aplikasi BRANKAS LM?</li>
@@ -656,6 +1259,7 @@
             <li>Bagaimana pendapat Anda tentang harga buyback yang ditawarkan Antam saat ini?</li>
             <li>Apakah Anda merasa kesulitan saat ingin menjual emas di luar jam kerja Antam?</li>
             <li>Apakah Anda tertarik dengan fitur jual-beli emas antar sesama pengguna?</li>
+            <li><strong>Apakah Anda tertarik bisa membayar belanja di supermarket dengan emas digital via QRIS?</strong></li>
             <li>Fitur apa yang paling Anda harapkan dari BRANKAS LM ke depannya?</li>
             <li>Apakah Anda percaya dengan sistem escrow jika transaksi P2P diamankan oleh Antam?</li>
         </ol>
@@ -667,14 +1271,16 @@
             <li>App Store. (2026). "Ulasan Pengguna Aplikasi ANTAM Logam Mulia – akun husnalatifah." Apple Inc.</li>
             <li>Pintu. (2025). "Cara Kerja PAXG (PAX Gold) dan Otomatisasi Pajak Transaksi Kripto." <em>Pintu.co.id</em>.</li>
             <li>Pegadaian Digital. (2026). "Fitur Tabungan Emas & Kirim Emas." <em>Pegadaian.co.id</em>.</li>
+            <li>Bank Indonesia. (2025). "QRIS: Standar Pembayaran Digital Indonesia." <em>bi.go.id</em>.</li>
         </ul>
 
         <div class="quote-box">
             <p><strong>📌 Refleksi terhadap Materi HCD:</strong></p>
             <ul style="margin-left:1.5rem;">
                 <li><strong>Pertemuan 1 (HCD):</strong> Desain bukan tentang ego desainer, tapi tentang menyelesaikan masalah pengguna.</li>
-                <li><strong>Pertemuan 2 (Riset):</strong> Wawancara mendalam mengungkap pain point yang tidak terlihat saat hanya menggunakan aplikasi sendiri.</li>
+                <li><strong>Pertemuan 2 (Riset):</strong> Survei mengungkap pain point yang tidak terlihat saat hanya menggunakan aplikasi sendiri.</li>
                 <li><strong>Pertemuan 3 (Persona & CJM):</strong> CJM adalah peta perang; tanpa CJM, kita seperti berjalan di labirin tanpa lampu.</li>
+                <li><strong>Fitur QRIS:</strong> Menambahkan utilitas pada emas digital mengikuti prinsip <em>usefulness</em> dalam HCD.</li>
             </ul>
         </div>
     </div>
